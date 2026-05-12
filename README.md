@@ -2,6 +2,20 @@
 
 A full-stack food delivery application built with **Angular**, **Node.js**, and **MongoDB**. The system includes three separate portals for **Admins**, **Customers**, and **Restaurants**.
 
+## 🚀 Quick Start
+
+```bash
+# Terminal 1: Start Backend
+cd server && npm run dev
+
+# Terminal 2: Start Frontend
+cd client && npm start
+
+# Open browser: http://localhost:4200
+```
+
+For detailed setup instructions, see [SETUP.md](SETUP.md) or [QUICKSTART.md](QUICKSTART.md)
+
 ## Project Structure
 
 ```
@@ -78,55 +92,27 @@ Food delivery system/
 
 ## Installation & Setup
 
+See **[SETUP.md](SETUP.md)** for complete step-by-step installation and configuration instructions.
+
 ### Prerequisites
 - Node.js (v14+)
-- MongoDB (running locally or Atlas)
-- Angular CLI
+- MongoDB (v4+) or MongoDB Atlas
+- Angular CLI (recommended)
 
-### Backend Setup
+### Quick Backend Setup
+```bash
+cd server
+npm install
+# Create .env file (copy from .env.example)
+npm run dev
+```
 
-1. Navigate to server directory:
-   ```bash
-   cd server
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Create `.env` file with:
-   ```
-   PORT=5000
-   MONGO_URI=mongodb://localhost:27017/foodDelivery
-   JWT_SECRET=your_secret_key
-   ```
-
-4. Start the server:
-   ```bash
-   npm start
-   # or for development with auto-reload
-   npm run dev
-   ```
-
-### Frontend Setup
-
-1. Navigate to client directory:
-   ```bash
-   cd client
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   ng serve
-   ```
-
-4. Open browser at `http://localhost:4200`
+### Quick Frontend Setup
+```bash
+cd client
+npm install
+npm start
+```
 
 ## Models
 
