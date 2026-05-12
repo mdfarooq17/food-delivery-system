@@ -1,0 +1,65 @@
+<div class="customer-dashboard">
+  <h1>Food Delivery System - Customer Portal</h1>
+  
+  <div *ngIf="!selectedRestaurant" class="restaurants-section">
+    <h2>Available Restaurants</h2>
+    <div class="restaurants-grid">
+      <div *ngFor="let restaurant of restaurants" class="restaurant-card" (click)="selectRestaurant(restaurant)">
+        <h3>{{ restaurant.name }}</h3>
+        <p>{{ restaurant.description }}</p>
+        <p>{{ restaurant.address }}</p>
+        <p>Rating: {{ restaurant.rating }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="selectedRestaurant" class="menu-section">
+    <button (click)="selectedRestaurant = null" class="btn-back">Back to Restaurants</button>
+    <h2>{{ selectedRestaurant.name }} - Menu</h2>
+    
+    <div class="menu-grid">
+      <div *ngFor="let item of menuItems" class="menu-item-card">
+        <h4>{{ item.name }}</h4>
+        <p>{{ item.description }}</p>
+        <p class="price">Rs. {{ item.price }}</p>
+        <button (click)="addToCart(item)" class="btn-add">Add to Cart</button>
+      </div>
+    </div>
+
+    <div class="cart-section">
+      <h3>Shopping Cart</h3>
+      <div *ngIf="cart.length > 0">
+        <div *ngFor="let item of cart" class="cart-item">
+          <span>{{ item.name }} x {{ item.quantity }}</span>
+          <span>Rs. {{ item.price * item.quantity }}</span>
+          <button (click)="removeFromCart(item)" class="btn-remove">Remove</button>
+        </div>
+        <div class="cart-total">
+          <strong>Total: Rs. {{ cartTotal }}</strong>
+        </div>
+        <button (click)="showCheckout = true" class="btn-checkout">Proceed to Checkout</button>
+      </div>
+      <p *ngIf="cart.length === 0">Cart is empty</p>
+    </div>
+
+    <div *ngIf="showCheckout" class="checkout-section">
+      <h3>Checkout</h3>
+      <form (ngSubmit)="placeOrder()">
+        <div class="form-group">
+          <label>Delivery Address:</label>
+          <textarea [(ngModel)]="deliveryAddress" name="address" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Phone Number:</label>
+          <input type="tel" [(ngModel)]="phone" name="phone" required>
+        </div>
+        <div class="form-group">
+          <label>Additional Notes:</label>
+          <textarea [(ngModel)]="notes" name="notes"></textarea>
+        </div>
+        <button type="submit" class="btn">Place Order</button>
+        <button type="button" (click)="showCheckout = false" class="btn-cancel">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>

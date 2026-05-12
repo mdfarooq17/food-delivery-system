@@ -1,0 +1,128 @@
+<div class="restaurant-dashboard">
+  <h1>Restaurant Portal</h1>
+
+  <div class="dashboard-tabs">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <h2>Restaurant Profile</h2>
+      <button (click)="showProfileForm = !showProfileForm" class="btn">Edit Profile</button>
+      
+      <div *ngIf="restaurant" class="profile-info">
+        <p><strong>Name:</strong> {{ restaurant.name }}</p>
+        <p><strong>Description:</strong> {{ restaurant.description }}</p>
+        <p><strong>Address:</strong> {{ restaurant.address }}</p>
+        <p><strong>Phone:</strong> {{ restaurant.phone }}</p>
+        <p><strong>Rating:</strong> {{ restaurant.rating }}</p>
+      </div>
+
+      <div *ngIf="showProfileForm" class="profile-form">
+        <form (ngSubmit)="updateProfile()">
+          <div class="form-group">
+            <label>Name:</label>
+            <input type="text" [(ngModel)]="profileData.name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label>Description:</label>
+            <textarea [(ngModel)]="profileData.description" name="description"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Address:</label>
+            <input type="text" [(ngModel)]="profileData.address" name="address" required>
+          </div>
+          <div class="form-group">
+            <label>Phone:</label>
+            <input type="tel" [(ngModel)]="profileData.phone" name="phone" required>
+          </div>
+          <button type="submit" class="btn">Save Profile</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Menu Management Section -->
+    <div class="menu-section">
+      <h2>Menu Management</h2>
+      <button (click)="showAddItemForm = !showAddItemForm" class="btn">Add New Item</button>
+
+      <div *ngIf="showAddItemForm" class="add-item-form">
+        <form (ngSubmit)="addMenuItem()">
+          <div class="form-group">
+            <label>Item Name:</label>
+            <input type="text" [(ngModel)]="newItem.name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label>Description:</label>
+            <textarea [(ngModel)]="newItem.description" name="description"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Price:</label>
+            <input type="number" [(ngModel)]="newItem.price" name="price" required>
+          </div>
+          <div class="form-group">
+            <label>Category:</label>
+            <input type="text" [(ngModel)]="newItem.category" name="category" required>
+          </div>
+          <button type="submit" class="btn">Add Item</button>
+        </form>
+      </div>
+
+      <table class="menu-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Available</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of menuItems">
+            <td>{{ item.name }}</td>
+            <td>Rs. {{ item.price }}</td>
+            <td>{{ item.category }}</td>
+            <td>
+              <input type="checkbox" [checked]="item.isAvailable" (change)="toggleItemAvailability(item)">
+            </td>
+            <td>
+              <button (click)="toggleItemAvailability(item)" class="btn-small">Toggle</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="orders-section">
+      <h2>Orders</h2>
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of orders">
+            <td>{{ order._id }}</td>
+            <td>{{ order.customerId?.name }}</td>
+            <td>Rs. {{ order.totalAmount }}</td>
+            <td>{{ order.status }}</td>
+            <td>
+              <select (change)="updateOrderStatus(order, $event.target.value)">
+                <option value="pending" [selected]="order.status === 'pending'">Pending</option>
+                <option value="accepted" [selected]="order.status === 'accepted'">Accepted</option>
+                <option value="preparing" [selected]="order.status === 'preparing'">Preparing</option>
+                <option value="ready" [selected]="order.status === 'ready'">Ready</option>
+                <option value="delivered" [selected]="order.status === 'delivered'">Delivered</option>
+                <option value="cancelled" [selected]="order.status === 'cancelled'">Cancelled</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

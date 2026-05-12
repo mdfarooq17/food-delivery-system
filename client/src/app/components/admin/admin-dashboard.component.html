@@ -1,0 +1,115 @@
+<div class="admin-dashboard">
+  <h1>Admin Dashboard</h1>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button (click)="setActiveTab('stats')" [class.active]="activeTab === 'stats'" class="tab-btn">Dashboard</button>
+    <button (click)="setActiveTab('users')" [class.active]="activeTab === 'users'" class="tab-btn">Users</button>
+    <button (click)="setActiveTab('restaurants')" [class.active]="activeTab === 'restaurants'" class="tab-btn">Restaurants</button>
+    <button (click)="setActiveTab('orders')" [class.active]="activeTab === 'orders'" class="tab-btn">Orders</button>
+  </div>
+
+  <!-- Stats Section -->
+  <div *ngIf="activeTab === 'stats'" class="stats-section">
+    <h2>System Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Users</h3>
+        <p class="stat-value">{{ stats.totalUsers }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Restaurants</h3>
+        <p class="stat-value">{{ stats.totalRestaurants }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Orders</h3>
+        <p class="stat-value">{{ stats.totalOrders }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Revenue</h3>
+        <p class="stat-value">Rs. {{ stats.totalRevenue }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Section -->
+  <div *ngIf="activeTab === 'users'" class="users-section">
+    <h2>All Users</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Restaurants Section -->
+  <div *ngIf="activeTab === 'restaurants'" class="restaurants-section">
+    <h2>All Restaurants</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let restaurant of restaurants">
+          <td>{{ restaurant.name }}</td>
+          <td>{{ restaurant.address }}</td>
+          <td>{{ restaurant.phone }}</td>
+          <td>
+            <span [class.active]="restaurant.isActive" [class.inactive]="!restaurant.isActive">
+              {{ restaurant.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <button (click)="updateRestaurantStatus(restaurant, !restaurant.isActive)" class="btn-small">
+              {{ restaurant.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Orders Section -->
+  <div *ngIf="activeTab === 'orders'" class="orders-section">
+    <h2>All Orders</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Restaurant</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td>{{ order._id }}</td>
+          <td>{{ order.customerId?.name }}</td>
+          <td>{{ order.restaurantId?.name }}</td>
+          <td>Rs. {{ order.totalAmount }}</td>
+          <td>{{ order.status }}</td>
+          <td>{{ order.createdAt | date: 'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
