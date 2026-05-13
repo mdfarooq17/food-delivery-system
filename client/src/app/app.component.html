@@ -1,14 +1,1 @@
-<div class="app-container">
-  <nav class="navbar" *ngIf="isLoggedIn">
-    <div class="nav-brand">
-      <h2>{{ title }}</h2>
-    </div>
-    <div class="nav-menu">
-      <span class="user-info">{{ currentUser?.role | uppercase }} - {{ currentUser?.name }}</span>
-      <button (click)="logout()" class="btn-logout">Logout</button>
-    </div>
-  </nav>
-  <main class="main-content">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+<router-outlet></router-outlet>

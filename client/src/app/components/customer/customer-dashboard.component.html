@@ -1,65 +1,106 @@
 <div class="customer-dashboard">
-  <h1>Food Delivery System - Customer Portal</h1>
-  
-  <div *ngIf="!selectedRestaurant" class="restaurants-section">
-    <h2>Available Restaurants</h2>
-    <div class="restaurants-grid">
-      <div *ngFor="let restaurant of restaurants" class="restaurant-card" (click)="selectRestaurant(restaurant)">
-        <h3>{{ restaurant.name }}</h3>
-        <p>{{ restaurant.description }}</p>
-        <p>{{ restaurant.address }}</p>
-        <p>Rating: {{ restaurant.rating }}</p>
+  <!-- Header -->
+  <header class="main-header">
+    <div class="header-top">
+      <div class="auth-links" *ngIf="!isLoggedIn">
+        <a href="/login/customer" class="login-btn">Login</a>
+        <a href="/register/customer" class="register-btn">Register</a>
       </div>
     </div>
-  </div>
-
-  <div *ngIf="selectedRestaurant" class="menu-section">
-    <button (click)="selectedRestaurant = null" class="btn-back">Back to Restaurants</button>
-    <h2>{{ selectedRestaurant.name }} - Menu</h2>
-    
-    <div class="menu-grid">
-      <div *ngFor="let item of menuItems" class="menu-item-card">
-        <h4>{{ item.name }}</h4>
-        <p>{{ item.description }}</p>
-        <p class="price">Rs. {{ item.price }}</p>
-        <button (click)="addToCart(item)" class="btn-add">Add to Cart</button>
+    <div class="header-main">
+      <div class="logo">FoodPanda</div>
+      <div class="location-cart">
+        <div class="location">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>{{ selectedAddress || 'Select Address' }}</span>
+          <button class="change-address">Change</button>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn"><i class="fas fa-heart"></i> Favorites</button>
+          <button class="action-btn cart-btn">
+            <i class="fas fa-shopping-cart"></i> Cart ({{ cartCount }})
+          </button>
+          <button class="action-btn" *ngIf="isLoggedIn"><i class="fas fa-user"></i> Profile</button>
+          <button class="theme-toggle" (click)="toggleTheme()">
+            <i [class]="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'"></i>
+          </button>
+        </div>
       </div>
     </div>
-
-    <div class="cart-section">
-      <h3>Shopping Cart</h3>
-      <div *ngIf="cart.length > 0">
-        <div *ngFor="let item of cart" class="cart-item">
-          <span>{{ item.name }} x {{ item.quantity }}</span>
-          <span>Rs. {{ item.price * item.quantity }}</span>
-          <button (click)="removeFromCart(item)" class="btn-remove">Remove</button>
+    <div class="header-bottom">
+      <div class="search-filters">
+        <div class="search-bar">
+          <input type="text" placeholder="Search for restaurants, cuisines, or dishes..." class="search-input">
+          <button class="search-btn"><i class="fas fa-search"></i></button>
         </div>
-        <div class="cart-total">
-          <strong>Total: Rs. {{ cartTotal }}</strong>
+        <div class="filters">
+          <button class="filter-btn active">All</button>
+          <button class="filter-btn">Rating 4.0+</button>
+          <button class="filter-btn">Fast Delivery</button>
+          <button class="filter-btn">Offers</button>
         </div>
-        <button (click)="showCheckout = true" class="btn-checkout">Proceed to Checkout</button>
       </div>
-      <p *ngIf="cart.length === 0">Cart is empty</p>
+      <div class="user-actions">
+        <button class="action-link">My Orders</button>
+        <button class="action-link">Track My Order</button>
+      </div>
     </div>
+  </header>
 
-    <div *ngIf="showCheckout" class="checkout-section">
-      <h3>Checkout</h3>
-      <form (ngSubmit)="placeOrder()">
-        <div class="form-group">
-          <label>Delivery Address:</label>
-          <textarea [(ngModel)]="deliveryAddress" name="address" required></textarea>
+  <!-- Main Content -->
+  <main class="main-content">
+    <app-image-slider></app-image-slider>
+    <app-top-brands></app-top-brands>
+    <app-categories></app-categories>
+    <app-product-cards></app-product-cards>
+
+    <!-- Banner Section -->
+    <section class="banner-section">
+      <div class="banner-card">
+        <div class="banner-content">
+          <h2>Special Offers</h2>
+          <p>Discover amazing deals on your favorite foods</p>
+          <button class="learn-more-btn">Learn More</button>
         </div>
-        <div class="form-group">
-          <label>Phone Number:</label>
-          <input type="tel" [(ngModel)]="phone" name="phone" required>
+        <div class="banner-image">
+          <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400" alt="Banner">
         </div>
-        <div class="form-group">
-          <label>Additional Notes:</label>
-          <textarea [(ngModel)]="notes" name="notes"></textarea>
+      </div>
+    </section>
+
+    <!-- Top Selling Section -->
+    <section class="top-selling-section">
+      <h2>Top Selling Items</h2>
+      <div class="top-selling-grid">
+        <!-- Similar to product cards but for top selling -->
+      </div>
+      <div class="newsletter">
+        <h3>Get 25% Discount on First Order</h3>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Enter your email" class="email-input">
+          <button class="subscribe-btn">Subscribe</button>
         </div>
-        <button type="submit" class="btn">Place Order</button>
-        <button type="button" (click)="showCheckout = false" class="btn-cancel">Cancel</button>
-      </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Customer</h4>
+        <a href="/login/customer">Login</a>
+        <a href="/register/customer">Register</a>
+      </div>
+      <div class="footer-section">
+        <h4>Restaurant</h4>
+        <a href="/login/restaurant">Restaurant Login</a>
+      </div>
+      <div class="footer-section">
+        <h4>Support</h4>
+        <a href="#">Help Center</a>
+        <a href="#">Contact Us</a>
+      </div>
     </div>
-  </div>
+  </footer>
 </div>

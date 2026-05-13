@@ -1,0 +1,18 @@
+<div class="top-brands-section">
+  <h2>Top Brands Near You</h2>
+  <div class="brands-container">
+    <div class="brand-card" *ngFor="let brand of brands">
+      <div class="logo-container">
+        <img [src]="brand.logo" [alt]="brand.name" class="brand-logo">
+        <div class="discount-badge" *ngIf="brand.discount">
+          {{ brand.discount }}% OFF
+        </div>
+      </div>
+      <h3>{{ brand.name }}</h3>
+      <div class="rating">
+        <span class="stars">★★★★☆</span>
+        <span class="reviews">({{ brand.reviews }})</span>
+      </div>
+    </div>
+  </div>
+</div>

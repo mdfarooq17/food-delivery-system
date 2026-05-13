@@ -1,0 +1,35 @@
+<div class="products-section">
+  <h2>Popular Items Near You</h2>
+  <div class="products-grid">
+    <div class="product-card" *ngFor="let product of products">
+      <div class="product-image">
+        <img [src]="product.image" [alt]="product.name">
+        <div class="discount-badge" *ngIf="product.discount">
+          {{ product.discount }}% OFF
+        </div>
+        <button class="favorite-btn" (click)="toggleFavorite(product)">
+          <i [class]="product.favorite ? 'fas fa-heart' : 'far fa-heart'"></i>
+        </button>
+      </div>
+      <div class="product-info">
+        <h3>{{ product.name }}</h3>
+        <p class="category">{{ product.category }}</p>
+        <div class="rating">
+          <span class="stars">★★★★☆</span>
+          <span class="reviews">({{ product.reviews }})</span>
+        </div>
+        <div class="price-delivery">
+          <span class="price">Rs. {{ product.price }}</span>
+          <span class="delivery-time">{{ product.deliveryTime }} min</span>
+        </div>
+        <div class="extra-info">
+          <span class="charges" *ngIf="product.extraCharges">+ Rs. {{ product.extraCharges }} charges</span>
+          <span class="coupon" *ngIf="product.coupon">{{ product.coupon }}</span>
+        </div>
+        <button class="add-to-cart-btn" (click)="addToCart(product)">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

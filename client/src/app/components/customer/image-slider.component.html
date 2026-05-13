@@ -1,0 +1,29 @@
+<div class="slider-container">
+  <div class="slide" *ngFor="let slide of slides; let i = index" [class.active]="i === currentSlide">
+    <div class="glass-card">
+      <div class="content">
+        <div class="text-section">
+          <h1>{{ slide.title }}</h1>
+          <p>{{ slide.description }}</p>
+          <div class="price">Rs. {{ slide.price }}</div>
+          <button class="order-btn">Order Now</button>
+        </div>
+        <div class="image-section">
+          <img [src]="slide.image" alt="Food Item">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="thumbnails">
+    <div class="thumbnail" *ngFor="let slide of slides; let i = index"
+         [class.active]="i === currentSlide"
+         (click)="setSlide(i)">
+      <img [src]="slide.image" alt="Thumbnail">
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress" [style.width.%]="progress"></div>
+  </div>
+</div>

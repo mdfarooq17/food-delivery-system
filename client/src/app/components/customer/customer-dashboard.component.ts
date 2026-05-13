@@ -1,12 +1,32 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CustomerService } from '../../services/customer.service';
+import { ImageSliderComponent } from './image-slider/image-slider.component';
+import { TopBrandsComponent } from './top-brands/top-brands.component';
+import { CategoriesComponent } from './categories/categories.component';
+import { ProductCardsComponent } from './product-cards/product-cards.component';
 
 @Component({
   selector: 'app-customer-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ImageSliderComponent,
+    TopBrandsComponent,
+    CategoriesComponent,
+    ProductCardsComponent
+  ],
   templateUrl: './customer-dashboard.component.html',
   styleUrls: ['./customer-dashboard.component.css']
 })
 export class CustomerDashboardComponent implements OnInit {
+  isLoggedIn = false; // TODO: Get from auth service
+  selectedAddress = 'Downtown, Karachi';
+  cartCount = 0;
+  isDarkTheme = false;
+
   restaurants: any[] = [];
   selectedRestaurant: any = null;
   menuItems: any[] = [];
@@ -103,5 +123,10 @@ export class CustomerDashboardComponent implements OnInit {
         alert('Error placing order: ' + error.error.error);
       }
     );
+  }
+
+  toggleTheme() {
+    this.isDarkTheme = !this.isDarkTheme;
+    // TODO: Implement theme switching
   }
 }
