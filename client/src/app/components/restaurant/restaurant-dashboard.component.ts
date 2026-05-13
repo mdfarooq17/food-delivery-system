@@ -103,7 +103,8 @@ export class RestaurantDashboardComponent implements OnInit {
     );
   }
 
-  updateOrderStatus(order: any, newStatus: string) {
+  updateOrderStatus(order: any, event: Event) {
+    const newStatus = (event.target as HTMLSelectElement).value;
     this.restaurantService.updateOrderStatus(order._id, newStatus).subscribe(
       (response: any) => {
         order.status = newStatus;
