@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -23,16 +24,16 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, { name, email, password, role });
   }
 
-  login(email: string, password: string) {
-    return this.http.post<any>(`${this.apiUrl}/login`, { email, password })
-      .subscribe(response => {
+  login(email: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap(response => {
         if (response && response.token) {
           localStorage.setItem('currentUser', JSON.stringify(response));
           localStorage.setItem('token', response.token);
           this.currentUserSubject.next(response);
         }
-        return response;
-      });
+      })
+    );
   }
 
   logout() {

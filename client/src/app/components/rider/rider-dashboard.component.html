@@ -1,0 +1,112 @@
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fas fa-motorcycle"></i>
+        <span>Rider Portal</span>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li [class.active]="activeTab === 'available'" (click)="setActiveTab('available')">
+        <i class="fas fa-list-ul"></i>
+        <span>Available Orders</span>
+      </li>
+      <li [class.active]="activeTab === 'my-deliveries'" (click)="setActiveTab('my-deliveries')">
+        <i class="fas fa-box-open"></i>
+        <span>My Deliveries</span>
+      </li>
+      <li class="logout-link" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <h2>{{ activeTab === 'available' ? 'Available Orders' : 'My Deliveries' }}</h2>
+    </header>
+
+    <div class="content-body">
+      <!-- Available Orders Tab -->
+      <div *ngIf="activeTab === 'available'">
+        <div *ngIf="availableOrders.length === 0" class="empty-state">
+          <i class="fas fa-check-circle"></i>
+          <p>No new orders available to pick up.</p>
+        </div>
+        <div class="orders-grid">
+          <div class="order-card" *ngFor="let order of availableOrders">
+            <div class="order-header">
+              <span class="order-id">#{{ order._id.slice(-6).toUpperCase() }}</span>
+              <span class="badge status-ready">Ready for pickup</span>
+            </div>
+            <div class="order-details">
+              <div class="detail-row">
+                <i class="fas fa-store"></i>
+                <div>
+                  <strong>Restaurant:</strong>
+                  <p>{{ order.restaurantId?.name }}</p>
+                  <p class="address">{{ order.restaurantId?.address }}</p>
+                </div>
+              </div>
+              <div class="detail-row">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                  <strong>Delivery To:</strong>
+                  <p>{{ order.deliveryAddress }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="order-footer">
+              <span class="price">Rs. {{ order.totalAmount }}</span>
+              <button class="btn btn-primary" (click)="acceptOrder(order)">Accept Delivery</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Deliveries Tab -->
+      <div *ngIf="activeTab === 'my-deliveries'">
+        <div *ngIf="myDeliveries.length === 0" class="empty-state">
+          <i class="fas fa-motorcycle"></i>
+          <p>You have no active deliveries.</p>
+        </div>
+        <div class="orders-grid">
+          <div class="order-card active-delivery" *ngFor="let order of myDeliveries">
+            <div class="order-header">
+              <span class="order-id">#{{ order._id.slice(-6).toUpperCase() }}</span>
+              <span class="badge" [ngClass]="'status-' + order.status">{{ order.status | titlecase }}</span>
+            </div>
+            <div class="order-details">
+              <div class="detail-row">
+                <i class="fas fa-store"></i>
+                <div>
+                  <strong>Pickup From:</strong>
+                  <p>{{ order.restaurantId?.name }}</p>
+                  <p class="address">{{ order.restaurantId?.address }}</p>
+                </div>
+              </div>
+              <div class="detail-row">
+                <i class="fas fa-user"></i>
+                <div>
+                  <strong>Deliver To:</strong>
+                  <p>{{ order.customerId?.name || 'Customer' }}</p>
+                  <p class="address">{{ order.deliveryAddress }}</p>
+                  <p class="phone"><i class="fas fa-phone"></i> {{ order.phone }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="order-actions">
+              <button *ngIf="order.status === 'ready'" class="btn btn-warning" (click)="updateOrderStatus(order, 'picked_up')">
+                <i class="fas fa-box"></i> Mark Picked Up
+              </button>
+              <button *ngIf="order.status === 'picked_up'" class="btn btn-success" (click)="updateOrderStatus(order, 'delivered')">
+                <i class="fas fa-check"></i> Mark Delivered
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -6,7 +6,8 @@ import { RegisterComponent } from './components/register.component';
 import { CustomerDashboardComponent } from './components/customer/customer-dashboard.component';
 import { RestaurantDashboardComponent } from './components/restaurant/restaurant-dashboard.component';
 import { AdminDashboardComponent } from './components/admin/admin-dashboard.component';
-import { LoginCustomerComponent } from './components/auth/login-customer/login-customer.component';
+import { LoginCustomerComponent } from './components/auth/login-customer.component';
+import { RiderDashboardComponent } from './components/rider/rider-dashboard.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/customer', pathMatch: 'full' },
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'customer', component: CustomerDashboardComponent },
   { path: 'restaurant', component: RestaurantDashboardComponent },
   { path: 'admin', component: AdminDashboardComponent },
+  { path: 'rider', component: RiderDashboardComponent },
   { path: '**', redirectTo: '/customer' }
 ];
 

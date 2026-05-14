@@ -1,8 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { RestaurantService } from '../../services/restaurant.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-restaurant-dashboard',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './restaurant-dashboard.component.html',
   styleUrls: ['./restaurant-dashboard.component.css']
 })
@@ -12,7 +18,11 @@ export class RestaurantDashboardComponent implements OnInit {
   orders: any[] = [];
   showAddItemForm = false;
   showProfileForm = false;
+  activeTab = 'profile';
   
+  setActiveTab(tab: string) {
+    this.activeTab = tab;
+  }
   newItem = {
     name: '',
     description: '',
@@ -29,7 +39,11 @@ export class RestaurantDashboardComponent implements OnInit {
     image: ''
   };
 
-  constructor(private restaurantService: RestaurantService) { }
+  constructor(
+    private restaurantService: RestaurantService,
+    private authService: AuthService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     this.loadProfile();
@@ -114,6 +128,11 @@ export class RestaurantDashboardComponent implements OnInit {
         alert('Error updating order: ' + error.error.error);
       }
     );
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   toggleItemAvailability(item: any) {

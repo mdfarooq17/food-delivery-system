@@ -1,128 +1,222 @@
-<div class="restaurant-dashboard">
-  <h1>Restaurant Portal</h1>
-
-  <div class="dashboard-tabs">
-    <!-- Profile Section -->
-    <div class="profile-section">
-      <h2>Restaurant Profile</h2>
-      <button (click)="showProfileForm = !showProfileForm" class="btn">Edit Profile</button>
-      
-      <div *ngIf="restaurant" class="profile-info">
-        <p><strong>Name:</strong> {{ restaurant.name }}</p>
-        <p><strong>Description:</strong> {{ restaurant.description }}</p>
-        <p><strong>Address:</strong> {{ restaurant.address }}</p>
-        <p><strong>Phone:</strong> {{ restaurant.phone }}</p>
-        <p><strong>Rating:</strong> {{ restaurant.rating }}</p>
-      </div>
-
-      <div *ngIf="showProfileForm" class="profile-form">
-        <form (ngSubmit)="updateProfile()">
-          <div class="form-group">
-            <label>Name:</label>
-            <input type="text" [(ngModel)]="profileData.name" name="name" required>
-          </div>
-          <div class="form-group">
-            <label>Description:</label>
-            <textarea [(ngModel)]="profileData.description" name="description"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Address:</label>
-            <input type="text" [(ngModel)]="profileData.address" name="address" required>
-          </div>
-          <div class="form-group">
-            <label>Phone:</label>
-            <input type="tel" [(ngModel)]="profileData.phone" name="phone" required>
-          </div>
-          <button type="submit" class="btn">Save Profile</button>
-        </form>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fas fa-store"></i>
+        <span>Restaurant Portal</span>
       </div>
     </div>
+    <ul class="nav-links">
+      <li [class.active]="activeTab === 'profile'" (click)="setActiveTab('profile')">
+        <i class="fas fa-user-circle"></i>
+        <span>Profile</span>
+      </li>
+      <li [class.active]="activeTab === 'menu'" (click)="setActiveTab('menu')">
+        <i class="fas fa-utensils"></i>
+        <span>Menu Management</span>
+      </li>
+      <li [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
+        <i class="fas fa-receipt"></i>
+        <span>Orders</span>
+      </li>
+      <li class="logout-link" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </li>
+    </ul>
+  </aside>
 
-    <!-- Menu Management Section -->
-    <div class="menu-section">
-      <h2>Menu Management</h2>
-      <button (click)="showAddItemForm = !showAddItemForm" class="btn">Add New Item</button>
+  <main class="main-content">
+    <header class="top-header">
+      <h2>
+        <ng-container *ngIf="activeTab === 'profile'">Restaurant Profile</ng-container>
+        <ng-container *ngIf="activeTab === 'menu'">Menu Management</ng-container>
+        <ng-container *ngIf="activeTab === 'orders'">Order Management</ng-container>
+      </h2>
+    </header>
 
-      <div *ngIf="showAddItemForm" class="add-item-form">
-        <form (ngSubmit)="addMenuItem()">
-          <div class="form-group">
-            <label>Item Name:</label>
-            <input type="text" [(ngModel)]="newItem.name" name="name" required>
+    <div class="content-body">
+      <!-- Profile Section -->
+      <div *ngIf="activeTab === 'profile'" class="fade-in">
+        <div class="card">
+          <div class="card-header flex-between">
+            <h3>Profile Details</h3>
+            <button (click)="showProfileForm = !showProfileForm" class="btn btn-outline">
+              <i class="fas" [ngClass]="showProfileForm ? 'fa-times' : 'fa-edit'"></i> 
+              {{ showProfileForm ? 'Cancel' : 'Edit Profile' }}
+            </button>
           </div>
-          <div class="form-group">
-            <label>Description:</label>
-            <textarea [(ngModel)]="newItem.description" name="description"></textarea>
+          
+          <div *ngIf="restaurant && !showProfileForm" class="profile-info">
+            <div class="info-group">
+              <label>Restaurant Name</label>
+              <p>{{ restaurant.name }}</p>
+            </div>
+            <div class="info-group">
+              <label>Description</label>
+              <p>{{ restaurant.description || 'No description added yet.' }}</p>
+            </div>
+            <div class="info-group">
+              <label>Address</label>
+              <p>{{ restaurant.address }}</p>
+            </div>
+            <div class="info-group">
+              <label>Contact Phone</label>
+              <p>{{ restaurant.phone }}</p>
+            </div>
+            <div class="info-group">
+              <label>Rating</label>
+              <p class="rating"><i class="fas fa-star"></i> {{ restaurant.rating || 0 }}</p>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Price:</label>
-            <input type="number" [(ngModel)]="newItem.price" name="price" required>
+
+          <div *ngIf="showProfileForm" class="profile-form mt-4">
+            <form (ngSubmit)="updateProfile()">
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label>Restaurant Name</label>
+                  <input type="text" [(ngModel)]="profileData.name" name="name" required class="form-control">
+                </div>
+                <div class="form-group full-width">
+                  <label>Description</label>
+                  <textarea [(ngModel)]="profileData.description" name="description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Address</label>
+                  <input type="text" [(ngModel)]="profileData.address" name="address" required class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" [(ngModel)]="profileData.phone" name="phone" required class="form-control">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary mt-4"><i class="fas fa-save"></i> Save Changes</button>
+            </form>
           </div>
-          <div class="form-group">
-            <label>Category:</label>
-            <input type="text" [(ngModel)]="newItem.category" name="category" required>
-          </div>
-          <button type="submit" class="btn">Add Item</button>
-        </form>
+        </div>
       </div>
 
-      <table class="menu-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Category</th>
-            <th>Available</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of menuItems">
-            <td>{{ item.name }}</td>
-            <td>Rs. {{ item.price }}</td>
-            <td>{{ item.category }}</td>
-            <td>
-              <input type="checkbox" [checked]="item.isAvailable" (change)="toggleItemAvailability(item)">
-            </td>
-            <td>
-              <button (click)="toggleItemAvailability(item)" class="btn-small">Toggle</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Menu Section -->
+      <div *ngIf="activeTab === 'menu'" class="fade-in">
+        <div class="card mb-4">
+          <div class="card-header flex-between">
+            <h3>Menu Items</h3>
+            <button (click)="showAddItemForm = !showAddItemForm" class="btn btn-primary">
+              <i class="fas" [ngClass]="showAddItemForm ? 'fa-times' : 'fa-plus'"></i> 
+              {{ showAddItemForm ? 'Cancel' : 'Add New Item' }}
+            </button>
+          </div>
 
-    <!-- Orders Section -->
-    <div class="orders-section">
-      <h2>Orders</h2>
-      <table class="orders-table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Total Amount</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let order of orders">
-            <td>{{ order._id }}</td>
-            <td>{{ order.customerId?.name }}</td>
-            <td>Rs. {{ order.totalAmount }}</td>
-            <td>{{ order.status }}</td>
-            <td>
-              <select (change)="updateOrderStatus(order, $event)">
-                <option value="pending" [selected]="order.status === 'pending'">Pending</option>
-                <option value="accepted" [selected]="order.status === 'accepted'">Accepted</option>
-                <option value="preparing" [selected]="order.status === 'preparing'">Preparing</option>
-                <option value="ready" [selected]="order.status === 'ready'">Ready</option>
-                <option value="delivered" [selected]="order.status === 'delivered'">Delivered</option>
-                <option value="cancelled" [selected]="order.status === 'cancelled'">Cancelled</option>
-              </select>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          <div *ngIf="showAddItemForm" class="add-item-form p-4 bg-light rounded mb-4">
+            <h4>Add New Menu Item</h4>
+            <form (ngSubmit)="addMenuItem()">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Item Name</label>
+                  <input type="text" [(ngModel)]="newItem.name" name="name" required class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Category</label>
+                  <input type="text" [(ngModel)]="newItem.category" name="category" required class="form-control" placeholder="e.g. Starters, Main Course">
+                </div>
+                <div class="form-group">
+                  <label>Price (Rs.)</label>
+                  <input type="number" [(ngModel)]="newItem.price" name="price" required class="form-control">
+                </div>
+                <div class="form-group full-width">
+                  <label>Description</label>
+                  <textarea [(ngModel)]="newItem.description" name="description" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success mt-3"><i class="fas fa-check"></i> Save Item</button>
+            </form>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Item Details</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Availability</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="menuItems.length === 0">
+                  <td colspan="5" class="text-center py-4 text-muted">No menu items added yet.</td>
+                </tr>
+                <tr *ngFor="let item of menuItems">
+                  <td>
+                    <strong>{{ item.name }}</strong>
+                    <p class="text-small text-muted">{{ item.description }}</p>
+                  </td>
+                  <td><span class="badge badge-light">{{ item.category }}</span></td>
+                  <td class="text-bold">Rs. {{ item.price }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="item.isAvailable ? 'badge-success' : 'badge-danger'">
+                      {{ item.isAvailable ? 'Available' : 'Out of Stock' }}
+                    </span>
+                  </td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="item.isAvailable" (change)="toggleItemAvailability(item)">
+                      <span class="slider round"></span>
+                    </label>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Section -->
+      <div *ngIf="activeTab === 'orders'" class="fade-in">
+        <div class="card">
+          <div class="card-header">
+            <h3>Live Orders</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Total Amount</th>
+                  <th>Status</th>
+                  <th>Update Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="orders.length === 0">
+                  <td colspan="5" class="text-center py-4 text-muted">No orders received yet.</td>
+                </tr>
+                <tr *ngFor="let order of orders">
+                  <td class="text-monospace">#{{ order._id.slice(-6).toUpperCase() }}</td>
+                  <td>
+                    <strong>{{ order.customerId?.name || 'Customer' }}</strong>
+                  </td>
+                  <td class="text-bold text-primary">Rs. {{ order.totalAmount }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="'status-' + order.status">{{ order.status | titlecase }}</span>
+                  </td>
+                  <td>
+                    <select class="form-control status-select" (change)="updateOrderStatus(order, $event)">
+                      <option value="pending" [selected]="order.status === 'pending'">Pending</option>
+                      <option value="accepted" [selected]="order.status === 'accepted'">Accept Order</option>
+                      <option value="preparing" [selected]="order.status === 'preparing'">Preparing Food</option>
+                      <option value="ready" [selected]="order.status === 'ready'">Ready for Pickup</option>
+                      <option value="cancelled" [selected]="order.status === 'cancelled'">Cancel Order</option>
+                    </select>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
 </div>

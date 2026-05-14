@@ -1,106 +1,557 @@
-<div class="customer-dashboard">
-  <!-- Header -->
-  <header class="main-header">
-    <div class="header-top">
-      <div class="auth-links" *ngIf="!isLoggedIn">
-        <a href="/login/customer" class="login-btn">Login</a>
-        <a href="/register/customer" class="register-btn">Register</a>
+<div class="customer-dashboard foodflow-theme">
+
+  <!-- Top Nav Bar -->
+  <div class="top-nav">
+    <div class="top-nav-content">
+      <div class="logo-section" style="cursor:pointer;" (click)="goHome()">
+        <h1 class="logo">FOOD<span>FLOW</span></h1>
+        <div class="location-badge">
+          <span class="dot"></span>
+          <span class="text">Deliver to: <strong>{{ selectedAddress }} ▼</strong></span>
+        </div>
+      </div>
+      
+      <nav class="main-nav">
+        <a href="javascript:void(0)" [class.active]="activeView === 'home'" (click)="goHome()">Home</a>
+        <a href="javascript:void(0)" [class.active]="activeView === 'restaurants'" (click)="browseRestaurants()">Restaurants</a>
+        <a *ngIf="isLoggedIn" href="javascript:void(0)" [class.active]="activeView === 'profile'" (click)="activeView = 'profile'">Profile</a>
+      </nav>
+
+      <div class="top-nav-links">
+        <a *ngIf="!isLoggedIn" routerLink="/register">JOIN AS RESTAURANT</a>
+        <a *ngIf="!isLoggedIn" routerLink="/register">BECOME A RIDER</a>
+        <a *ngIf="!isLoggedIn" routerLink="/login" class="login-link">LOGIN</a>
+        <span *ngIf="isLoggedIn" class="welcome-text">WELCOME, USER</span>
+        
+        <div class="cart-icon" (click)="showCartPanel=true">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">{{ cartCount }}</span>
+        </div>
+        <div class="user-avatar" *ngIf="isLoggedIn" (click)="logout()"></div>
       </div>
     </div>
-    <div class="header-main">
-      <div class="logo">FoodPanda</div>
-      <div class="location-cart">
-        <div class="location">
-          <i class="fas fa-map-marker-alt"></i>
-          <span>{{ selectedAddress || 'Select Address' }}</span>
-          <button class="change-address">Change</button>
-        </div>
-        <div class="header-actions">
-          <button class="action-btn"><i class="fas fa-heart"></i> Favorites</button>
-          <button class="action-btn cart-btn">
-            <i class="fas fa-shopping-cart"></i> Cart ({{ cartCount }})
-          </button>
-          <button class="action-btn" *ngIf="isLoggedIn"><i class="fas fa-user"></i> Profile</button>
-          <button class="theme-toggle" (click)="toggleTheme()">
-            <i [class]="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'"></i>
-          </button>
-        </div>
-      </div>
+  </div>
+
+  <!-- Search and Actions Bar -->
+  <div class="search-action-bar">
+    <div class="search-container">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="searchRestaurants()" placeholder="Search for restaurants or dishes...">
     </div>
-    <div class="header-bottom">
-      <div class="search-filters">
-        <div class="search-bar">
-          <input type="text" placeholder="Search for restaurants, cuisines, or dishes..." class="search-input">
-          <button class="search-btn"><i class="fas fa-search"></i></button>
-        </div>
-        <div class="filters">
-          <button class="filter-btn active">All</button>
-          <button class="filter-btn">Rating 4.0+</button>
-          <button class="filter-btn">Fast Delivery</button>
-          <button class="filter-btn">Offers</button>
-        </div>
-      </div>
-      <div class="user-actions">
-        <button class="action-link">My Orders</button>
-        <button class="action-link">Track My Order</button>
-      </div>
+    <div class="action-buttons">
+      <button class="btn btn-green">FILTERS</button>
+      <button class="btn btn-dark" (click)="openMyOrders()">MY ORDERS</button>
+      <button class="btn btn-dark" (click)="openMyOrders()">TRACK ORDER</button>
     </div>
-  </header>
+  </div>
 
   <!-- Main Content -->
   <main class="main-content">
-    <app-image-slider></app-image-slider>
-    <app-top-brands></app-top-brands>
-    <app-categories></app-categories>
-    <app-product-cards></app-product-cards>
+    
+    <!-- Hero Slider Section -->
+    <section class="hero-slider-section" *ngIf="activeView === 'home'">
+      <div class="hero-slider-container">
+        <!-- Glow effects -->
+        <div class="glow-circle top-right"></div>
+        <div class="glow-ring"></div>
 
-    <!-- Banner Section -->
-    <section class="banner-section">
-      <div class="banner-card">
-        <div class="banner-content">
-          <h2>Special Offers</h2>
-          <p>Discover amazing deals on your favorite foods</p>
-          <button class="learn-more-btn">Learn More</button>
-        </div>
-        <div class="banner-image">
-          <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400" alt="Banner">
+        <ng-container *ngFor="let slide of slides; let i = index">
+          <div class="hero-content" *ngIf="i === activeSlideIndex">
+            <div class="hero-text-content fade-in-up">
+              <span class="premium-badge">{{ slide.badge }}</span>
+              <h2 class="hero-title">
+                {{ slide.title1 }}<br>
+                <span class="highlight">{{ slide.title2 }}</span>
+              </h2>
+              <p class="hero-desc">{{ slide.description }}</p>
+              <div class="hero-price-action">
+                <span class="price">{{ slide.price }}</span>
+                <button class="btn btn-order" (click)="browseRestaurants()">Order Now <i class="fas fa-arrow-right"></i></button>
+              </div>
+            </div>
+            
+            <div class="hero-image-content fade-in">
+              <div class="image-wrapper">
+                <img [src]="slide.image" alt="Featured Dish">
+              </div>
+            </div>
+          </div>
+        </ng-container>
+        
+        <div class="slider-thumbnails">
+          <div *ngFor="let slide of slides; let i = index" 
+               class="thumb" 
+               [class.active]="i === activeSlideIndex" 
+               (click)="setSlide(i)">
+            <img [src]="slide.thumb" alt="Thumb">
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Top Selling Section -->
-    <section class="top-selling-section">
-      <h2>Top Selling Items</h2>
-      <div class="top-selling-grid">
-        <!-- Similar to product cards but for top selling -->
+    <!-- Recommended Dishes -->
+    <section class="recommended-section" *ngIf="activeView === 'home'">
+      <div class="section-header">
+        <h2>Recommended Dishes</h2>
+        <button class="btn btn-outline-green" (click)="browseRestaurants()">Explore All</button>
       </div>
-      <div class="newsletter">
-        <h3>Get 25% Discount on First Order</h3>
-        <div class="newsletter-form">
-          <input type="email" placeholder="Enter your email" class="email-input">
-          <button class="subscribe-btn">Subscribe</button>
+      <div class="menu-grid">
+        <div class="modern-food-card fade-in-up" *ngFor="let item of randomMenuItems" style="animation-duration: 0.8s;">
+          <div class="card-image-wrapper" style="cursor: pointer;" (click)="viewItemDetail(item)">
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" alt="Food Image" class="food-img">
+            <span class="badge badge-floating">{{ item.category }}</span>
+          </div>
+          <div class="card-content">
+            <h4 class="item-title" style="cursor: pointer;" (click)="viewItemDetail(item)">{{ item.name }}</h4>
+            <p class="restaurant-name text-muted"><i class="fas fa-store"></i> {{ item.restaurantId?.name || 'Local Kitchen' }}</p>
+            <p class="item-desc">{{ item.description }}</p>
+            <div class="card-footer">
+              <span class="price">Rs. {{ item.price }}</span>
+              <button class="btn-add-cart" (click)="addToCart(item)">
+                <i class="fas fa-plus"></i> Add
+              </button>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="randomMenuItems.length === 0" class="empty-state">
+          <p>No dishes available right now.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section" *ngIf="activeView === 'home'">
+      <div class="section-header">
+        <h2>Top Categories</h2>
+        <a href="#" class="view-all">View All</a>
+      </div>
+      <div class="categories-grid">
+        <div class="category-card" *ngFor="let cat of ['Burger', 'Pizza', 'Sushi', 'Dessert', 'Drinks', 'Healthy']" (click)="searchQuery=cat; searchRestaurants()">
+          <div class="cat-icon-placeholder"><i class="fas fa-utensils"></i></div>
+          <span>{{ cat }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trending Restaurants Preview -->
+    <section class="trending-section" *ngIf="activeView === 'home'">
+      <div class="section-header">
+        <h2>Trending Restaurants</h2>
+        <button class="btn btn-outline-green" (click)="browseRestaurants()">See All</button>
+      </div>
+      <div class="restaurants-grid">
+        <div class="restaurant-card" *ngFor="let r of restaurants.slice(0, 3)" (click)="selectRestaurant(r)">
+          <div class="restaurant-img">
+            <img [src]="r.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'" [alt]="r.name" onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'">
+            <span class="status-badge" [class.open]="r.isActive">{{ r.isActive ? 'Open' : 'Closed' }}</span>
+          </div>
+          <div class="restaurant-info">
+            <h3>{{ r.name }}</h3>
+            <p class="restaurant-desc">{{ r.description || 'Delicious food delivered to your door' }}</p>
+            <div class="restaurant-meta">
+              <span class="rating" *ngIf="r.rating"><i class="fas fa-star"></i> {{ r.rating | number:'1.1-1' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section" *ngIf="activeView === 'home'">
+      <div class="section-title-center">
+        <h2>How It Works</h2>
+        <p>Your favorite food, delivered fast and fresh.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-icon bg-orange"><i class="fas fa-map-marker-alt"></i></div>
+          <h3>1. Choose Location</h3>
+          <p>Find the best restaurants and shops near your current location.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-icon bg-green"><i class="fas fa-hamburger"></i></div>
+          <h3>2. Pick Your Food</h3>
+          <p>Browse hundreds of menus to find the food you like.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-icon bg-blue"><i class="fas fa-truck"></i></div>
+          <h3>3. Fast Delivery</h3>
+          <p>Food is prepared and delivered to your door quickly.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download App Banner -->
+    <section class="app-banner-section" *ngIf="activeView === 'home'">
+      <div class="app-banner-container">
+        <div class="app-banner-content">
+          <h2>Get the FoodFlow App</h2>
+          <p>Order faster, track your delivery in real-time, and get exclusive mobile offers.</p>
+          <div class="store-buttons">
+            <button class="btn-store">
+              <i class="fab fa-apple"></i>
+              <div class="store-text">
+                <span>Download on the</span>
+                <strong>App Store</strong>
+              </div>
+            </button>
+            <button class="btn-store">
+              <i class="fab fa-google-play"></i>
+              <div class="store-text">
+                <span>GET IT ON</span>
+                <strong>Google Play</strong>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ITEM DETAIL VIEW -->
+    <section class="item-detail-view fade-in" *ngIf="activeView === 'item-detail'">
+      <button class="back-btn mb-2" (click)="goBack()">← Back</button>
+      
+      <div class="item-detail-container" *ngIf="selectedItem">
+        <div class="item-detail-image">
+          <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800" alt="Food Image">
+        </div>
+        <div class="item-detail-info">
+          <span class="badge badge-light mb-2">{{ selectedItem.category }}</span>
+          <h2>{{ selectedItem.name }}</h2>
+          <p class="restaurant-name text-muted mb-2">
+            <i class="fas fa-store"></i> {{ selectedRestaurant?.name || 'Local Kitchen' }}
+          </p>
+          <div class="price-large">Rs. {{ selectedItem.price }}</div>
+          
+          <p class="item-detail-desc">{{ selectedItem.description || 'A delicious dish crafted with premium ingredients.' }}</p>
+          
+          <div class="item-detail-actions">
+            <div class="qty-selector">
+              <button class="qty-btn" (click)="itemQty = itemQty > 1 ? itemQty - 1 : 1">−</button>
+              <span class="qty-num">{{ itemQty }}</span>
+              <button class="qty-btn" (click)="itemQty = itemQty + 1">+</button>
+            </div>
+            <button class="btn btn-order" (click)="addToCart(selectedItem, itemQty)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- More From This Restaurant -->
+      <div class="more-from-restaurant" *ngIf="menuItems.length > 0">
+        <div class="section-header">
+          <h3>More from {{ selectedRestaurant?.name || 'this restaurant' }}</h3>
+        </div>
+        <div class="menu-grid">
+          <div class="modern-food-card fade-in-up" *ngFor="let item of menuItems | slice:0:4">
+            <div class="card-image-wrapper" style="cursor: pointer;" (click)="viewItemDetail(item)">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" alt="Food Image" class="food-img">
+              <span class="badge badge-floating">{{ item.category }}</span>
+            </div>
+            <div class="card-content">
+              <h4 class="item-title" style="cursor: pointer;" (click)="viewItemDetail(item)">{{ item.name }}</h4>
+              <p class="item-desc">{{ item.description }}</p>
+              <div class="card-footer">
+                <span class="price">Rs. {{ item.price }}</span>
+                <button class="btn-add-cart" (click)="addToCart(item)">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHECKOUT VIEW -->
+    <section class="checkout-view fade-in" *ngIf="activeView === 'checkout'">
+      <button class="back-btn mb-2" (click)="goHome()">← Back to Shop</button>
+      <div class="section-title">
+        <h2>Secure Checkout</h2>
+      </div>
+
+      <div class="checkout-container">
+        <!-- Left Column: Details & Payment -->
+        <div class="checkout-left">
+          
+          <div class="checkout-card">
+            <h3 class="card-title"><i class="fas fa-map-marker-alt"></i> Delivery Details</h3>
+            <form class="checkout-form">
+              <div class="form-group">
+                <label>Full Delivery Address</label>
+                <input type="text" [(ngModel)]="deliveryAddress" name="deliveryAddress" placeholder="e.g. Apt 4B, 123 Main St, New York, NY" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" [(ngModel)]="phone" name="phone" placeholder="e.g. +1 234 567 8900" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Delivery Instructions (Optional)</label>
+                <textarea [(ngModel)]="notes" name="notes" rows="2" placeholder="e.g. Leave at the front door"></textarea>
+              </div>
+            </form>
+          </div>
+
+          <div class="checkout-card mt-3">
+            <h3 class="card-title"><i class="fas fa-credit-card"></i> Payment Method</h3>
+            <div class="payment-options">
+              
+              <label class="payment-option" [class.selected]="paymentMethod === 'cod'">
+                <input type="radio" name="payment" value="cod" [(ngModel)]="paymentMethod">
+                <div class="payment-info">
+                  <i class="fas fa-money-bill-wave text-green"></i>
+                  <span>Cash on Delivery</span>
+                </div>
+              </label>
+
+              <label class="payment-option" [class.selected]="paymentMethod === 'card'">
+                <input type="radio" name="payment" value="card" [(ngModel)]="paymentMethod">
+                <div class="payment-info">
+                  <i class="fas fa-credit-card text-blue"></i>
+                  <span>Credit / Debit Card</span>
+                </div>
+              </label>
+
+              <label class="payment-option" [class.selected]="paymentMethod === 'paypal'">
+                <input type="radio" name="payment" value="paypal" [(ngModel)]="paymentMethod">
+                <div class="payment-info">
+                  <i class="fab fa-paypal text-blue"></i>
+                  <span>PayPal</span>
+                </div>
+              </label>
+
+            </div>
+
+            <!-- Mock Card Input -->
+            <div class="card-input-mock fade-in-up" *ngIf="paymentMethod === 'card'">
+              <div class="form-group">
+                <label>Card Number</label>
+                <input type="text" placeholder="0000 0000 0000 0000">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Expiry Date</label>
+                  <input type="text" placeholder="MM/YY">
+                </div>
+                <div class="form-group">
+                  <label>CVC</label>
+                  <input type="text" placeholder="123">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="checkout-right">
+          <div class="checkout-card summary-card sticky-summary">
+            <h3 class="card-title">Order Summary</h3>
+            
+            <div class="summary-items">
+              <div class="summary-item" *ngFor="let item of cart">
+                <span class="summary-qty">{{ item.quantity }}x</span>
+                <span class="summary-name">{{ item.name }}</span>
+                <span class="summary-price">Rs. {{ (item.price * item.quantity) | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <div class="summary-calculations">
+              <div class="calc-row">
+                <span>Subtotal</span>
+                <span>Rs. {{ cartTotal | number:'1.2-2' }}</span>
+              </div>
+              <div class="calc-row">
+                <span>Delivery Fee</span>
+                <span>Rs. {{ deliveryFee | number:'1.2-2' }}</span>
+              </div>
+              <div class="calc-row">
+                <span>Tax (8%)</span>
+                <span>Rs. {{ taxAmount | number:'1.2-2' }}</span>
+              </div>
+              <div class="calc-row total-row">
+                <span>Grand Total</span>
+                <span>Rs. {{ grandTotal | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <button class="btn btn-order full-width mt-3 btn-large" 
+                    [disabled]="isPlacingOrder || cart.length === 0" 
+                    (click)="placeOrder()">
+              {{ isPlacingOrder ? 'Processing...' : 'Confirm Order • Rs. ' + (grandTotal | number:'1.2-2') }}
+            </button>
+            <p class="secure-text"><i class="fas fa-lock"></i> Payments are secure and encrypted.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE VIEW -->
+    <section class="profile-view" *ngIf="activeView === 'profile'">
+      <div class="section-title">
+        <h2>My Profile</h2>
+      </div>
+      <div class="profile-container">
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="profile-avatar"></div>
+            <div class="profile-info">
+              <h3>{{ currentUser?.name || 'User' }}</h3>
+              <p>{{ currentUser?.email || 'user@example.com' }}</p>
+              <span class="badge badge-light">Customer</span>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button class="btn btn-outline-green" (click)="openMyOrders()">View My Orders</button>
+            <button class="btn btn-outline-green" (click)="logout()">Logout</button>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
   <!-- Footer -->
-  <footer class="main-footer">
+  <footer class="main-footer" *ngIf="activeView === 'home'">
     <div class="footer-content">
-      <div class="footer-section">
-        <h4>Customer</h4>
-        <a href="/login/customer">Login</a>
-        <a href="/register/customer">Register</a>
+      <div class="footer-brand">
+        <h2 class="logo">FOOD<span>FLOW</span></h2>
+        <p>Premium food delivery service. We bring the best restaurants in the city right to your doorstep.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+        </div>
       </div>
-      <div class="footer-section">
-        <h4>Restaurant</h4>
-        <a href="/login/restaurant">Restaurant Login</a>
+      <div class="footer-links">
+        <h3>Company</h3>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
       </div>
-      <div class="footer-section">
-        <h4>Support</h4>
-        <a href="#">Help Center</a>
-        <a href="#">Contact Us</a>
+      <div class="footer-links">
+        <h3>For Partners</h3>
+        <ul>
+          <li><a routerLink="/register">Add a Restaurant</a></li>
+          <li><a routerLink="/register">Become a Rider</a></li>
+          <li><a href="#">Partner Guidelines</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="#">Terms & Conditions</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+        </ul>
       </div>
     </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 FoodFlow Delivery. All rights reserved.</p>
+    </div>
   </footer>
+
+  <!-- OTHER VIEWS (Restaurants, Menu) - reusing existing structure but applying dark theme CSS -->
+    <!-- RESTAURANTS VIEW -->
+    <section class="restaurants-view" *ngIf="activeView === 'restaurants'">
+      <div class="section-title">
+        <h2>Restaurants Near You</h2>
+        <span class="count-badge">{{ filteredRestaurants.length }} found</span>
+      </div>
+      <div class="restaurants-grid">
+        <div class="restaurant-card" *ngFor="let r of filteredRestaurants" (click)="selectRestaurant(r)">
+          <div class="restaurant-img">
+            <img [src]="r.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'" [alt]="r.name" onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'">
+            <span class="status-badge" [class.open]="r.isActive">{{ r.isActive ? 'Open' : 'Closed' }}</span>
+          </div>
+          <div class="restaurant-info">
+            <h3>{{ r.name }}</h3>
+            <p class="restaurant-desc">{{ r.description || 'Delicious food delivered to your door' }}</p>
+            <div class="restaurant-meta">
+              <span class="rating" *ngIf="r.rating"><i class="fas fa-star"></i> {{ r.rating | number:'1.1-1' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU VIEW -->
+    <section class="menu-view" *ngIf="activeView === 'menu'">
+      <button class="back-btn" (click)="goBack()">← Back</button>
+      <div class="section-title" *ngIf="selectedRestaurant">
+        <h2>{{ selectedRestaurant.name }} Menu</h2>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-item-card" *ngFor="let item of menuItems">
+          <div class="menu-item-info">
+            <h4>{{ item.name }}</h4>
+            <p>{{ item.description }}</p>
+            <div class="item-footer">
+              <span class="price">Rs. {{ item.price }}</span>
+              <button class="add-to-cart-btn" (click)="addToCart(item)">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  <!-- CART SIDE PANEL -->
+  <div class="overlay" *ngIf="showCartPanel" (click)="showCartPanel=false"></div>
+  <div class="side-panel cart-panel" [class.open]="showCartPanel">
+    <div class="panel-header">
+      <h3><i class="fas fa-shopping-cart"></i> Your Cart</h3>
+      <button class="close-btn" (click)="showCartPanel=false">✕</button>
+    </div>
+    <div class="panel-body">
+      <div *ngIf="cart.length === 0" class="empty-state">
+        <p>Your cart is empty</p>
+      </div>
+      <div *ngFor="let item of cart" class="cart-item">
+        <div class="cart-item-info">
+          <h4>{{ item.name }}</h4>
+          <p>Rs. {{ item.price }} × {{ item.quantity }}</p>
+        </div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" (click)="decreaseQty(item)">−</button>
+          <span class="qty-num">{{ item.quantity }}</span>
+          <button class="qty-btn" (click)="addToCart(item)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer" *ngIf="cart.length > 0">
+      <div class="cart-total">
+        <span>Total:</span>
+        <strong>Rs. {{ cartTotal }}</strong>
+      </div>
+      <button class="btn btn-order full-width" (click)="openCheckout()">Proceed to Checkout</button>
+    </div>
+  </div>
+
+  <!-- CHECKOUT PANEL REMOVED -->
+
+  <!-- MY ORDERS PANEL -->
+  <div class="overlay" *ngIf="showOrdersPanel" (click)="showOrdersPanel=false"></div>
+  <div class="side-panel orders-panel" [class.open]="showOrdersPanel">
+    <div class="panel-header">
+      <h3>My Orders</h3>
+      <button class="close-btn" (click)="showOrdersPanel=false">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="order-card" *ngFor="let order of orders">
+        <div class="order-header">
+          <span class="order-id">#{{ order._id.slice(-6).toUpperCase() }}</span>
+          <span class="order-status">{{ order.status | titlecase }}</span>
+        </div>
+        <div class="order-restaurant">{{ order.restaurantId?.name || 'Restaurant' }}</div>
+        <div class="order-footer">
+          <span class="order-total">Rs. {{ order.totalAmount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

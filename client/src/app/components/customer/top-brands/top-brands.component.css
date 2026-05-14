@@ -1,0 +1,89 @@
+.top-brands-section {
+  padding: 2rem 0;
+  background: #f8f9fa;
+}
+
+.top-brands-section h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #2d3436;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.brands-container {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 0 1rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.brands-container::-webkit-scrollbar {
+  display: none;
+}
+
+.brand-card {
+  flex: 0 0 200px;
+  text-align: center;
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.brand-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.logo-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.brand-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e9ecef;
+}
+
+.discount-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ff4757;
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.brand-card h3 {
+  margin: 0.5rem 0;
+  color: #2d3436;
+  font-size: 1.1rem;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.stars {
+  color: #ffd700;
+  font-size: 1rem;
+}
+
+.reviews {
+  color: #636e72;
+  font-size: 0.9rem;
+}

@@ -25,6 +25,10 @@ export class CustomerService {
     return this.http.get(`${this.apiUrl}/restaurant/${restaurantId}/menu`);
   }
 
+  getRandomMenuItems(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/menu-items/random`);
+  }
+
   placeOrder(order: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/order`, order, { headers: this.getHeaders() });
   }

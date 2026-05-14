@@ -15,6 +15,7 @@ export class RegisterComponent {
   role = 'customer';
   errorMessage = '';
   successMessage = '';
+  isLoading = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -29,17 +30,22 @@ export class RegisterComponent {
       return;
     }
 
-    this.authService.register(this.name, this.email, this.password, this.role).subscribe(
-      (response: any) => {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.authService.register(this.name, this.email, this.password, this.role).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
         this.successMessage = 'Registration successful! Please login.';
-        this.errorMessage = '';
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
       },
-      (error: any) => {
-        this.errorMessage = error.error.error || 'Registration failed';
+      error: (err: any) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.error || 'Registration failed';
       }
-    );
+    });
   }
 }

@@ -9,18 +9,12 @@ import { AppComponent } from './app.component';
 
 import { LoginComponent } from './components/login.component';
 import { RegisterComponent } from './components/register.component';
-import { CustomerDashboardComponent } from './components/customer/customer-dashboard.component';
-import { RestaurantDashboardComponent } from './components/restaurant/restaurant-dashboard.component';
-import { AdminDashboardComponent } from './components/admin/admin-dashboard.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    RegisterComponent,
-    CustomerDashboardComponent,
-    RestaurantDashboardComponent,
-    AdminDashboardComponent
+    RegisterComponent
   ],
   imports: [
     BrowserModule,
@@ -32,4 +26,4 @@ import { AdminDashboardComponent } from './components/admin/admin-dashboard.comp
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule { }

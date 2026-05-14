@@ -1,115 +1,189 @@
-<div class="admin-dashboard">
-  <h1>Admin Dashboard</h1>
-
-  <!-- Tab Navigation -->
-  <div class="tab-navigation">
-    <button (click)="setActiveTab('stats')" [class.active]="activeTab === 'stats'" class="tab-btn">Dashboard</button>
-    <button (click)="setActiveTab('users')" [class.active]="activeTab === 'users'" class="tab-btn">Users</button>
-    <button (click)="setActiveTab('restaurants')" [class.active]="activeTab === 'restaurants'" class="tab-btn">Restaurants</button>
-    <button (click)="setActiveTab('orders')" [class.active]="activeTab === 'orders'" class="tab-btn">Orders</button>
-  </div>
-
-  <!-- Stats Section -->
-  <div *ngIf="activeTab === 'stats'" class="stats-section">
-    <h2>System Statistics</h2>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Total Users</h3>
-        <p class="stat-value">{{ stats.totalUsers }}</p>
-      </div>
-      <div class="stat-card">
-        <h3>Total Restaurants</h3>
-        <p class="stat-value">{{ stats.totalRestaurants }}</p>
-      </div>
-      <div class="stat-card">
-        <h3>Total Orders</h3>
-        <p class="stat-value">{{ stats.totalOrders }}</p>
-      </div>
-      <div class="stat-card">
-        <h3>Total Revenue</h3>
-        <p class="stat-value">Rs. {{ stats.totalRevenue }}</p>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        <span>Admin Portal</span>
       </div>
     </div>
-  </div>
+    <ul class="nav-links">
+      <li [class.active]="activeTab === 'stats'" (click)="setActiveTab('stats')">
+        <i class="fas fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </li>
+      <li [class.active]="activeTab === 'users'" (click)="setActiveTab('users')">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+      </li>
+      <li [class.active]="activeTab === 'restaurants'" (click)="setActiveTab('restaurants')">
+        <i class="fas fa-store"></i>
+        <span>Restaurants</span>
+      </li>
+      <li [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Orders</span>
+      </li>
+      <li class="logout-link" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </li>
+    </ul>
+  </aside>
 
-  <!-- Users Section -->
-  <div *ngIf="activeTab === 'users'" class="users-section">
-    <h2>All Users</h2>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users">
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <main class="main-content">
+    <header class="top-header">
+      <h2>
+        <ng-container *ngIf="activeTab === 'stats'">System Overview</ng-container>
+        <ng-container *ngIf="activeTab === 'users'">User Management</ng-container>
+        <ng-container *ngIf="activeTab === 'restaurants'">Restaurant Approvals</ng-container>
+        <ng-container *ngIf="activeTab === 'orders'">Global Orders</ng-container>
+      </h2>
+    </header>
 
-  <!-- Restaurants Section -->
-  <div *ngIf="activeTab === 'restaurants'" class="restaurants-section">
-    <h2>All Restaurants</h2>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Address</th>
-          <th>Phone</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let restaurant of restaurants">
-          <td>{{ restaurant.name }}</td>
-          <td>{{ restaurant.address }}</td>
-          <td>{{ restaurant.phone }}</td>
-          <td>
-            <span [class.active]="restaurant.isActive" [class.inactive]="!restaurant.isActive">
-              {{ restaurant.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </td>
-          <td>
-            <button (click)="updateRestaurantStatus(restaurant, !restaurant.isActive)" class="btn-small">
-              {{ restaurant.isActive ? 'Deactivate' : 'Activate' }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="content-body">
+      <!-- Stats Section -->
+      <div *ngIf="activeTab === 'stats'" class="fade-in">
+        <div class="stats-grid">
+          <div class="stat-card bg-primary-light">
+            <div class="stat-icon text-primary"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+              <h3>Total Users</h3>
+              <p class="stat-value">{{ stats.totalUsers }}</p>
+            </div>
+          </div>
+          <div class="stat-card bg-success-light">
+            <div class="stat-icon text-success"><i class="fas fa-store"></i></div>
+            <div class="stat-info">
+              <h3>Restaurants</h3>
+              <p class="stat-value">{{ stats.totalRestaurants }}</p>
+            </div>
+          </div>
+          <div class="stat-card bg-warning-light">
+            <div class="stat-icon text-warning"><i class="fas fa-shopping-bag"></i></div>
+            <div class="stat-info">
+              <h3>Total Orders</h3>
+              <p class="stat-value">{{ stats.totalOrders }}</p>
+            </div>
+          </div>
+          <div class="stat-card bg-info-light">
+            <div class="stat-icon text-info"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-info">
+              <h3>Total Revenue</h3>
+              <p class="stat-value">Rs. {{ stats.totalRevenue }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <!-- Orders Section -->
-  <div *ngIf="activeTab === 'orders'" class="orders-section">
-    <h2>All Orders</h2>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Customer</th>
-          <th>Restaurant</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let order of orders">
-          <td>{{ order._id }}</td>
-          <td>{{ order.customerId?.name }}</td>
-          <td>{{ order.restaurantId?.name }}</td>
-          <td>Rs. {{ order.totalAmount }}</td>
-          <td>{{ order.status }}</td>
-          <td>{{ order.createdAt | date: 'short' }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+      <!-- Users Section -->
+      <div *ngIf="activeTab === 'users'" class="fade-in">
+        <div class="card">
+          <div class="card-header">
+            <h3>Registered Users</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of users">
+                  <td><strong>{{ user.name }}</strong></td>
+                  <td class="text-muted">{{ user.email }}</td>
+                  <td>
+                    <span class="badge" 
+                          [ngClass]="{'badge-primary': user.role==='admin', 'badge-info': user.role==='customer', 'badge-warning': user.role==='restaurant', 'badge-success': user.role==='rider'}">
+                      {{ user.role | titlecase }}
+                    </span>
+                  </td>
+                  <td><span class="badge badge-success">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Restaurants Section -->
+      <div *ngIf="activeTab === 'restaurants'" class="fade-in">
+        <div class="card">
+          <div class="card-header">
+            <h3>Partner Restaurants</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Restaurant Details</th>
+                  <th>Contact</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let restaurant of restaurants">
+                  <td>
+                    <strong>{{ restaurant.name }}</strong>
+                    <p class="text-small text-muted">{{ restaurant.address }}</p>
+                  </td>
+                  <td><i class="fas fa-phone text-muted text-small"></i> {{ restaurant.phone }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="restaurant.isActive ? 'badge-success' : 'badge-danger'">
+                      {{ restaurant.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" [checked]="restaurant.isActive" (change)="updateRestaurantStatus(restaurant, !restaurant.isActive)">
+                      <span class="slider round"></span>
+                    </label>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Section -->
+      <div *ngIf="activeTab === 'orders'" class="fade-in">
+        <div class="card">
+          <div class="card-header">
+            <h3>All Platform Orders</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Restaurant</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let order of orders">
+                  <td class="text-monospace text-small">#{{ order._id.slice(-6).toUpperCase() }}</td>
+                  <td>{{ order.customerId?.name || 'N/A' }}</td>
+                  <td>{{ order.restaurantId?.name || 'N/A' }}</td>
+                  <td class="text-bold">Rs. {{ order.totalAmount }}</td>
+                  <td class="text-small text-muted">{{ order.createdAt | date: 'mediumDate' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="'status-' + order.status">{{ order.status | titlecase }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>

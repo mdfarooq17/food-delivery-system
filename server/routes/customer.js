@@ -26,6 +26,24 @@ router.get('/restaurant/:id/menu', async (req, res) => {
   }
 });
 
+// Get random menu items across all active restaurants
+router.get('/menu-items/random', async (req, res) => {
+  try {
+    // MongoDB aggregation to get random items
+    const randomItems = await MenuItem.aggregate([
+      { $match: { isAvailable: true } },
+      { $sample: { size: 8 } }
+    ]);
+    
+    // Populate the restaurant details
+    await MenuItem.populate(randomItems, { path: 'restaurantId', select: 'name' });
+    
+    res.json(randomItems);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Place order
 router.post('/order', authMiddleware, async (req, res) => {
   try {

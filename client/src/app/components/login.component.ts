@@ -10,6 +10,7 @@ import { AuthService } from '../services/auth.service';
 export class LoginComponent {
   email = '';
   password = '';
+  isLoading = false;
   errorMessage = '';
 
   constructor(private authService: AuthService, private router: Router) { }
@@ -20,19 +21,27 @@ export class LoginComponent {
       return;
     }
 
-    this.authService.login(this.email, this.password);
-    
-    setTimeout(() => {
-      const user = this.authService.currentUserValue;
-      if (user) {
-        if (user.role === 'admin') {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.login(this.email, this.password).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        const role = response?.role;
+        if (role === 'admin') {
           this.router.navigate(['/admin']);
-        } else if (user.role === 'customer') {
-          this.router.navigate(['/customer']);
-        } else if (user.role === 'restaurant') {
+        } else if (role === 'restaurant') {
           this.router.navigate(['/restaurant']);
+        } else if (role === 'rider') {
+          this.router.navigate(['/rider']);
+        } else {
+          this.router.navigate(['/customer']);
         }
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.error || 'Login failed. Please check your credentials.';
       }
-    }, 500);
+    });
   }
 }
