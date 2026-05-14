@@ -11,6 +11,10 @@
         <i class="fas fa-user-circle"></i>
         <span>Profile</span>
       </li>
+      <li routerLink="/profile">
+        <i class="fas fa-cog"></i>
+        <span>Account Settings</span>
+      </li>
       <li [class.active]="activeTab === 'menu'" (click)="setActiveTab('menu')">
         <i class="fas fa-utensils"></i>
         <span>Menu Management</span>

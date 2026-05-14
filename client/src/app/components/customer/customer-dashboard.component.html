@@ -14,7 +14,7 @@
       <nav class="main-nav">
         <a href="javascript:void(0)" [class.active]="activeView === 'home'" (click)="goHome()">Home</a>
         <a href="javascript:void(0)" [class.active]="activeView === 'restaurants'" (click)="browseRestaurants()">Restaurants</a>
-        <a *ngIf="isLoggedIn" href="javascript:void(0)" [class.active]="activeView === 'profile'" (click)="activeView = 'profile'">Profile</a>
+        <a *ngIf="isLoggedIn" routerLink="/profile">Profile</a>
       </nav>
 
       <div class="top-nav-links">

@@ -27,13 +27,30 @@ export class AuthService {
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
-        if (response && response.token) {
-          localStorage.setItem('currentUser', JSON.stringify(response));
+        if (response && response.token && response.user) {
+          const authUser = { ...response.user, token: response.token };
+          localStorage.setItem('currentUser', JSON.stringify(authUser));
           localStorage.setItem('token', response.token);
-          this.currentUserSubject.next(response);
+          this.currentUserSubject.next(authUser);
         }
       })
     );
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  me(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/me`);
+  }
+
+  updateProfile(profileData: { name?: string; address?: string; phone?: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/profile`, profileData);
+  }
+
+  changePassword(data: { currentPassword: string; newPassword: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/password`, data);
   }
 
   logout() {

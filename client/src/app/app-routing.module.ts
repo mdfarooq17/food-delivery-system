@@ -8,17 +8,20 @@ import { RestaurantDashboardComponent } from './components/restaurant/restaurant
 import { AdminDashboardComponent } from './components/admin/admin-dashboard.component';
 import { LoginCustomerComponent } from './components/auth/login-customer.component';
 import { RiderDashboardComponent } from './components/rider/rider-dashboard.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { AuthGuard } from './guards/auth.guard';
 
-const routes: Routes = [
-  { path: '', redirectTo: '/customer', pathMatch: 'full' },
+export const routes: Routes = [
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login/customer', component: LoginCustomerComponent },
-  { path: 'customer', component: CustomerDashboardComponent },
-  { path: 'restaurant', component: RestaurantDashboardComponent },
-  { path: 'admin', component: AdminDashboardComponent },
-  { path: 'rider', component: RiderDashboardComponent },
-  { path: '**', redirectTo: '/customer' }
+  { path: 'customer', component: CustomerDashboardComponent, canActivate: [AuthGuard], data: { roles: ['customer'] } },
+  { path: 'restaurant', component: RestaurantDashboardComponent, canActivate: [AuthGuard], data: { roles: ['restaurant'] } },
+  { path: 'admin', component: AdminDashboardComponent, canActivate: [AuthGuard], data: { roles: ['admin'] } },
+  { path: 'rider', component: RiderDashboardComponent, canActivate: [AuthGuard], data: { roles: ['rider'] } },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({

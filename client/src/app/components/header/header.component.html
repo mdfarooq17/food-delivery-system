@@ -1,0 +1,142 @@
+<header class="main-header">
+  <div class="header-container">
+    <!-- Logo/Brand Section -->
+    <div class="brand-section">
+      <div class="logo" routerLink="/" (click)="closeMenu()">
+        <i class="fas fa-utensils"></i>
+        <span class="brand-text">{{ title }}</span>
+      </div>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="desktop-nav" *ngIf="isLoggedIn">
+      <ul class="nav-links">
+        <li *ngIf="currentUser?.role === 'customer'">
+          <a routerLink="/customer" routerLinkActive="active">Home</a>
+        </li>
+        <li *ngIf="currentUser?.role === 'restaurant'">
+          <a routerLink="/restaurant" routerLinkActive="active">Dashboard</a>
+        </li>
+        <li *ngIf="currentUser?.role === 'rider'">
+          <a routerLink="/rider" routerLinkActive="active">Deliveries</a>
+        </li>
+        <li *ngIf="currentUser?.role === 'admin'">
+          <a routerLink="/admin" routerLinkActive="active">Admin</a>
+        </li>
+        <li>
+          <a routerLink="/profile" routerLinkActive="active">Profile</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- User Section -->
+    <div class="user-section">
+      <div class="user-info" *ngIf="!isLoggedIn">
+        <a routerLink="/login" class="auth-link">Login</a>
+        <a routerLink="/register" class="auth-link register">Register</a>
+      </div>
+
+      <div class="user-menu" *ngIf="isLoggedIn">
+        <div class="user-greeting">
+          <span class="welcome-text">Welcome, {{ currentUser?.name || 'User' }}</span>
+          <span class="user-role">{{ currentUser?.role | titlecase }}</span>
+        </div>
+
+        <div class="user-avatar" (click)="toggleMenu()">
+          <i class="fas fa-user-circle"></i>
+        </div>
+
+        <!-- Dropdown Menu -->
+        <div class="dropdown-menu" [class.show]="isMenuOpen">
+          <div class="dropdown-item" routerLink="/profile" (click)="closeMenu()">
+            <i class="fas fa-user"></i>
+            <span>My Profile</span>
+          </div>
+          <div class="dropdown-item" routerLink="/customer" *ngIf="currentUser?.role === 'customer'" (click)="closeMenu()">
+            <i class="fas fa-home"></i>
+            <span>Customer Portal</span>
+          </div>
+          <div class="dropdown-item" routerLink="/restaurant" *ngIf="currentUser?.role === 'restaurant'" (click)="closeMenu()">
+            <i class="fas fa-store"></i>
+            <span>Restaurant Portal</span>
+          </div>
+          <div class="dropdown-item" routerLink="/rider" *ngIf="currentUser?.role === 'rider'" (click)="closeMenu()">
+            <i class="fas fa-motorcycle"></i>
+            <span>Rider Portal</span>
+          </div>
+          <div class="dropdown-item" routerLink="/admin" *ngIf="currentUser?.role === 'admin'" (click)="closeMenu()">
+            <i class="fas fa-shield-alt"></i>
+            <span>Admin Portal</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item logout" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <div class="mobile-menu-toggle" *ngIf="isLoggedIn" (click)="toggleMenu()">
+      <i class="fas" [ngClass]="isMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Overlay -->
+  <div class="mobile-nav-overlay" [class.show]="isMenuOpen" (click)="closeMenu()"></div>
+
+  <!-- Mobile Navigation Menu -->
+  <nav class="mobile-nav" [class.show]="isMenuOpen" *ngIf="isLoggedIn">
+    <div class="mobile-nav-header">
+      <div class="mobile-user-info">
+        <div class="mobile-user-avatar">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="mobile-user-details">
+          <div class="mobile-user-name">{{ currentUser?.name || 'User' }}</div>
+          <div class="mobile-user-role">{{ currentUser?.role | titlecase }}</div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="mobile-nav-links">
+      <li *ngIf="currentUser?.role === 'customer'">
+        <a routerLink="/customer" routerLinkActive="active" (click)="closeMenu()">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+      </li>
+      <li *ngIf="currentUser?.role === 'restaurant'">
+        <a routerLink="/restaurant" routerLinkActive="active" (click)="closeMenu()">
+          <i class="fas fa-store"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li *ngIf="currentUser?.role === 'rider'">
+        <a routerLink="/rider" routerLinkActive="active" (click)="closeMenu()">
+          <i class="fas fa-motorcycle"></i>
+          <span>Deliveries</span>
+        </a>
+      </li>
+      <li *ngIf="currentUser?.role === 'admin'">
+        <a routerLink="/admin" routerLinkActive="active" (click)="closeMenu()">
+          <i class="fas fa-shield-alt"></i>
+          <span>Admin</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">
+          <i class="fas fa-user"></i>
+          <span>My Profile</span>
+        </a>
+      </li>
+      <li class="mobile-logout">
+        <a (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>

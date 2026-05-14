@@ -7,6 +7,10 @@
       </div>
     </div>
     <ul class="nav-links">
+      <li routerLink="/profile">
+        <i class="fas fa-user"></i>
+        <span>My Profile</span>
+      </li>
       <li [class.active]="activeTab === 'available'" (click)="setActiveTab('available')">
         <i class="fas fa-list-ul"></i>
         <span>Available Orders</span>

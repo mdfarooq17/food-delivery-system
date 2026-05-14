@@ -35,8 +35,14 @@ export class LoginCustomerComponent {
     this.authService.login(this.loginData.email, this.loginData.password).subscribe(
       (response: any) => {
         this.isLoading = false;
-        if (response && response.token) {
-          // TODO: Store token and user info
+        const role = response?.user?.role || response?.role;
+        if (role === 'admin') {
+          this.router.navigate(['/admin']);
+        } else if (role === 'restaurant') {
+          this.router.navigate(['/restaurant']);
+        } else if (role === 'rider') {
+          this.router.navigate(['/rider']);
+        } else {
           this.router.navigate(['/customer']);
         }
       },
