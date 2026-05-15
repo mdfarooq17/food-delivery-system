@@ -53,7 +53,8 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   isUserDropdownOpen = false;
   isMobileMenuOpen = false;
   isEditingProfile = false;
-  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' = 'home';
+  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' | 'tracking' = 'home';
+  trackingOrder: any = null;
   searchQuery = '';
   newAddress = '';
   
@@ -460,7 +461,50 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   openMyOrders() {
     if (!this.isLoggedIn) { this.router.navigate(['/login']); return; }
     this.loadMyOrders();
-    this.showOrdersPanel = true;
+    this.activeView = 'orders';
+    this.showOrdersPanel = false;
+  }
+
+  trackOrder(order: any) {
+    this.trackingOrder = order;
+    this.activeView = 'tracking';
+    window.scrollTo(0, 0);
+  }
+
+  getOrderProgress(status: string): number {
+    const phases: any = {
+      'pending': 15,
+      'accepted': 35,
+      'preparing': 55,
+      'ready': 75,
+      'delivered': 100,
+      'out-for-delivery': 85,
+      'cancelled': 0
+    };
+    return phases[status.toLowerCase()] || 0;
+  }
+
+  getPhaseTime(status: string, phase: string): string {
+    const s = status.toLowerCase();
+    if (s === 'delivered') return 'Done';
+    if (s === 'cancelled') return '--';
+    
+    const times: any = {
+      'confirmed': { val: '2 min', level: 1 },
+      'preparing': { val: '10 min', level: 2 },
+      'delivery': { val: '20 min', level: 3 }
+    };
+
+    const currentLevel = {
+      'pending': 0,
+      'accepted': 1,
+      'preparing': 2,
+      'ready': 2,
+      'out-for-delivery': 3
+    }[s] || 0;
+
+    if (times[phase].level <= currentLevel) return 'Done';
+    return times[phase].val;
   }
 
   // --- Theme ---

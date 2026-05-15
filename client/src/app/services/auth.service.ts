@@ -37,8 +37,19 @@ export class AuthService {
     );
   }
 
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  me(): Observable<any> {
+    const token = this.getToken();
+    return this.http.get<any>(`${this.apiUrl}/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
   updateProfile(userData: any): Observable<any> {
-    const token = localStorage.getItem('token');
+    const token = this.getToken();
     return this.http.put<any>(`${this.apiUrl}/update-profile`, userData, {
       headers: { Authorization: `Bearer ${token}` }
     }).pipe(
@@ -49,6 +60,13 @@ export class AuthService {
         this.currentUserSubject.next(user);
       })
     );
+  }
+
+  changePassword(data: { currentPassword: string; newPassword: string }): Observable<any> {
+    const token = this.getToken();
+    return this.http.put<any>(`${this.apiUrl}/change-password`, data, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
   }
 
   logout() {

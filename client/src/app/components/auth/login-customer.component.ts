@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,7 +11,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login-customer.component.html',
   styleUrl: './login-customer.component.css'
 })
-export class LoginCustomerComponent {
+export class LoginCustomerComponent implements OnInit {
   loginData = {
     email: '',
     password: ''
@@ -23,6 +23,25 @@ export class LoginCustomerComponent {
     private authService: AuthService,
     private router: Router
   ) { }
+
+  ngOnInit() {
+    const user = this.authService.currentUserValue;
+    if (user) {
+      this.redirectUser(user.role);
+    }
+  }
+
+  private redirectUser(role: string) {
+    if (role === 'admin') {
+      this.router.navigate(['/admin']);
+    } else if (role === 'restaurant') {
+      this.router.navigate(['/restaurant']);
+    } else if (role === 'rider') {
+      this.router.navigate(['/rider']);
+    } else {
+      this.router.navigate(['/customer']);
+    }
+  }
 
   onSubmit() {
     if (!this.loginData.email || !this.loginData.password) {
@@ -36,15 +55,7 @@ export class LoginCustomerComponent {
       (response: any) => {
         this.isLoading = false;
         const role = response?.user?.role || response?.role;
-        if (role === 'admin') {
-          this.router.navigate(['/admin']);
-        } else if (role === 'restaurant') {
-          this.router.navigate(['/restaurant']);
-        } else if (role === 'rider') {
-          this.router.navigate(['/rider']);
-        } else {
-          this.router.navigate(['/customer']);
-        }
+        this.redirectUser(role);
       },
       (error: any) => {
         this.isLoading = false;
