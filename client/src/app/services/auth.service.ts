@@ -12,7 +12,8 @@ export class AuthService {
   public currentUser: Observable<any>;
 
   constructor(private http: HttpClient) {
-    this.currentUserSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('currentUser') || 'null'));
+    const savedUser = localStorage.getItem('currentUser');
+    this.currentUserSubject = new BehaviorSubject<any>(savedUser ? JSON.parse(savedUser).user : null);
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
@@ -27,30 +28,27 @@ export class AuthService {
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
-        if (response && response.token && response.user) {
-          const authUser = { ...response.user, token: response.token };
-          localStorage.setItem('currentUser', JSON.stringify(authUser));
+        if (response && response.token) {
+          localStorage.setItem('currentUser', JSON.stringify(response));
           localStorage.setItem('token', response.token);
-          this.currentUserSubject.next(authUser);
+          this.currentUserSubject.next(response.user);
         }
       })
     );
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
-  }
-
-  me(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/me`);
-  }
-
-  updateProfile(profileData: { name?: string; address?: string; phone?: string }): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/profile`, profileData);
-  }
-
-  changePassword(data: { currentPassword: string; newPassword: string }): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/password`, data);
+  updateProfile(userData: any): Observable<any> {
+    const token = localStorage.getItem('token');
+    return this.http.put<any>(`${this.apiUrl}/update-profile`, userData, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).pipe(
+      tap(user => {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        currentUser.user = user;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        this.currentUserSubject.next(user);
+      })
+    );
   }
 
   logout() {

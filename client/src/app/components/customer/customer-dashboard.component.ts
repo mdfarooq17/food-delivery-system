@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,22 @@ import { ImageSliderComponent } from './image-slider.component';
 import { TopBrandsComponent } from './top-brands.component';
 import { CategoriesComponent } from './categories.component';
 import { ProductCardsComponent } from './product-cards.component';
+
+interface OrderItem {
+  name: string;
+  price: number;
+  quantity: number;
+  menuItemId?: string;
+}
+
+interface Order {
+  _id: string;
+  status: string;
+  items: OrderItem[];
+  totalAmount: number;
+  createdAt: string;
+  restaurantId?: { name: string };
+}
 
 @Component({
   selector: 'app-customer-dashboard',
@@ -33,8 +49,20 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   isDarkTheme = false;
   showCartPanel = false;
   showOrdersPanel = false;
-  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' = 'home';
+  showAddressModal = false;
+  isUserDropdownOpen = false;
+  isMobileMenuOpen = false;
+  isEditingProfile = false;
+  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' = 'home';
   searchQuery = '';
+  newAddress = '';
+  
+  profileForm = {
+    name: '',
+    phone: '',
+    address: '',
+    profileImage: ''
+  };
   activeFilter = 'All';
 
   // Slider State
@@ -72,6 +100,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   restaurants: any[] = [];
   filteredRestaurants: any[] = [];
+  searchDishes: any[] = [];
   selectedRestaurant: any = null;
   selectedItem: any = null;
   itemQty: number = 1;
@@ -79,7 +108,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   randomMenuItems: any[] = [];
   cart: any[] = [];
   cartTotal = 0;
-  orders: any[] = [];
+  orders: Order[] = [];
 
   // Checkout
   deliveryAddress = '';
@@ -98,6 +127,16 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
       this.isLoggedIn = !!user;
+      if (user) {
+        this.profileForm = {
+          name: user.name || '',
+          phone: user.phone || '',
+          address: user.address || '',
+          profileImage: user.profileImage || ''
+        };
+        // Also update local selectedAddress if user has one saved
+        if (user.address) this.selectedAddress = user.address;
+      }
     });
     this.loadRestaurants();
     this.loadRandomMenuItems();
@@ -160,7 +199,64 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.authService.logout();
     this.cart = [];
     this.cartTotal = 0;
+    this.isUserDropdownOpen = false;
     this.router.navigate(['/login']);
+  }
+
+  toggleUserDropdown() {
+    this.isUserDropdownOpen = !this.isUserDropdownOpen;
+  }
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  openAddressModal() {
+    this.newAddress = this.selectedAddress;
+    this.showAddressModal = true;
+  }
+
+  updateAddress() {
+    if (this.newAddress.trim()) {
+      this.selectedAddress = this.newAddress;
+      this.showAddressModal = false;
+      
+      // If logged in, update profile address too
+      if (this.isLoggedIn) {
+        this.profileForm.address = this.selectedAddress;
+        this.saveProfile(false); // Silent save
+      }
+    }
+  }
+
+  startEditingProfile() {
+    this.isEditingProfile = true;
+  }
+
+  cancelEditProfile() {
+    this.isEditingProfile = false;
+    // Reset form
+    if (this.currentUser) {
+      this.profileForm = {
+        name: this.currentUser.name || '',
+        phone: this.currentUser.phone || '',
+        address: this.currentUser.address || '',
+        profileImage: this.currentUser.profileImage || ''
+      };
+    }
+  }
+
+  saveProfile(showAlert = true) {
+    this.authService.updateProfile(this.profileForm).subscribe({
+      next: (user) => {
+        this.isEditingProfile = false;
+        if (showAlert) alert('Profile updated successfully!');
+      },
+      error: (err) => {
+        console.error('Error updating profile', err);
+        if (showAlert) alert('Failed to update profile');
+      }
+    });
   }
 
   // --- Restaurants ---
@@ -241,11 +337,28 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   searchRestaurants() {
-    this.filteredRestaurants = this.restaurants.filter(r =>
-      r.name?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-      r.description?.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
-    if (this.activeView === 'home') this.activeView = 'restaurants';
+    if (!this.searchQuery.trim()) {
+      this.filteredRestaurants = [...this.restaurants];
+      this.searchDishes = [];
+      return;
+    }
+
+    this.customerService.search(this.searchQuery).subscribe({
+      next: (results) => {
+        this.filteredRestaurants = results.restaurants;
+        this.searchDishes = results.dishes;
+        this.activeView = 'explore';
+        window.scrollTo(0, 0);
+      },
+      error: (err) => {
+        console.error('Search error', err);
+        // Fallback to client-side filtering of restaurants only
+        this.filteredRestaurants = this.restaurants.filter(r =>
+          r.name?.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
+        this.activeView = 'explore';
+      }
+    });
   }
 
   // --- Cart ---
@@ -366,6 +479,14 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       cancelled: '#ef4444'
     };
     return map[status] || '#6b7280';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-profile-dropdown')) {
+      this.isUserDropdownOpen = false;
+    }
   }
 }
 

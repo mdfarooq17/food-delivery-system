@@ -10,6 +10,10 @@ export class CustomerService {
 
   constructor(private http: HttpClient) { }
 
+  search(query: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/search?query=${query}`);
+  }
+
   private getHeaders() {
     const token = localStorage.getItem('token');
     return new HttpHeaders({

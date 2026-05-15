@@ -27,7 +27,46 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret');
-    res.json({ token, role: user.role });
+    res.json({ 
+      token, 
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt
+      } 
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+const auth = require('../middleware/auth');
+
+// Get current user profile
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Update profile
+router.put('/update-profile', auth, async (req, res) => {
+  const { name, phone, address, profileImage } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, phone, address, profileImage },
+      { new: true }
+    ).select('-password');
+    res.json(user);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

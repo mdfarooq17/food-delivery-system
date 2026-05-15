@@ -3,51 +3,189 @@
   <!-- Top Nav Bar -->
   <div class="top-nav">
     <div class="top-nav-content">
-      <div class="logo-section" style="cursor:pointer;" (click)="goHome()">
-        <h1 class="logo">FOOD<span>FLOW</span></h1>
-        <div class="location-badge">
+      <div class="logo-section">
+        <h1 class="logo" (click)="goHome()" style="cursor:pointer;">FOOD<span>FLOW</span></h1>
+        <div class="location-badge" (click)="openAddressModal()" style="cursor:pointer;">
           <span class="dot"></span>
           <span class="text">Deliver to: <strong>{{ selectedAddress }} ▼</strong></span>
         </div>
       </div>
       
-      <nav class="main-nav">
-        <a href="javascript:void(0)" [class.active]="activeView === 'home'" (click)="goHome()">Home</a>
-        <a href="javascript:void(0)" [class.active]="activeView === 'restaurants'" (click)="browseRestaurants()">Restaurants</a>
-        <a *ngIf="isLoggedIn" routerLink="/profile">Profile</a>
+      <nav class="main-nav" [class.mobile-open]="isMobileMenuOpen">
+        <a href="javascript:void(0)" [class.active]="activeView === 'home'" (click)="goHome(); isMobileMenuOpen=false">Home</a>
+        <a href="javascript:void(0)" [class.active]="activeView === 'explore'" (click)="activeView = 'explore'; isMobileMenuOpen=false">Explore</a>
+        <a href="javascript:void(0)" [class.active]="activeView === 'restaurants'" (click)="browseRestaurants(); isMobileMenuOpen=false">Restaurants</a>
+        <a href="javascript:void(0)" [class.active]="activeView === 'offers'" (click)="activeView = 'offers'; isMobileMenuOpen=false">Offers</a>
+        <a *ngIf="isLoggedIn" href="javascript:void(0)" [class.active]="activeView === 'orders'" (click)="loadMyOrders(); activeView = 'orders'; isMobileMenuOpen=false">My Orders</a>
+        <a *ngIf="isLoggedIn" href="javascript:void(0)" [class.active]="activeView === 'profile'" (click)="activeView = 'profile'; isMobileMenuOpen=false">Profile</a>
+        <div class="mobile-auth-links" *ngIf="!isLoggedIn">
+          <a routerLink="/login" class="login-link" (click)="isMobileMenuOpen=false">LOGIN</a>
+        </div>
       </nav>
 
       <div class="top-nav-links">
-        <a *ngIf="!isLoggedIn" routerLink="/register">JOIN AS RESTAURANT</a>
-        <a *ngIf="!isLoggedIn" routerLink="/register">BECOME A RIDER</a>
-        <a *ngIf="!isLoggedIn" routerLink="/login" class="login-link">LOGIN</a>
-        <span *ngIf="isLoggedIn" class="welcome-text">WELCOME, USER</span>
-        
-        <div class="cart-icon" (click)="showCartPanel=true">
-          <i class="fas fa-shopping-cart"></i>
-          <span class="cart-count">{{ cartCount }}</span>
+        <div class="desktop-auth-links" *ngIf="!isLoggedIn">
+          <a routerLink="/login" class="login-link">LOGIN</a>
         </div>
-        <div class="user-avatar" *ngIf="isLoggedIn" (click)="logout()"></div>
+        
+        <div class="nav-actions">
+          <div class="cart-icon" (click)="showCartPanel=true">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-count">{{ cartCount }}</span>
+          </div>
+
+          <div class="user-profile-dropdown" *ngIf="isLoggedIn">
+            <div class="user-avatar" (click)="toggleUserDropdown()">
+              <span *ngIf="!currentUser?.profileImage">{{ currentUser?.name?.charAt(0) || 'U' }}</span>
+              <img *ngIf="currentUser?.profileImage" [src]="currentUser.profileImage" alt="User">
+            </div>
+            <div class="dropdown-menu" *ngIf="isUserDropdownOpen">
+              <div class="dropdown-header">
+                <strong>{{ currentUser?.name }}</strong>
+                <span>{{ currentUser?.email }}</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a (click)="activeView = 'profile'; isUserDropdownOpen=false"><i class="fas fa-user"></i> My Profile</a>
+              <a (click)="openMyOrders(); isUserDropdownOpen=false"><i class="fas fa-shopping-bag"></i> My Orders</a>
+              <a (click)="toggleTheme(); isUserDropdownOpen=false">
+                <i class="fas" [class.fa-moon]="!isDarkTheme" [class.fa-sun]="isDarkTheme"></i> 
+                {{ isDarkTheme ? 'Light Mode' : 'Dark Mode' }}
+              </a>
+              <div class="dropdown-divider"></div>
+              <a (click)="logout()" class="logout-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+          </div>
+
+          <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+            <i class="fas" [class.fa-bars]="!isMobileMenuOpen" [class.fa-times]="isMobileMenuOpen"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Address Selection Modal -->
+  <div class="modal-overlay" *ngIf="showAddressModal" (click)="showAddressModal=false">
+    <div class="modal-content address-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Select Delivery Location</h3>
+        <button class="close-btn" (click)="showAddressModal=false">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Enter your delivery address to see restaurants near you.</p>
+        <div class="address-input-wrapper">
+          <i class="fas fa-map-marker-alt"></i>
+          <input type="text" [(ngModel)]="newAddress" placeholder="e.g. 42nd St, New York" (keyup.enter)="updateAddress()">
+        </div>
+        <div class="quick-addresses">
+          <button class="quick-addr" (click)="newAddress='Home (123 Main St)'; updateAddress()">
+            <i class="fas fa-home"></i> Home
+          </button>
+          <button class="quick-addr" (click)="newAddress='Office (Tech Park)'; updateAddress()">
+            <i class="fas fa-briefcase"></i> Office
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-green full-width" (click)="updateAddress()">CONFIRM LOCATION</button>
       </div>
     </div>
   </div>
 
   <!-- Search and Actions Bar -->
-  <div class="search-action-bar">
+  <div class="search-action-bar" *ngIf="activeView === 'home' || activeView === 'restaurants' || activeView === 'explore'">
     <div class="search-container">
       <i class="fas fa-search"></i>
       <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="searchRestaurants()" placeholder="Search for restaurants or dishes...">
+      <button class="search-btn" (click)="searchRestaurants()">SEARCH</button>
     </div>
-    <div class="action-buttons">
-      <button class="btn btn-green">FILTERS</button>
+    <div class="action-buttons" *ngIf="activeView === 'home'">
       <button class="btn btn-dark" (click)="openMyOrders()">MY ORDERS</button>
-      <button class="btn btn-dark" (click)="openMyOrders()">TRACK ORDER</button>
+      <button class="btn btn-dark" (click)="activeView = 'explore'">EXPLORE ALL</button>
     </div>
   </div>
 
   <!-- Main Content -->
   <main class="main-content">
     
+    <!-- EXPLORE VIEW -->
+    <section class="explore-view fade-in" *ngIf="activeView === 'explore'">
+      <div class="explore-header">
+        <div class="section-title">
+          <h2>Explore & Discover</h2>
+          <p class="text-muted">Find the best food from top-rated restaurants near you.</p>
+        </div>
+        
+        <div class="explore-filters">
+          <button class="filter-pill" [class.active]="activeFilter === 'All'" (click)="applyFilter('All')">All</button>
+          <button class="filter-pill" [class.active]="activeFilter === 'Rating 4.0+'" (click)="applyFilter('Rating 4.0+')">Rating 4.0+</button>
+          <button class="filter-pill" (click)="applyFilter('Fast Delivery')">Fast Delivery</button>
+          <button class="filter-pill" (click)="applyFilter('Offers')">Offers</button>
+        </div>
+      </div>
+
+      <div class="search-results-stats" *ngIf="searchQuery">
+        Showing results for "<strong>{{ searchQuery }}</strong>"
+        <span class="count-tag">{{ filteredRestaurants.length + searchDishes.length }} total matches</span>
+        <button class="clear-search" (click)="searchQuery=''; searchRestaurants()">Clear All</button>
+      </div>
+
+      <!-- MATCHING DISHES -->
+      <div class="explore-section" *ngIf="searchDishes.length > 0">
+        <h3 class="section-subtitle">Matching Dishes</h3>
+        <div class="dishes-grid">
+          <div class="dish-search-card" *ngFor="let item of searchDishes" (click)="viewItemDetail(item)">
+            <div class="dish-img">
+              <img [src]="item.image || 'assets/images/placeholder-food.jpg'" [alt]="item.name" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'">
+            </div>
+            <div class="dish-info">
+              <div class="dish-name-row">
+                <h4>{{ item.name }}</h4>
+                <span class="dish-price">Rs. {{ item.price }}</span>
+              </div>
+              <p class="dish-desc">{{ item.description | slice:0:60 }}...</p>
+              <div class="dish-footer">
+                <span class="res-tag"><i class="fas fa-utensils"></i> {{ item.restaurantId?.name }}</span>
+                <button class="add-btn-mini"><i class="fas fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATCHING RESTAURANTS -->
+      <div class="explore-section">
+        <h3 class="section-subtitle" *ngIf="searchDishes.length > 0">Matching Restaurants</h3>
+        <div class="restaurants-grid mt-1">
+          <div class="restaurant-card" *ngFor="let r of filteredRestaurants" (click)="selectRestaurant(r)">
+            <div class="restaurant-img">
+              <img [src]="r.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'" [alt]="r.name" onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'">
+              <div class="img-overlay">
+                <span class="status-badge" [class.open]="r.isActive">{{ r.isActive ? 'Open' : 'Closed' }}</span>
+                <span class="delivery-time"><i class="far fa-clock"></i> 25-35 min</span>
+              </div>
+            </div>
+            <div class="restaurant-info">
+              <div class="res-header">
+                <h3>{{ r.name }}</h3>
+                <span class="rating-badge"><i class="fas fa-star"></i> {{ r.rating || '4.2' }}</span>
+              </div>
+              <p class="restaurant-desc">{{ r.description || 'Premium dining experience' }}</p>
+              <div class="restaurant-meta-tags">
+                <span class="meta-tag" *ngFor="let cat of (r.categories || ['Fast Food', 'Beverages'])">{{ cat }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredRestaurants.length === 0 && searchDishes.length === 0" class="empty-state">
+        <i class="fas fa-search fa-3x mb-2"></i>
+        <h3>No matches found</h3>
+        <p>We couldn't find any restaurants or dishes matching your search. Try different keywords.</p>
+        <button class="btn btn-outline-green mt-2" (click)="searchQuery=''; searchRestaurants()">Reset Search</button>
+      </div>
+    </section>
     <!-- Hero Slider Section -->
     <section class="hero-slider-section" *ngIf="activeView === 'home'">
       <div class="hero-slider-container">
@@ -388,30 +526,191 @@
       </div>
     </section>
 
-    <!-- PROFILE VIEW -->
-    <section class="profile-view" *ngIf="activeView === 'profile'">
+    <!-- OFFERS VIEW -->
+    <section class="offers-view fade-in" *ngIf="activeView === 'offers'">
       <div class="section-title">
-        <h2>My Profile</h2>
+        <h2>Exclusive Offers</h2>
+        <p class="text-muted">Save more with these limited-time deals</p>
       </div>
-      <div class="profile-container">
-        <div class="profile-card">
-          <div class="profile-header">
-            <div class="profile-avatar"></div>
-            <div class="profile-info">
-              <h3>{{ currentUser?.name || 'User' }}</h3>
-              <p>{{ currentUser?.email || 'user@example.com' }}</p>
-              <span class="badge badge-light">Customer</span>
-            </div>
+      
+      <div class="offers-grid">
+        <div class="offer-card promo-1">
+          <div class="offer-content">
+            <span class="promo-badge">FIRST50</span>
+            <h3>50% OFF</h3>
+            <p>On your first order! Max discount Rs. 500.</p>
+            <button class="btn btn-green">Order Now</button>
           </div>
-          <div class="profile-actions">
-            <button class="btn btn-outline-green" (click)="openMyOrders()">View My Orders</button>
-            <button class="btn btn-outline-green" (click)="logout()">Logout</button>
+          <div class="offer-image">
+            <i class="fas fa-hamburger"></i>
+          </div>
+        </div>
+
+        <div class="offer-card promo-2">
+          <div class="offer-content">
+            <span class="promo-badge">FREE_DEL</span>
+            <h3>Free Delivery</h3>
+            <p>On orders above Rs. 1500 from top brands.</p>
+            <button class="btn btn-green">Explore Brands</button>
+          </div>
+          <div class="offer-image">
+            <i class="fas fa-truck"></i>
+          </div>
+        </div>
+
+        <div class="offer-card promo-3">
+          <div class="offer-content">
+            <span class="promo-badge">WKND_FEAST</span>
+            <h3>Weekend Feast</h3>
+            <p>Extra 20% off on all family platters every Sat-Sun.</p>
+            <button class="btn btn-green">View Platters</button>
+          </div>
+          <div class="offer-image">
+            <i class="fas fa-pizza-slice"></i>
           </div>
         </div>
       </div>
     </section>
-  </main>
 
+    <!-- FULL PAGE ORDERS VIEW -->
+    <section class="orders-view fade-in" *ngIf="activeView === 'orders'">
+      <div class="section-title">
+        <h2>My Order History</h2>
+        <span class="count-badge">{{ orders.length }} total orders</span>
+      </div>
+
+      <div class="orders-full-list" *ngIf="orders.length > 0">
+        <div class="order-full-card" *ngFor="let order of orders">
+          <div class="order-main-info">
+            <div class="order-status-badge" [style.background-color]="getStatusColor(order.status)">
+              {{ order.status | uppercase }}
+            </div>
+            <div class="order-details-text">
+              <h3>{{ order.restaurantId?.name || 'Local Kitchen' }}</h3>
+              <p class="order-meta">
+                <span><i class="far fa-calendar-alt"></i> {{ order.createdAt | date:'mediumDate' }}</span>
+                <span><i class="fas fa-hashtag"></i> {{ order._id.slice(-6).toUpperCase() }}</span>
+              </p>
+            </div>
+          </div>
+          <div class="order-items-summary">
+            <p>{{ order.items.length }} items • Rs. {{ order.totalAmount | number:'1.2-2' }}</p>
+            <div class="item-tags">
+              <span *ngFor="let item of order.items | slice:0:3">{{ item.name }}</span>
+              <span *ngIf="order.items.length > 3">+{{ order.items.length - 3 }} more</span>
+            </div>
+          </div>
+          <div class="order-actions">
+            <button class="btn btn-outline-green btn-small">View Details</button>
+            <button class="btn btn-dark btn-small">Help</button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="orders.length === 0" class="empty-state">
+        <i class="fas fa-shopping-bag fa-3x mb-2"></i>
+        <p>You haven't placed any orders yet.</p>
+        <button class="btn btn-green mt-2" (click)="goHome()">Browse Restaurants</button>
+      </div>
+    </section>
+
+    <!-- PROFILE VIEW -->
+    <section class="profile-view" *ngIf="activeView === 'profile'">
+      <div class="section-title">
+        <h2>My Account</h2>
+      </div>
+      
+      <div class="profile-layout">
+        <!-- Left: Sidebar -->
+        <div class="profile-sidebar">
+          <div class="profile-card mini-profile">
+            <div class="profile-avatar large">
+              <span *ngIf="!currentUser?.profileImage">{{ currentUser?.name?.charAt(0) || 'U' }}</span>
+              <img *ngIf="currentUser?.profileImage" [src]="currentUser.profileImage" alt="User">
+            </div>
+            <h3>{{ currentUser?.name }}</h3>
+            <p>{{ currentUser?.email }}</p>
+            <div class="member-since" *ngIf="currentUser?.createdAt">
+              Member since {{ currentUser.createdAt | date:'MMMM yyyy' }}
+            </div>
+            <span class="badge badge-light mt-1">CUSTOMER</span>
+          </div>
+
+          <div class="profile-nav-menu">
+            <button class="active"><i class="fas fa-user"></i> Personal Info</button>
+            <button (click)="openMyOrders()"><i class="fas fa-shopping-bag"></i> My Orders</button>
+            <button (click)="toggleTheme()"><i class="fas fa-moon"></i> Appearance</button>
+            <button (click)="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+        </div>
+
+        <!-- Right: Content -->
+        <div class="profile-main-content">
+          <div class="profile-card main-info">
+            <div class="card-header">
+              <h3>Personal Information</h3>
+              <button class="btn btn-outline-green btn-small" *ngIf="!isEditingProfile" (click)="startEditingProfile()">
+                <i class="fas fa-edit"></i> Edit Profile
+              </button>
+            </div>
+
+            <!-- Display Mode -->
+            <div class="profile-details" *ngIf="!isEditingProfile">
+              <div class="detail-group">
+                <label>Full Name</label>
+                <div class="detail-value">{{ currentUser?.name }}</div>
+              </div>
+              <div class="detail-group">
+                <label>Email Address</label>
+                <div class="detail-value">{{ currentUser?.email }}</div>
+              </div>
+              <div class="detail-group">
+                <label>Phone Number</label>
+                <div class="detail-value">{{ currentUser?.phone || 'Not provided' }}</div>
+              </div>
+              <div class="detail-group">
+                <label>Default Address</label>
+                <div class="detail-value">{{ currentUser?.address || 'Not provided' }}</div>
+              </div>
+            </div>
+
+            <!-- Edit Mode -->
+            <form class="profile-edit-form" *ngIf="isEditingProfile" (ngSubmit)="saveProfile()">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" [(ngModel)]="profileForm.name" name="name" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                  <label>Email (Non-editable)</label>
+                  <input type="email" [value]="currentUser?.email" disabled class="disabled-input">
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" [(ngModel)]="profileForm.phone" name="phone" placeholder="e.g. +92 300 1234567">
+                </div>
+                <div class="form-group">
+                  <label>Default Delivery Address</label>
+                  <input type="text" [(ngModel)]="profileForm.address" name="address" placeholder="e.g. 123 Main St, Karachi">
+                </div>
+              </div>
+              
+              <div class="form-actions mt-3">
+                <button type="button" class="btn btn-dark" (click)="cancelEditProfile()">Cancel</button>
+                <button type="submit" class="btn btn-green">Save Changes</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="profile-card mt-3 security-card">
+            <h3 class="card-title">Security</h3>
+            <p class="text-muted mb-2">Manage your account security and authentication.</p>
+            <button class="btn btn-dark btn-small">Change Password</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
   <!-- Footer -->
   <footer class="main-footer" *ngIf="activeView === 'home'">
     <div class="footer-content">
@@ -498,6 +797,8 @@
         </div>
       </div>
     </section>
+
+  </main>
 
   <!-- CART SIDE PANEL -->
   <div class="overlay" *ngIf="showCartPanel" (click)="showCartPanel=false"></div>

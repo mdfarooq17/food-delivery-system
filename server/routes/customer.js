@@ -26,6 +26,30 @@ router.get('/restaurant/:id/menu', async (req, res) => {
   }
 });
 
+// Global Search (Restaurants and Dishes)
+router.get('/search', async (req, res) => {
+  const { query } = req.query;
+  if (!query) return res.json({ restaurants: [], dishes: [] });
+  
+  try {
+    const regex = new RegExp(query, 'i');
+    
+    const restaurants = await Restaurant.find({
+      $or: [{ name: regex }, { description: regex }, { categories: regex }],
+      isActive: true
+    });
+    
+    const dishes = await MenuItem.find({
+      $or: [{ name: regex }, { description: regex }, { category: regex }],
+      isAvailable: true
+    }).populate('restaurantId', 'name');
+    
+    res.json({ restaurants, dishes });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get random menu items across all active restaurants
 router.get('/menu-items/random', async (req, res) => {
   try {
