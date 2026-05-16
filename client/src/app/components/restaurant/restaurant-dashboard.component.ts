@@ -17,9 +17,11 @@ export class RestaurantDashboardComponent implements OnInit {
   menuItems: any[] = [];
   orders: any[] = [];
   cities: any[] = [];
+  categories: any[] = [];
   showAddItemForm = false;
   showProfileForm = false;
-  activeTab = 'orders';
+  activeTab = 'dashboard';
+  today = new Date();
   isEditing = false;
   editingItemId: string | null = null;
   
@@ -55,12 +57,20 @@ export class RestaurantDashboardComponent implements OnInit {
     this.loadMenu();
     this.loadOrders();
     this.loadCities();
+    this.loadCategories();
   }
 
   loadCities() {
     this.authService.getCities().subscribe({
       next: (data) => this.cities = data,
       error: (err) => console.error('Error loading cities', err)
+    });
+  }
+
+  loadCategories() {
+    this.authService.getCategories().subscribe({
+      next: (data) => this.categories = data,
+      error: (err) => console.error('Error loading categories', err)
     });
   }
 
@@ -165,7 +175,17 @@ export class RestaurantDashboardComponent implements OnInit {
   }
 
   calculateRevenue(): number {
-    return this.orders.reduce((acc, order) => acc + (order.totalAmount || 0), 0);
+    return this.orders
+      .filter(o => o.status === 'delivered')
+      .reduce((acc, order) => acc + (order.totalAmount || 0), 0);
+  }
+
+  getDeliveredCount(): number {
+    return this.orders.filter(o => o.status === 'delivered').length;
+  }
+
+  getCancelledCount(): number {
+    return this.orders.filter(o => o.status === 'cancelled').length;
   }
 
   logout() {

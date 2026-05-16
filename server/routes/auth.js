@@ -100,4 +100,16 @@ router.get('/cities', async (req, res) => {
   }
 });
 
+const Category = require('../models/Category');
+
+// Get Public Categories List
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Category.find({ isActive: true });
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -14,6 +14,9 @@
       <button [class.active]="activeTab === 'cities'" (click)="setActiveTab('cities')">
         <i class="fas fa-city"></i> City Mgmt
       </button>
+      <button [class.active]="activeTab === 'categories'" (click)="setActiveTab('categories')">
+        <i class="fas fa-tags"></i> Categories
+      </button>
       <button [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
         <i class="fas fa-shopping-bag"></i> Live Orders
       </button>
@@ -89,6 +92,36 @@
                 {{ city.isActive ? 'Suspend' : 'Activate' }}
               </button>
               <button (click)="deleteCity(city._id)" class="btn-small btn-danger">Remove</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Categories Tab -->
+    <div *ngIf="activeTab === 'categories'" class="tab-content">
+      <div class="action-bar" style="margin-bottom: 2rem; display: flex; gap: 15px; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px;">
+        <div class="input-wrapper" style="flex: 1; position: relative;">
+          <input type="text" [(ngModel)]="newCategoryName" placeholder="Enter new category (e.g. Italian, Chinese)..." 
+                 style="width: 100%; padding: 12px 15px; border-radius: 10px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+        </div>
+        <button (click)="addCategory()" class="btn-primary" style="background: var(--admin-primary); color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+          Add Category
+        </button>
+      </div>
+      
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Category Name</th>
+            <th>Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cat of categories">
+            <td><strong>{{ cat.name }}</strong></td>
+            <td>
+              <button (click)="deleteCategory(cat._id)" class="btn-small btn-danger">Remove</button>
             </td>
           </tr>
         </tbody>

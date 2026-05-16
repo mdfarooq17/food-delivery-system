@@ -6,114 +6,133 @@
         {{ riderProfile?.userId?.name?.slice(0,1) || 'R' }}
       </div>
       <div class="rider-text">
-        <h3>Welcome, {{ riderProfile?.userId?.name || 'Rider' }}</h3>
-        <p class="text-muted">Status: {{ isReady ? 'Ready for Ride' : 'Offline' }}</p>
+        <h3>{{ riderProfile?.userId?.name || 'Rider' }}</h3>
+        <p class="text-muted">
+          <i class="fas" [ngClass]="isReady ? 'fa-circle-check text-neon' : 'fa-circle-xmark'"></i>
+          {{ isReady ? 'Ready for Assignments' : 'Currently Offline' }}
+        </p>
       </div>
     </div>
 
     <div class="status-controls">
-      <select class="city-select" [(ngModel)]="selectedCity" [disabled]="isReady">
-        <option value="" disabled>Select City</option>
-        <option *ngFor="let city of cities" [value]="city.name">{{ city.name }}</option>
-      </select>
+      <div class="select-wrapper">
+        <i class="fas fa-location-dot"></i>
+        <select class="city-select" [(ngModel)]="selectedCity" [disabled]="isReady">
+          <option value="" disabled>Select City</option>
+          <option *ngFor="let city of cities" [value]="city.name">{{ city.name }}</option>
+        </select>
+      </div>
 
       <div class="ready-toggle" [class.active]="isReady" (click)="toggleReady()">
         <span class="dot"></span>
-        {{ isReady ? 'I am Ready' : 'Go Online' }}
+        {{ isReady ? 'I am Online' : 'Go Online' }}
       </div>
       
-      <button class="nav-item logout-item" (click)="logout()" style="background:none; border:none; color:#ff4757; cursor:pointer;">
-        <i class="fas fa-sign-out-alt"></i>
+      <button class="logout-btn" (click)="logout()" title="Logout">
+        <i class="fas fa-power-off"></i>
       </button>
     </div>
   </div>
 
-  <!-- ASSIGNMENT SECTION -->
+  <!-- MAIN CONTENT AREA -->
   <div class="assignment-container">
-    <!-- NO ASSIGNMENT / QUEUE STATE -->
+    
+    <!-- LOADING / INITIAL STATE -->
     <div class="queue-state" *ngIf="!assignedOrder && isReady">
-      <div class="queue-icon"><i class="fas fa-motorcycle"></i></div>
+      <div class="queue-icon">
+        <i class="fas fa-satellite-dish"></i>
+      </div>
       <div class="queue-info">
-        <h3>You are in the queue for <span>{{ selectedCity }}</span></h3>
-        <p>Waiting for the next order. Keep this page open.</p>
-        <div class="queue-number">#{{ riderProfile?.queueNumber || '--' }}</div>
-        <p class="text-muted">Position in current queue</p>
+        <h3>Scanning for Orders in <span>{{ selectedCity }}</span></h3>
+        <p class="text-muted">Your current position in the live dispatch queue</p>
+        <div class="queue-number">
+          <small>#</small>{{ riderProfile?.queueNumber || '1' }}
+        </div>
+        <div class="radar-ping"></div>
       </div>
     </div>
 
-    <!-- NEW ASSIGNMENT ALERT (NOT ACCEPTED YET) -->
-    <div class="assignment-card" *ngIf="assignedOrder && assignedOrder.status === 'ready' && !assignedOrder.riderId">
+    <!-- NEW ASSIGNMENT ALERT -->
+    <div class="assignment-card new-alert" *ngIf="assignedOrder && assignedOrder.status === 'ready' && !assignedOrder.riderId">
       <div class="timeout-timer">
-        Accept within: {{ assignmentTimeLeft }}s
+        <i class="fas fa-clock"></i> Expiring in {{ assignmentTimeLeft }}s
       </div>
       <h2>New Assignment!</h2>
-      <p>A new order is ready for pickup in {{ selectedCity }}</p>
+      <p class="text-muted">Incoming order detected near your location</p>
 
       <div class="location-details">
         <div class="loc-row">
-          <div class="loc-icon"><i class="fas fa-store"></i></div>
+          <div class="loc-icon"><i class="fas fa-shop"></i></div>
           <div class="loc-info">
-            <h4>Restaurant</h4>
+            <h4>Pickup Location</h4>
             <p>{{ assignedOrder.restaurantId?.name }}</p>
-            <p class="text-muted">{{ assignedOrder.restaurantId?.address }}</p>
+            <span class="text-muted">{{ assignedOrder.restaurantId?.address }}</span>
           </div>
         </div>
         <div class="loc-row">
-          <div class="loc-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="loc-icon"><i class="fas fa-route"></i></div>
           <div class="loc-info">
-            <h4>Delivery To</h4>
+            <h4>Drop-off Point</h4>
             <p>{{ assignedOrder.customerId?.name }}</p>
-            <p class="text-muted">{{ assignedOrder.deliveryAddress }}</p>
+            <span class="text-muted">{{ assignedOrder.deliveryAddress }}</span>
           </div>
         </div>
       </div>
 
-      <button class="btn-accept" (click)="acceptOrder()">Accept Ride Now</button>
+      <button class="btn-accept" (click)="acceptOrder()">
+        Confirm & Start Journey
+      </button>
     </div>
 
-    <!-- ACTIVE DELIVERY (ACCEPTED) -->
-    <div class="assignment-card" *ngIf="assignedOrder && (assignedOrder.riderId || assignedOrder.status !== 'ready')">
-      <h2>Active Delivery</h2>
-      <div class="status-badge" style="background: var(--rider-primary); color: var(--rider-secondary); padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 20px; font-weight: 800; text-transform: uppercase;">
-        {{ assignedOrder.status }}
+    <!-- ACTIVE DELIVERY -->
+    <div class="assignment-card active-delivery" *ngIf="assignedOrder && (assignedOrder.riderId || assignedOrder.status !== 'ready')">
+      <div class="status-badge-container">
+        <span class="status-badge">
+          <i class="fas fa-truck-fast"></i> {{ assignedOrder.status | uppercase }}
+        </span>
       </div>
+      
+      <h2>Ongoing Delivery</h2>
 
       <div class="location-details">
         <div class="loc-row">
           <div class="loc-icon"><i class="fas fa-store"></i></div>
           <div class="loc-info">
-            <h4>Pickup From</h4>
+            <h4>Vendor Details</h4>
             <p>{{ assignedOrder.restaurantId?.name }}</p>
-            <p class="text-muted">Contact: {{ assignedOrder.restaurantId?.phone }}</p>
+            <span class="text-muted"><i class="fas fa-phone"></i> {{ assignedOrder.restaurantId?.phone }}</span>
           </div>
         </div>
         <div class="loc-row">
-          <div class="loc-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="loc-icon"><i class="fas fa-user-tag"></i></div>
           <div class="loc-info">
-            <h4>Deliver To</h4>
+            <h4>Customer Details</h4>
             <p>{{ assignedOrder.customerId?.name }}</p>
-            <p class="text-muted">{{ assignedOrder.deliveryAddress }}</p>
-            <p class="text-muted">Contact: {{ assignedOrder.customerId?.phone }}</p>
+            <span class="text-muted"><i class="fas fa-location-arrow"></i> {{ assignedOrder.deliveryAddress }}</span>
+            <br>
+            <span class="text-muted"><i class="fas fa-phone"></i> {{ assignedOrder.customerId?.phone }}</span>
           </div>
         </div>
       </div>
 
-      <div class="delivery-actions" style="display: flex; gap: 10px; flex-direction: column;">
+      <div class="delivery-actions">
         <button class="btn-accept" *ngIf="assignedOrder.status === 'ready'" (click)="updateStatus('pickedup')">
-          <i class="fas fa-box"></i> Mark as Picked Up
+          <i class="fas fa-box-open"></i> Confirm Item Pickup
         </button>
-        <button class="btn-accept" *ngIf="assignedOrder.status === 'pickedup'" (click)="updateStatus('delivered')" style="background: #2ecc71;">
-          <i class="fas fa-check-circle"></i> Mark as Delivered
+        <button class="btn-accept success" *ngIf="assignedOrder.status === 'pickedup'" (click)="updateStatus('delivered')">
+          <i class="fas fa-circle-check"></i> Complete Delivery
         </button>
       </div>
     </div>
 
     <!-- OFFLINE STATE -->
-    <div class="queue-state" *ngIf="!assignedOrder && !isReady">
-      <div class="queue-icon" style="color: #ff4757;"><i class="fas fa-power-off"></i></div>
+    <div class="queue-state offline" *ngIf="!assignedOrder && !isReady">
+      <div class="queue-icon inactive">
+        <i class="fas fa-moon"></i>
+      </div>
       <div class="queue-info">
         <h3>You are currently Offline</h3>
-        <p>Go online to start receiving orders in your city.</p>
+        <p class="text-muted">Switch your status to <strong>Online</strong> to start earning</p>
       </div>
     </div>
   </div>

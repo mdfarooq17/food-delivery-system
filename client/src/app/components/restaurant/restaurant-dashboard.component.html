@@ -1,44 +1,115 @@
 <div class="restaurant-dashboard">
   <aside class="sidebar">
-    <h2>Food<span>Flow</span></h2>
+    <div class="logo">
+      <i class="fas fa-utensils"></i>
+      <h2>FoodFlow</h2>
+    </div>
+
+    <div class="welcome-msg" *ngIf="restaurant">
+      <p>Good Morning,</p>
+      <h3>{{ restaurant.name }}!</h3>
+      <p style="margin-top: 5px;">{{ today | date:'dd/MM/yyyy' }}</p>
+    </div>
+
     <nav>
+      <button [class.active]="activeTab === 'dashboard'" (click)="activeTab = 'dashboard'">
+        <i class="fas fa-th-large"></i> Dashboard
+      </button>
       <button [class.active]="activeTab === 'orders'" (click)="activeTab = 'orders'">
         <i class="fas fa-clipboard-list"></i> Live Orders
       </button>
-      <button [class.active]="activeTab === 'menu'" (click)="activeTab = 'menu'">
-        <i class="fas fa-utensils"></i> Menu Editor
+      <button [class.active]="activeTab === 'products'" (click)="activeTab = 'products'">
+        <i class="fas fa-box"></i> Products
       </button>
       <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
-        <i class="fas fa-store"></i> Shop Profile
+        <i class="fas fa-cog"></i> Settings
       </button>
       <button class="logout-btn" (click)="logout()">
-        <i class="fas fa-sign-out-alt"></i> Sign Out
+        <i class="fas fa-sign-out-alt"></i> Logout
       </button>
     </nav>
   </aside>
 
   <main class="content">
     <header>
-      <h1>{{ activeTab === 'orders' ? 'Order Management' : (activeTab === 'menu' ? 'Menu Management' : 'Store Settings') }}</h1>
-      <button class="btn-primary" *ngIf="activeTab === 'menu'" (click)="showAddItemForm = true">
-        <i class="fas fa-plus"></i> Add New Item
-      </button>
+      <h1>{{ activeTab | titlecase }}</h1>
+      <div class="search-bar">
+        <i class="fas fa-search" style="color: #ccc;"></i>
+        <input type="text" placeholder="Type here to search food">
+      </div>
+      <div class="header-actions">
+        <button class="btn-primary" *ngIf="activeTab === 'products'" (click)="openAddItem()">
+          <i class="fas fa-plus"></i> Add Product
+        </button>
+      </div>
     </header>
 
-    <!-- Stats for context -->
-    <div class="stats-grid" *ngIf="activeTab === 'orders'">
-      <div class="stat-card">
-        <h3>Today's Orders</h3>
-        <p class="value">{{ orders.length }}</p>
+    <!-- Dashboard Tab -->
+    <div *ngIf="activeTab === 'dashboard'">
+      <div class="stats-grid">
+        <div class="stat-card orange">
+          <h3>Total Order</h3>
+          <p class="value">{{ orders.length }}</p>
+          <p class="trend"><i class="fas fa-arrow-up"></i> +10% Since last month</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Delivered</h3>
+          <p class="value">{{ getDeliveredCount() }}</p>
+          <p class="trend" style="color: #2ecc71;"><i class="fas fa-arrow-up"></i> +10% Since last month</p>
+        </div>
+        <div class="stat-card">
+          <h3>Cancelled Ordered</h3>
+          <p class="value">{{ getCancelledCount() }}</p>
+          <p class="trend" style="color: #e74c3c;"><i class="fas fa-arrow-down"></i> -5% Since last month</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Revenue</h3>
+          <p class="value">Rs. {{ calculateRevenue() }}</p>
+          <p class="trend" style="color: #2ecc71;"><i class="fas fa-arrow-up"></i> +10% Since last month</p>
+        </div>
       </div>
-      <div class="stat-card">
-        <h3>Estimated Revenue</h3>
-        <p class="value">Rs. {{ calculateRevenue() }}</p>
+
+      <div class="chart-container">
+        <div style="position: absolute; top: 20px; left: 30px;">
+          <h4 style="margin-bottom: 5px;">Operational Cost Vs Revenue</h4>
+          <p style="font-size: 0.8rem; color: #888;">Weekly overview of performance</p>
+        </div>
+        <div class="chart-placeholder"></div>
+      </div>
+
+      <div class="card-container">
+        <h3 style="margin-bottom: 20px;">Recent Orders</h3>
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of orders.slice(0, 5)">
+              <td><code>#{{ order._id.slice(-6) }}</code></td>
+              <td>{{ order.customerId?.name }}</td>
+              <td><strong>Rs. {{ order.totalAmount }}</strong></td>
+              <td>
+                <span class="status-badge" [ngClass]="'status-' + order.status">
+                  {{ order.status }}
+                </span>
+              </td>
+              <td>
+                <button class="btn-outline" (click)="activeTab = 'orders'">View</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Orders Tab -->
-    <div *ngIf="activeTab === 'orders'" class="modern-table-container">
+    <!-- Live Orders Tab -->
+    <div *ngIf="activeTab === 'orders'" class="card-container">
       <table class="modern-table">
         <thead>
           <tr>
@@ -46,7 +117,7 @@
             <th>Customer</th>
             <th>Items</th>
             <th>Total</th>
-            <th>Current Status</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -63,11 +134,11 @@
             </td>
             <td>
               <select (change)="updateOrderStatus(order, $event)" 
-                      style="background: #151e27; border: 1px solid var(--res-border); color: white; padding: 5px; border-radius: 8px;">
+                      style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
                 <option [selected]="order.status === 'pending'" value="pending">Pending</option>
                 <option [selected]="order.status === 'accepted'" value="accepted">Accepted</option>
                 <option [selected]="order.status === 'preparing'" value="preparing">Preparing</option>
-                <option [selected]="order.status === 'ready'" value="ready">Ready for Pickup</option>
+                <option [selected]="order.status === 'ready'" value="ready">Ready</option>
                 <option [selected]="order.status === 'delivered'" value="delivered">Delivered</option>
               </select>
             </td>
@@ -76,69 +147,129 @@
       </table>
     </div>
 
-    <!-- Menu Tab -->
-    <div *ngIf="activeTab === 'menu'">
-      <div class="menu-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-        <div *ngFor="let item of menuItems" class="stat-card" style="display: flex; gap: 15px; position: relative;">
-          <img [src]="item.image || 'https://via.placeholder.com/80'" style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover;">
-          <div style="flex: 1;">
-            <h4 style="margin-bottom: 5px;">{{ item.name }}</h4>
-            <p style="font-size: 0.8rem; color: var(--res-text-muted); margin-bottom: 10px;">{{ item.description }}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: var(--res-primary); font-weight: 800;">Rs. {{ item.price }}</span>
-              <button (click)="deleteMenuItem(item._id)" style="background: none; border: none; color: #ff4757; cursor: pointer;">
-                <i class="fas fa-trash"></i>
-              </button>
+    <!-- Products Tab -->
+    <div *ngIf="activeTab === 'products'">
+      <div class="products-grid">
+        <div *ngFor="let item of menuItems" class="product-card">
+          <div class="product-image">
+            <span class="badge-discount">10% Off</span>
+            <img [src]="item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" alt="food">
+          </div>
+          <div class="product-info">
+            <h4>{{ item.name }}</h4>
+            <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">{{ item.description | slice:0:60 }}...</p>
+            <div class="product-meta">
+              <span class="product-price">Rs. {{ item.price }}</span>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-outline" (click)="editMenuItem(item)"><i class="fas fa-edit"></i></button>
+                <button class="btn-outline" style="color: #ff4757;" (click)="deleteMenuItem(item._id)"><i class="fas fa-trash"></i></button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- Add Item Modal Placeholder -->
-      <div class="modal-overlay" *ngIf="showAddItemForm" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-        <div class="form-card">
-          <h2 style="margin-bottom: 20px;">Add Menu Item</h2>
+
+      <!-- Add/Edit Modal -->
+      <div class="modal-overlay" *ngIf="showAddItemForm" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="card-container" style="width: 500px;">
+          <h2 style="margin-bottom: 25px;">{{ isEditing ? 'Edit Product' : 'Add New Product' }}</h2>
           <div class="form-group">
-            <label>Item Name</label>
-            <input type="text" [(ngModel)]="newItem.name">
+            <label>Product Name</label>
+            <input type="text" [(ngModel)]="newItem.name" placeholder="Enter product name">
           </div>
           <div class="form-group">
             <label>Price (Rs.)</label>
-            <input type="number" [(ngModel)]="newItem.price">
+            <input type="number" [(ngModel)]="newItem.price" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select [(ngModel)]="newItem.category">
+              <option value="" disabled>Select a category</option>
+              <option *ngFor="let cat of categories" [value]="cat.name">{{ cat.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Image URL</label>
+            <input type="text" [(ngModel)]="newItem.image" placeholder="https://...">
           </div>
           <div class="form-group">
             <label>Description</label>
-            <textarea [(ngModel)]="newItem.description"></textarea>
+            <textarea [(ngModel)]="newItem.description" rows="3" placeholder="Tell us about this dish..."></textarea>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn-primary" (click)="saveMenuItem()">Save Item</button>
-            <button class="btn-primary" style="background: rgba(255,255,255,0.05); color: white;" (click)="showAddItemForm = false">Cancel</button>
+          <div class="form-actions">
+            <button class="btn-save" (click)="saveMenuItem()">{{ isEditing ? 'Update Product' : 'Add Product' }}</button>
+            <button class="btn-cancel" (click)="showAddItemForm = false">Cancel</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Profile Tab -->
-    <div *ngIf="activeTab === 'profile'" class="form-card">
-      <div class="form-group">
-        <label>Store Name</label>
-        <input type="text" [(ngModel)]="profileData.name">
+    <!-- Settings Tab -->
+    <div *ngIf="activeTab === 'profile'" class="settings-view">
+      <aside class="profile-sidebar">
+        <div class="avatar-wrapper">
+          <img [src]="profileData.image || 'https://via.placeholder.com/150'" alt="avatar">
+        </div>
+        <h3 style="margin-bottom: 5px;">{{ profileData.name }}</h3>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 25px;">{{ profileData.city }}</p>
+        
+        <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 15px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-size: 0.8rem; font-weight: 600;">Profile Completion</span>
+            <span style="font-size: 0.8rem; color: var(--res-orange);">95%</span>
+          </div>
+          <div style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
+            <div style="width: 95%; height: 100%; background: var(--res-orange);"></div>
+          </div>
+        </div>
+        
+        <button class="btn-primary" style="width: 100%; margin-top: 25px;">Verify Identity</button>
+      </aside>
+
+      <div class="card-container">
+        <h3 style="margin-bottom: 25px;">Personal Informations</h3>
+        
+        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 30px; background: #f8f9fa; padding: 15px; border-radius: 15px;">
+          <div style="width: 50px; height: 50px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+            {{ profileData.name.charAt(0) }}
+          </div>
+          <div style="flex: 1;">
+            <h4 style="font-size: 0.9rem;">{{ profileData.name }}</h4>
+            <p style="font-size: 0.75rem; color: #888;">Update your store photo and details here.</p>
+          </div>
+          <button class="btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">Upload New Picture</button>
+          <button class="btn-outline" style="padding: 8px 15px; font-size: 0.8rem; color: #ff4757; border-color: #ff4757;">Delete</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="form-group">
+            <label>Store Name</label>
+            <input type="text" [(ngModel)]="profileData.name">
+          </div>
+          <div class="form-group">
+            <label>Store Email</label>
+            <input type="email" [value]="restaurant?.email" disabled style="background: #f0f0f0; cursor: not-allowed;">
+          </div>
+          <div class="form-group">
+            <label>Operational City</label>
+            <select [(ngModel)]="profileData.city">
+              <option *ngFor="let c of cities" [value]="c.name">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Contact Phone</label>
+            <input type="text" [(ngModel)]="profileData.phone">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Store Address</label>
+            <textarea [(ngModel)]="profileData.address" rows="2"></textarea>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+          <button class="btn-primary" (click)="updateProfile()">Update Profile</button>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Operational City</label>
-        <select [(ngModel)]="profileData.city">
-          <option *ngFor="let c of cities" [value]="c.name">{{ c.name }}</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Store Address</label>
-        <input type="text" [(ngModel)]="profileData.address">
-      </div>
-      <div class="form-group">
-        <label>Contact Phone</label>
-        <input type="text" [(ngModel)]="profileData.phone">
-      </div>
-      <button class="btn-primary" (click)="updateProfile()">Update Settings</button>
     </div>
   </main>
 </div>

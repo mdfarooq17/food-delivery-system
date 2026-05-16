@@ -25,6 +25,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   users: any[] = [];
   restaurants: any[] = [];
   orders: any[] = [];
+  categories: any[] = [];
+  newCategoryName = '';
   cities: any[] = [];
   newCityName = '';
   activeTab = 'stats';
@@ -41,7 +43,36 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadRestaurants();
     this.loadOrders();
     this.loadCities();
+    this.loadCategories();
     this.resetTimer();
+  }
+
+  loadCategories() {
+    this.adminService.getCategories().subscribe({
+      next: (data) => this.categories = data,
+      error: (err) => console.error('Error loading categories', err)
+    });
+  }
+
+  addCategory() {
+    if (!this.newCategoryName) return;
+    this.adminService.addCategory(this.newCategoryName).subscribe({
+      next: (cat) => {
+        this.categories.push(cat);
+        this.newCategoryName = '';
+        alert('Category added!');
+      },
+      error: (err) => alert('Error adding category')
+    });
+  }
+
+  deleteCategory(id: string) {
+    if (confirm('Are you sure?')) {
+      this.adminService.deleteCategory(id).subscribe({
+        next: () => this.categories = this.categories.filter(c => c._id !== id),
+        error: (err) => alert('Error deleting category')
+      });
+    }
   }
 
   @HostListener('window:mousemove')

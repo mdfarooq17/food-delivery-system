@@ -11,7 +11,7 @@ export class AdminService {
   constructor(private http: HttpClient) { }
 
   private getHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token');
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
@@ -51,5 +51,17 @@ export class AdminService {
 
   deleteCity(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/cities/${id}`, { headers: this.getHeaders() });
+  }
+
+  getCategories(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/categories`, { headers: this.getHeaders() });
+  }
+
+  addCategory(name: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/categories`, { name }, { headers: this.getHeaders() });
+  }
+
+  deleteCategory(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/categories/${id}`, { headers: this.getHeaders() });
   }
 }

@@ -61,6 +61,10 @@ export class AuthService {
     return this.http.get(`${this.apiUrl}/cities`);
   }
 
+  getCategories(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/categories`);
+  }
+
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {

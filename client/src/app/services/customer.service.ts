@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,14 +9,14 @@ import { Observable } from 'rxjs';
 export class CustomerService {
   private apiUrl = 'http://localhost:5000/api/customer';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   search(query: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/search?query=${query}`);
   }
 
   private getHeaders() {
-    const token = localStorage.getItem('token');
+    const token = this.authService.getToken('customer');
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });

@@ -133,23 +133,27 @@
           <div class="modern-food-card" *ngFor="let item of searchDishes" (click)="viewItemDetail(item)">
             <div class="card-img-container">
               <img [src]="item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" [alt]="item.name" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'">
-              <div class="item-badge" *ngIf="item.isBestseller">Bestseller</div>
-              <div class="item-type-icon" [class.veg]="true" [class.non-veg]="false"></div>
+              <div class="item-badge-red" *ngIf="item.price < 500">10% Off</div>
+              <div class="wishlist-btn" (click)="$event.stopPropagation()"><i class="far fa-heart"></i></div>
             </div>
             <div class="card-content">
-              <div class="card-content-header">
+              <div class="card-title-row">
                 <h4>{{ item.name }}</h4>
-                <div class="card-rating" *ngIf="item.rating || 4.5">
-                  <i class="fas fa-star"></i> {{ item.rating || 4.5 }}
-                </div>
-              </div>
-              <p class="card-desc">{{ item.description }}</p>
-              <div class="card-footer">
                 <span class="card-price">Rs. {{ item.price }}</span>
-                <button class="btn-add-modern" (click)="$event.stopPropagation(); addToCart(item)">
-                  <i class="fas fa-plus"></i> ADD
-                </button>
               </div>
+              <div class="card-meta">
+                <span><i class="far fa-clock"></i> 15-30 min</span>
+                <span class="dot-separator">•</span>
+                <span>1.3 km</span>
+              </div>
+              <div class="card-rating-row">
+                <span class="rating-val"><i class="fas fa-star"></i> 4.3</span>
+                <span class="review-count">(27 Reviews)</span>
+              </div>
+              <p class="card-desc-two-line">{{ item.description || 'A delicious dish crafted with premium ingredients and authentic flavors.' }}</p>
+              <button class="btn-buy-now" (click)="$event.stopPropagation(); addToCart(item)">
+                Buy Now
+              </button>
             </div>
           </div>
         </div>
@@ -239,22 +243,27 @@
         <div class="modern-food-card" *ngFor="let item of randomMenuItems">
           <div class="card-img-container" (click)="viewItemDetail(item)" style="cursor:pointer;">
             <img [src]="item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" [alt]="item.name" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'">
-            <div class="item-badge" *ngIf="item.price < 500">Popular</div>
+            <div class="item-badge-red" *ngIf="item.price < 500">10% Off</div>
+            <div class="wishlist-btn" (click)="$event.stopPropagation()"><i class="far fa-heart"></i></div>
           </div>
           <div class="card-content">
-            <div class="card-content-header" (click)="viewItemDetail(item)" style="cursor:pointer;">
+            <div class="card-title-row">
               <h4>{{ item.name }}</h4>
-              <div class="card-rating">
-                <i class="fas fa-star"></i> 4.8
-              </div>
-            </div>
-            <p class="card-desc">{{ item.description }}</p>
-            <div class="card-footer">
               <span class="card-price">Rs. {{ item.price }}</span>
-              <button class="btn-add-modern" (click)="addToCart(item)">
-                <i class="fas fa-plus"></i> ADD
-              </button>
             </div>
+            <div class="card-meta">
+              <span><i class="far fa-clock"></i> 15-30 min</span>
+              <span class="dot-separator">•</span>
+              <span>1.3 km</span>
+            </div>
+            <div class="card-rating-row">
+              <span class="rating-val"><i class="fas fa-star"></i> 4.3</span>
+              <span class="review-count">(27 Reviews)</span>
+            </div>
+            <p class="card-desc-two-line">{{ item.description || 'A delicious dish crafted with premium ingredients and authentic flavors.' }}</p>
+            <button class="btn-buy-now" (click)="$event.stopPropagation(); addToCart(item)">
+              Buy Now
+            </button>
           </div>
         </div>
         <div *ngIf="randomMenuItems.length === 0" class="empty-state">
@@ -386,20 +395,30 @@
           <h3>More from {{ selectedRestaurant?.name || 'this restaurant' }}</h3>
         </div>
         <div class="menu-grid">
-          <div class="modern-food-card fade-in-up" *ngFor="let item of menuItems | slice:0:4">
-            <div class="card-image-wrapper" style="cursor: pointer;" (click)="viewItemDetail(item)">
-              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" alt="Food Image" class="food-img">
-              <span class="badge badge-floating">{{ item.category }}</span>
+          <div class="modern-food-card fade-in-up" *ngFor="let item of menuItems | slice:0:4" (click)="viewItemDetail(item)">
+            <div class="card-img-container">
+              <img [src]="item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" [alt]="item.name" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'">
+              <div class="item-badge-red" *ngIf="item.price < 500">10% Off</div>
+              <div class="wishlist-btn" (click)="$event.stopPropagation()"><i class="far fa-heart"></i></div>
             </div>
             <div class="card-content">
-              <h4 class="item-title" style="cursor: pointer;" (click)="viewItemDetail(item)">{{ item.name }}</h4>
-              <p class="item-desc">{{ item.description }}</p>
-              <div class="card-footer">
-                <span class="price">Rs. {{ item.price }}</span>
-                <button class="btn-add-cart" (click)="addToCart(item)">
-                  <i class="fas fa-plus"></i> Add
-                </button>
+              <div class="card-title-row">
+                <h4>{{ item.name }}</h4>
+                <span class="card-price">Rs. {{ item.price }}</span>
               </div>
+              <div class="card-meta">
+                <span><i class="far fa-clock"></i> 15-30 min</span>
+                <span class="dot-separator">•</span>
+                <span>1.3 km</span>
+              </div>
+              <div class="card-rating-row">
+                <span class="rating-val"><i class="fas fa-star"></i> 4.3</span>
+                <span class="review-count">(27 Reviews)</span>
+              </div>
+              <p class="card-desc-two-line">{{ item.description || 'A delicious dish crafted with premium ingredients and authentic flavors.' }}</p>
+              <button class="btn-buy-now" (click)="$event.stopPropagation(); addToCart(item)">
+                Buy Now
+              </button>
             </div>
           </div>
         </div>
@@ -869,31 +888,100 @@
       </div>
     </section>
 
-    <!-- MENU VIEW -->
+    <!-- RESTAURANT DETAIL / MENU VIEW -->
     <section class="menu-view" *ngIf="activeView === 'menu'">
-      <button class="back-btn" (click)="goBack()">← Back</button>
-      <div class="section-title" *ngIf="selectedRestaurant">
-        <h2>{{ selectedRestaurant.name }} Menu</h2>
-      </div>
-      <div class="menu-grid">
-        <div class="modern-food-card" *ngFor="let item of menuItems">
-          <div class="card-img-container" (click)="viewItemDetail(item)" style="cursor:pointer;">
-            <img [src]="item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" [alt]="item.name" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'">
-            <div class="item-badge" *ngIf="item.price < 500">Popular</div>
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb-nav">
+        <a (click)="activeView='home'">Homepage</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>{{ selectedRestaurant?.city || 'City' }}</span>
+        <i class="fas fa-chevron-right"></i>
+        <span class="active">{{ selectedRestaurant?.name }}</span>
+      </nav>
+
+      <!-- Restaurant Header -->
+      <div class="restaurant-detail-header" *ngIf="selectedRestaurant">
+        <div class="header-left-content">
+          <div class="res-big-thumb">
+            <img [src]="selectedRestaurant.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'" [alt]="selectedRestaurant.name">
           </div>
-          <div class="card-content">
-            <div class="card-content-header" (click)="viewItemDetail(item)" style="cursor:pointer;">
-              <h4>{{ item.name }}</h4>
-              <div class="card-rating">
-                <i class="fas fa-star"></i> 4.8
-              </div>
+          <div class="res-info-box">
+            <p class="res-tags">Pakistani • Tea & Coffee • Paratha</p>
+            <h1>{{ selectedRestaurant.name }}</h1>
+            <div class="res-offers-row">
+              <span class="offer-pill"><i class="fas fa-percent"></i> Free delivery for first order</span>
+              <span class="meta-dot">•</span>
+              <span class="min-order">Min. order Rs. 299</span>
             </div>
-            <p class="card-desc">{{ item.description }}</p>
-            <div class="card-footer">
-              <span class="card-price">Rs. {{ item.price }}</span>
-              <button class="btn-add-modern" (click)="addToCart(item)">
-                <i class="fas fa-plus"></i> ADD
-              </button>
+            <div class="res-stats-row">
+              <span class="rating-box"><i class="fas fa-star"></i> 4.8/5 (18)</span>
+              <button class="text-link-btn">See reviews</button>
+              <button class="text-link-btn"><i class="fas fa-info-circle"></i> More info</button>
+            </div>
+          </div>
+        </div>
+        <div class="header-right-actions">
+          <button class="btn btn-outline-white"><i class="fas fa-user-friends"></i> Start group order</button>
+        </div>
+      </div>
+
+      <!-- Available Deals -->
+      <div class="deals-section">
+        <h3>Available deals</h3>
+        <div class="deals-grid">
+          <div class="deal-card promo-dark">
+            <div class="deal-icon"><i class="fas fa-mobile-alt"></i></div>
+            <div class="deal-text">
+              <strong>App-only deals</strong>
+              <p>Download the app to unlock more discounts</p>
+            </div>
+          </div>
+          <div class="deal-card promo-pink">
+            <div class="deal-icon"><i class="fas fa-tag"></i></div>
+            <div class="deal-text">
+              <strong>10% off</strong>
+              <p>Valid for all items. Auto applied.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Menu Navigation -->
+      <div class="menu-nav-bar">
+        <div class="menu-search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search in menu">
+        </div>
+        <div class="menu-category-tabs">
+          <button class="tab-btn active">Popular ({{ menuItems.length }})</button>
+          <button class="tab-btn" *ngFor="let cat of ['Main', 'Roll', 'Sides']">{{ cat }}</button>
+        </div>
+      </div>
+
+      <!-- Menu Content Area -->
+      <div class="menu-content-container">
+        <div class="menu-main-col">
+          <div class="menu-section-title">
+            <h3><i class="fas fa-fire"></i> Popular</h3>
+            <p>Most ordered right now.</p>
+          </div>
+          
+          <div class="horizontal-menu-grid">
+            <div class="item-card-horizontal" *ngFor="let item of menuItems" (click)="viewItemDetail(item)">
+              <div class="item-text-part">
+                <h4>{{ item.name }}</h4>
+                <div class="item-price-row">
+                  <span class="price-curr">Rs. {{ item.price }}</span>
+                  <span class="price-old" *ngIf="item.price < 500">Rs. {{ item.price + 50 }}</span>
+                </div>
+                <p class="item-short-desc">{{ item.description || 'A delicious dish crafted with premium ingredients.' }}</p>
+              </div>
+              <div class="item-img-part">
+                <img [src]="item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" [alt]="item.name">
+                <button class="add-btn-float" (click)="$event.stopPropagation(); addToCart(item)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -904,87 +992,100 @@
 
   <!-- CART SIDE PANEL -->
   <div class="overlay cart-overlay" *ngIf="showCartPanel" (click)="showCartPanel=false"></div>
-  <div class="side-panel cart-panel modern-cart" [class.open]="showCartPanel">
-    <div class="panel-header">
-      <div class="header-left">
-        <i class="fas fa-shopping-bag"></i>
-        <div class="header-text">
-          <h3>Your Basket</h3>
-          <span class="item-count">{{ cartCount }} items from selection</span>
+  <div class="side-panel cart-panel ticket-style-cart" [class.open]="showCartPanel">
+    <div class="ticket-container">
+      <!-- Address Section -->
+      <div class="ticket-address-card">
+        <div class="address-header">DELIVERY ADDRESS</div>
+        <div class="address-details">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>{{ selectedAddress || 'Set your delivery location' }}</span>
+        </div>
+        <div class="delivery-time-meta">
+          <i class="far fa-clock"></i>
+          <span>20 min</span>
         </div>
       </div>
-      <button class="close-btn-round" (click)="showCartPanel=false">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
 
-    <div class="panel-body">
-      <!-- Empty State -->
-      <div *ngIf="cart.length === 0" class="cart-empty-state">
-        <div class="empty-icon-wrapper">
+      <!-- Cart Header -->
+      <div class="ticket-header">
+        <div class="header-main">
           <i class="fas fa-shopping-cart"></i>
+          <span class="header-title">Cart</span>
         </div>
-        <h3>Hungry?</h3>
-        <p>Your basket is empty. Add some delicious food to get started!</p>
-        <button class="btn btn-green btn-small mt-2" (click)="showCartPanel=false">Browse Menu</button>
+        <div class="order-id-meta">Order ID: #1099</div>
       </div>
 
-      <!-- Cart Items -->
-      <div class="cart-items-list" *ngIf="cart.length > 0">
-        <div *ngFor="let item of cart" class="modern-cart-item">
-          <div class="item-img-mini" *ngIf="item.image">
-            <img [src]="item.image" [alt]="item.name">
-          </div>
-          <div class="item-details">
-            <div class="item-row">
-              <h4>{{ item.name }}</h4>
-              <span class="item-price-total">Rs. {{ item.price * item.quantity }}</span>
+      <!-- Service Selector -->
+      <div class="service-selector">
+        <div class="selector-pill active">Delivery</div>
+        <div class="selector-pill">Dine In</div>
+        <div class="selector-divider"></div>
+        <div class="selector-pill">Takeaway</div>
+      </div>
+
+      <!-- Scrollable Cart Content -->
+      <div class="ticket-body">
+        <div *ngIf="cart.length === 0" class="cart-empty-state">
+          <i class="fas fa-shopping-basket"></i>
+          <p>Your cart is empty</p>
+        </div>
+
+        <div class="ticket-items-list" *ngIf="cart.length > 0">
+          <div *ngFor="let item of cart" class="ticket-item">
+            <div class="item-img-box">
+              <img [src]="item.image || 'assets/placeholder-food.png'" [alt]="item.name">
             </div>
-            <p class="item-unit-price">Rs. {{ item.price }} per unit</p>
-            
-            <div class="item-actions">
-              <div class="modern-qty-controls">
-                <button (click)="decreaseQty(item)" class="qty-control minus"><i class="fas fa-minus"></i></button>
-                <span class="qty-display">{{ item.quantity }}</span>
-                <button (click)="addToCart(item)" class="qty-control plus"><i class="fas fa-plus"></i></button>
+            <div class="item-info-main">
+              <div class="item-name-row">
+                <h4>{{ item.name }}</h4>
+                <button class="edit-item-btn"><i class="fas fa-pencil-alt"></i></button>
               </div>
-              <button class="remove-item" (click)="removeFromCart(item)">
-                <i class="far fa-trash-alt"></i>
-              </button>
+              <p class="item-subtext">{{ item.category || 'Standard' }}</p>
+              <div class="item-quantity-controls">
+                <button (click)="decreaseQty(item)" class="qty-btn-ticket"><i class="fas fa-minus-circle"></i></button>
+                <span class="qty-num-ticket">{{ item.quantity }}</span>
+                <button (click)="addToCart(item)" class="qty-btn-ticket"><i class="fas fa-plus-circle"></i></button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Pricing Summary -->
-    <div class="panel-footer modern-footer" *ngIf="cart.length > 0">
-      <div class="pricing-breakdown">
-        <div class="price-row">
-          <span>Subtotal</span>
-          <span>Rs. {{ cartTotal | number:'1.0-0' }}</span>
-        </div>
-        <div class="price-row">
-          <span>Delivery Fee</span>
-          <span class="free-text" *ngIf="deliveryFee === 0">FREE</span>
-          <span *ngIf="deliveryFee > 0">Rs. {{ deliveryFee | number:'1.0-0' }}</span>
-        </div>
-        <div class="price-row">
-          <span>Tax & Charges (8%)</span>
-          <span>Rs. {{ taxAmount | number:'1.0-0' }}</span>
-        </div>
-        <div class="price-row grand-total">
-          <span>Total Amount</span>
-          <span>Rs. {{ grandTotal | number:'1.0-0' }}</span>
+      <!-- Ticket Notch Separator -->
+      <div class="ticket-separator">
+        <div class="notch left"></div>
+        <div class="dashed-line"></div>
+        <div class="notch right"></div>
+      </div>
+
+      <!-- Promotion Section -->
+      <div class="promo-section">
+        <div class="promo-input-wrapper">
+          <span class="promo-label">Promotion Code</span>
+          <button class="promo-apply-btn">TRYNEW</button>
         </div>
       </div>
-      
-      <button class="btn btn-checkout-modern" (click)="openCheckout()">
-        <span>Proceed to Checkout</span>
-        <i class="fas fa-arrow-right"></i>
-      </button>
-      
-      <p class="footer-note"><i class="fas fa-shield-alt"></i> Secure and encrypted checkout</p>
+
+      <!-- Ticket Footer Summary -->
+      <div class="ticket-footer">
+        <div class="summary-row">
+          <span>Sub Total</span>
+          <span>Rs. {{ cartTotal | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery Charge</span>
+          <span>Rs. {{ deliveryFee | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row total-main">
+          <span>TOTAL</span>
+          <span class="total-val">Rs. {{ grandTotal | number:'1.2-2' }}</span>
+        </div>
+
+        <button class="btn-confirm-ticket" (click)="openCheckout()" [disabled]="cart.length === 0">
+          Confirm Order
+        </button>
+      </div>
     </div>
   </div>
 
