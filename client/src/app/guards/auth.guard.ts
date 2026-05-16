@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Injectable({
@@ -8,19 +8,24 @@ import { AuthService } from '../services/auth.service';
 export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService, private router: Router) { }
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
-    const currentUser = this.authService.currentUserValue;
-    if (!currentUser) {
-      this.router.navigate(['/login']);
-      return false;
-    }
-
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const allowedRoles = route.data?.['roles'] as string[] | undefined;
-    if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(currentUser.role)) {
-      this.router.navigate(['/login']);
-      return false;
+    
+    // If no specific roles required, allow access (e.g. Guest browsing)
+    if (!allowedRoles || allowedRoles.length === 0) {
+      return true;
     }
 
-    return true;
+    // Check if user is logged in as ANY of the allowed roles for this portal
+    const hasAccess = allowedRoles.some(role => !!this.authService.getUserRoleValue(role));
+
+    if (hasAccess) {
+      return true;
+    }
+
+    // Not logged in for the required role: Redirect to that role's login page
+    const primaryRole = allowedRoles[0];
+    this.router.navigate([`/login/${primaryRole}`]);
+    return false;
   }
 }

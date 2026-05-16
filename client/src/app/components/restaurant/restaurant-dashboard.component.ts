@@ -16,13 +16,17 @@ export class RestaurantDashboardComponent implements OnInit {
   restaurant: any = null;
   menuItems: any[] = [];
   orders: any[] = [];
+  cities: any[] = [];
   showAddItemForm = false;
   showProfileForm = false;
-  activeTab = 'profile';
+  activeTab = 'orders';
+  isEditing = false;
+  editingItemId: string | null = null;
   
   setActiveTab(tab: string) {
     this.activeTab = tab;
   }
+
   newItem = {
     name: '',
     description: '',
@@ -35,6 +39,7 @@ export class RestaurantDashboardComponent implements OnInit {
     name: '',
     description: '',
     address: '',
+    city: '',
     phone: '',
     image: ''
   };
@@ -49,102 +54,122 @@ export class RestaurantDashboardComponent implements OnInit {
     this.loadProfile();
     this.loadMenu();
     this.loadOrders();
+    this.loadCities();
+  }
+
+  loadCities() {
+    this.authService.getCities().subscribe({
+      next: (data) => this.cities = data,
+      error: (err) => console.error('Error loading cities', err)
+    });
   }
 
   loadProfile() {
-    this.restaurantService.getProfile().subscribe(
-      (data: any) => {
+    this.restaurantService.getProfile().subscribe({
+      next: (data) => {
         this.restaurant = data;
         this.profileData = { ...data };
       },
-      (error: any) => {
-        console.error('Error loading profile', error);
-      }
-    );
+      error: (err) => console.error('Error loading profile', err)
+    });
   }
 
   loadMenu() {
-    this.restaurantService.getMenu().subscribe(
-      (data: any) => {
-        this.menuItems = data;
-      },
-      (error: any) => {
-        console.error('Error loading menu', error);
-      }
-    );
+    this.restaurantService.getMenu().subscribe({
+      next: (data) => this.menuItems = data,
+      error: (err) => console.error('Error loading menu', err)
+    });
   }
 
   loadOrders() {
-    this.restaurantService.getOrders().subscribe(
-      (data: any) => {
-        this.orders = data;
-      },
-      (error: any) => {
-        console.error('Error loading orders', error);
-      }
-    );
+    this.restaurantService.getOrders().subscribe({
+      next: (data) => this.orders = data,
+      error: (err) => console.error('Error loading orders', err)
+    });
   }
 
-  addMenuItem() {
+  openAddItem() {
+    this.isEditing = false;
+    this.editingItemId = null;
+    this.newItem = { name: '', description: '', price: 0, category: '', image: '' };
+    this.showAddItemForm = true;
+  }
+
+  editMenuItem(item: any) {
+    this.isEditing = true;
+    this.editingItemId = item._id;
+    this.newItem = { ...item };
+    this.showAddItemForm = true;
+  }
+
+  saveMenuItem() {
     if (!this.newItem.name || !this.newItem.price || !this.newItem.category) {
       alert('Please fill all required fields');
       return;
     }
 
-    this.restaurantService.addMenuItem(this.newItem).subscribe(
-      (response: any) => {
-        alert('Menu item added successfully!');
-        this.menuItems.push(response);
-        this.newItem = { name: '', description: '', price: 0, category: '', image: '' };
-        this.showAddItemForm = false;
-      },
-      (error: any) => {
-        alert('Error adding menu item: ' + error.error.error);
-      }
-    );
+    if (this.isEditing && this.editingItemId) {
+      this.restaurantService.updateMenuItem(this.editingItemId, this.newItem).subscribe({
+        next: (response) => {
+          const index = this.menuItems.findIndex(i => i._id === this.editingItemId);
+          if (index !== -1) this.menuItems[index] = response;
+          this.showAddItemForm = false;
+          alert('Item updated successfully!');
+        },
+        error: (err) => alert('Error updating item')
+      });
+    } else {
+      this.restaurantService.addMenuItem(this.newItem).subscribe({
+        next: (response) => {
+          this.menuItems.push(response);
+          this.showAddItemForm = false;
+          alert('Item added successfully!');
+        },
+        error: (err) => alert('Error adding item')
+      });
+    }
+  }
+
+  deleteMenuItem(id: string) {
+    if (confirm('Are you sure you want to delete this item?')) {
+      this.restaurantService.deleteMenuItem(id).subscribe({
+        next: () => {
+          this.menuItems = this.menuItems.filter(i => i._id !== id);
+          alert('Item deleted!');
+        },
+        error: (err) => alert('Error deleting item')
+      });
+    }
   }
 
   updateProfile() {
-    this.restaurantService.updateProfile(this.profileData).subscribe(
-      (response: any) => {
-        alert('Profile updated successfully!');
+    this.restaurantService.updateProfile(this.profileData).subscribe({
+      next: (response) => {
         this.restaurant = response;
         this.showProfileForm = false;
+        alert('Profile updated successfully!');
       },
-      (error: any) => {
-        alert('Error updating profile: ' + error.error.error);
-      }
-    );
+      error: (err) => alert('Error updating profile')
+    });
   }
 
-  updateOrderStatus(order: any, event: Event) {
-    const newStatus = (event.target as HTMLSelectElement).value;
-    this.restaurantService.updateOrderStatus(order._id, newStatus).subscribe(
-      (response: any) => {
+  updateOrderStatus(order: any, event: any) {
+    const newStatus = event.target.value;
+    this.restaurantService.updateOrderStatus(order._id, newStatus).subscribe({
+      next: () => {
         order.status = newStatus;
-        alert('Order status updated!');
+        alert('Status updated to ' + newStatus);
       },
-      (error: any) => {
-        alert('Error updating order: ' + error.error.error);
-      }
-    );
+      error: (err) => alert('Error updating status')
+    });
+  }
+
+  calculateRevenue(): number {
+    return this.orders.reduce((acc, order) => acc + (order.totalAmount || 0), 0);
   }
 
   logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
-
-  toggleItemAvailability(item: any) {
-    const updatedItem = { ...item, isAvailable: !item.isAvailable };
-    this.restaurantService.updateMenuItem(item._id, updatedItem).subscribe(
-      (response: any) => {
-        item.isAvailable = !item.isAvailable;
-        alert('Menu item updated!');
-      },
-      (error: any) => {
-        alert('Error updating item: ' + error.error.error);
-      }
-    );
+    this.authService.logout('restaurant');
+    this.router.navigate(['/login/restaurant']);
   }
 }

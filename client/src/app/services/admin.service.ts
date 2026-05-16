@@ -36,4 +36,20 @@ export class AdminService {
   getDashboardStats(): Observable<any> {
     return this.http.get(`${this.apiUrl}/stats`, { headers: this.getHeaders() });
   }
+
+  getCities(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/cities`, { headers: this.getHeaders() });
+  }
+
+  addCity(name: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cities`, { name }, { headers: this.getHeaders() });
+  }
+
+  updateCityStatus(id: string, isActive: boolean): Observable<any> {
+    return this.http.put(`${this.apiUrl}/cities/${id}`, { isActive }, { headers: this.getHeaders() });
+  }
+
+  deleteCity(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/cities/${id}`, { headers: this.getHeaders() });
+  }
 }

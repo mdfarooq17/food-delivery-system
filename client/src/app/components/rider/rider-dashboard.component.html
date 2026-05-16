@@ -1,116 +1,120 @@
-<div class="dashboard-container">
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <i class="fas fa-motorcycle"></i>
-        <span>Rider Portal</span>
+<div class="rider-dashboard">
+  <!-- STATUS BAR -->
+  <div class="rider-status-bar">
+    <div class="rider-info">
+      <div class="rider-avatar">
+        {{ riderProfile?.userId?.name?.slice(0,1) || 'R' }}
+      </div>
+      <div class="rider-text">
+        <h3>Welcome, {{ riderProfile?.userId?.name || 'Rider' }}</h3>
+        <p class="text-muted">Status: {{ isReady ? 'Ready for Ride' : 'Offline' }}</p>
       </div>
     </div>
-    <ul class="nav-links">
-      <li routerLink="/profile">
-        <i class="fas fa-user"></i>
-        <span>My Profile</span>
-      </li>
-      <li [class.active]="activeTab === 'available'" (click)="setActiveTab('available')">
-        <i class="fas fa-list-ul"></i>
-        <span>Available Orders</span>
-      </li>
-      <li [class.active]="activeTab === 'my-deliveries'" (click)="setActiveTab('my-deliveries')">
-        <i class="fas fa-box-open"></i>
-        <span>My Deliveries</span>
-      </li>
-      <li class="logout-link" (click)="logout()">
+
+    <div class="status-controls">
+      <select class="city-select" [(ngModel)]="selectedCity" [disabled]="isReady">
+        <option value="" disabled>Select City</option>
+        <option *ngFor="let city of cities" [value]="city.name">{{ city.name }}</option>
+      </select>
+
+      <div class="ready-toggle" [class.active]="isReady" (click)="toggleReady()">
+        <span class="dot"></span>
+        {{ isReady ? 'I am Ready' : 'Go Online' }}
+      </div>
+      
+      <button class="nav-item logout-item" (click)="logout()" style="background:none; border:none; color:#ff4757; cursor:pointer;">
         <i class="fas fa-sign-out-alt"></i>
-        <span>Logout</span>
-      </li>
-    </ul>
-  </aside>
+      </button>
+    </div>
+  </div>
 
-  <main class="main-content">
-    <header class="top-header">
-      <h2>{{ activeTab === 'available' ? 'Available Orders' : 'My Deliveries' }}</h2>
-    </header>
-
-    <div class="content-body">
-      <!-- Available Orders Tab -->
-      <div *ngIf="activeTab === 'available'">
-        <div *ngIf="availableOrders.length === 0" class="empty-state">
-          <i class="fas fa-check-circle"></i>
-          <p>No new orders available to pick up.</p>
-        </div>
-        <div class="orders-grid">
-          <div class="order-card" *ngFor="let order of availableOrders">
-            <div class="order-header">
-              <span class="order-id">#{{ order._id.slice(-6).toUpperCase() }}</span>
-              <span class="badge status-ready">Ready for pickup</span>
-            </div>
-            <div class="order-details">
-              <div class="detail-row">
-                <i class="fas fa-store"></i>
-                <div>
-                  <strong>Restaurant:</strong>
-                  <p>{{ order.restaurantId?.name }}</p>
-                  <p class="address">{{ order.restaurantId?.address }}</p>
-                </div>
-              </div>
-              <div class="detail-row">
-                <i class="fas fa-map-marker-alt"></i>
-                <div>
-                  <strong>Delivery To:</strong>
-                  <p>{{ order.deliveryAddress }}</p>
-                </div>
-              </div>
-            </div>
-            <div class="order-footer">
-              <span class="price">Rs. {{ order.totalAmount }}</span>
-              <button class="btn btn-primary" (click)="acceptOrder(order)">Accept Delivery</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- My Deliveries Tab -->
-      <div *ngIf="activeTab === 'my-deliveries'">
-        <div *ngIf="myDeliveries.length === 0" class="empty-state">
-          <i class="fas fa-motorcycle"></i>
-          <p>You have no active deliveries.</p>
-        </div>
-        <div class="orders-grid">
-          <div class="order-card active-delivery" *ngFor="let order of myDeliveries">
-            <div class="order-header">
-              <span class="order-id">#{{ order._id.slice(-6).toUpperCase() }}</span>
-              <span class="badge" [ngClass]="'status-' + order.status">{{ order.status | titlecase }}</span>
-            </div>
-            <div class="order-details">
-              <div class="detail-row">
-                <i class="fas fa-store"></i>
-                <div>
-                  <strong>Pickup From:</strong>
-                  <p>{{ order.restaurantId?.name }}</p>
-                  <p class="address">{{ order.restaurantId?.address }}</p>
-                </div>
-              </div>
-              <div class="detail-row">
-                <i class="fas fa-user"></i>
-                <div>
-                  <strong>Deliver To:</strong>
-                  <p>{{ order.customerId?.name || 'Customer' }}</p>
-                  <p class="address">{{ order.deliveryAddress }}</p>
-                  <p class="phone"><i class="fas fa-phone"></i> {{ order.phone }}</p>
-                </div>
-              </div>
-            </div>
-            <div class="order-actions">
-              <button *ngIf="order.status === 'ready'" class="btn btn-warning" (click)="updateOrderStatus(order, 'picked_up')">
-                <i class="fas fa-box"></i> Mark Picked Up
-              </button>
-              <button *ngIf="order.status === 'picked_up'" class="btn btn-success" (click)="updateOrderStatus(order, 'delivered')">
-                <i class="fas fa-check"></i> Mark Delivered
-              </button>
-            </div>
-          </div>
-        </div>
+  <!-- ASSIGNMENT SECTION -->
+  <div class="assignment-container">
+    <!-- NO ASSIGNMENT / QUEUE STATE -->
+    <div class="queue-state" *ngIf="!assignedOrder && isReady">
+      <div class="queue-icon"><i class="fas fa-motorcycle"></i></div>
+      <div class="queue-info">
+        <h3>You are in the queue for <span>{{ selectedCity }}</span></h3>
+        <p>Waiting for the next order. Keep this page open.</p>
+        <div class="queue-number">#{{ riderProfile?.queueNumber || '--' }}</div>
+        <p class="text-muted">Position in current queue</p>
       </div>
     </div>
-  </main>
+
+    <!-- NEW ASSIGNMENT ALERT (NOT ACCEPTED YET) -->
+    <div class="assignment-card" *ngIf="assignedOrder && assignedOrder.status === 'ready' && !assignedOrder.riderId">
+      <div class="timeout-timer">
+        Accept within: {{ assignmentTimeLeft }}s
+      </div>
+      <h2>New Assignment!</h2>
+      <p>A new order is ready for pickup in {{ selectedCity }}</p>
+
+      <div class="location-details">
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-store"></i></div>
+          <div class="loc-info">
+            <h4>Restaurant</h4>
+            <p>{{ assignedOrder.restaurantId?.name }}</p>
+            <p class="text-muted">{{ assignedOrder.restaurantId?.address }}</p>
+          </div>
+        </div>
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="loc-info">
+            <h4>Delivery To</h4>
+            <p>{{ assignedOrder.customerId?.name }}</p>
+            <p class="text-muted">{{ assignedOrder.deliveryAddress }}</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-accept" (click)="acceptOrder()">Accept Ride Now</button>
+    </div>
+
+    <!-- ACTIVE DELIVERY (ACCEPTED) -->
+    <div class="assignment-card" *ngIf="assignedOrder && (assignedOrder.riderId || assignedOrder.status !== 'ready')">
+      <h2>Active Delivery</h2>
+      <div class="status-badge" style="background: var(--rider-primary); color: var(--rider-secondary); padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 20px; font-weight: 800; text-transform: uppercase;">
+        {{ assignedOrder.status }}
+      </div>
+
+      <div class="location-details">
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-store"></i></div>
+          <div class="loc-info">
+            <h4>Pickup From</h4>
+            <p>{{ assignedOrder.restaurantId?.name }}</p>
+            <p class="text-muted">Contact: {{ assignedOrder.restaurantId?.phone }}</p>
+          </div>
+        </div>
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="loc-info">
+            <h4>Deliver To</h4>
+            <p>{{ assignedOrder.customerId?.name }}</p>
+            <p class="text-muted">{{ assignedOrder.deliveryAddress }}</p>
+            <p class="text-muted">Contact: {{ assignedOrder.customerId?.phone }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="delivery-actions" style="display: flex; gap: 10px; flex-direction: column;">
+        <button class="btn-accept" *ngIf="assignedOrder.status === 'ready'" (click)="updateStatus('pickedup')">
+          <i class="fas fa-box"></i> Mark as Picked Up
+        </button>
+        <button class="btn-accept" *ngIf="assignedOrder.status === 'pickedup'" (click)="updateStatus('delivered')" style="background: #2ecc71;">
+          <i class="fas fa-check-circle"></i> Mark as Delivered
+        </button>
+      </div>
+    </div>
+
+    <!-- OFFLINE STATE -->
+    <div class="queue-state" *ngIf="!assignedOrder && !isReady">
+      <div class="queue-icon" style="color: #ff4757;"><i class="fas fa-power-off"></i></div>
+      <div class="queue-info">
+        <h3>You are currently Offline</h3>
+        <p>Go online to start receiving orders in your city.</p>
+      </div>
+    </div>
+  </div>
 </div>

@@ -103,7 +103,68 @@ router.put('/order/:id/status', authMiddleware, async (req, res) => {
     const order = await Order.findByIdAndUpdate(req.params.id, 
       { status, updatedAt: new Date() }, 
       { new: true });
+
+    if (status === 'ready') {
+      // Trigger automatic rider assignment
+      await assignRider(order);
+    }
+
     res.json(order);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+async function assignRider(order) {
+  try {
+    const Restaurant = require('../models/Restaurant');
+    const RiderProfile = require('../models/RiderProfile');
+    
+    const restaurant = await Restaurant.findById(order.restaurantId);
+    if (!restaurant) return;
+
+    // 1. Cleanup timed out assignments first
+    const oneMinAgo = new Date(Date.now() - 60000);
+    
+    // Riders who timed out
+    await RiderProfile.updateMany(
+      { status: 'assigned', assignmentTime: { $lt: oneMinAgo } },
+      { status: 'idle', assignmentTime: null }
+    );
+
+    // Orders that timed out
+    await Order.updateMany(
+      { assignedRiderId: { $ne: null }, riderId: null, assignmentTime: { $lt: oneMinAgo } },
+      { assignedRiderId: null, assignmentTime: null }
+    );
+
+    // 2. Find the next available rider in the same city
+    const rider = await RiderProfile.findOne({ 
+      city: restaurant.city, 
+      isReady: true,
+      status: 'idle'
+    }).sort('queueNumber');
+
+    if (rider) {
+      order.assignedRiderId = rider.userId;
+      order.assignmentTime = new Date();
+      await order.save();
+      
+      // Update rider status
+      rider.status = 'assigned';
+      rider.assignmentTime = new Date();
+      await rider.save();
+    }
+  } catch (err) {
+    console.error('Assignment error:', err);
+  }
+}
+
+// Delete menu item
+router.delete('/menu/:id', authMiddleware, async (req, res) => {
+  try {
+    await MenuItem.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Menu item deleted successfully' });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

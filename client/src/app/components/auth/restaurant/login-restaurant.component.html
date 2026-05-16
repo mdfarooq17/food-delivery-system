@@ -1,0 +1,41 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Restaurant Login</h2>
+      <p>Manage your menu and orders in real-time</p>
+    </div>
+
+    <form (submit)="login()" class="auth-form">
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="restaurant@example.com" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock"></i>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="error-alert" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-auth" [disabled]="isLoading">
+        {{ isLoading ? 'Authenticating...' : 'Sign In as Restaurant' }}
+      </button>
+
+      <div class="auth-footer">
+        New Partner? <a routerLink="/register/restaurant">Join FoodFlow</a>
+        <div class="back-link" style="margin-top: 1rem;">
+          <a routerLink="/login" style="font-size: 0.8rem; opacity: 0.6;">← General Login</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

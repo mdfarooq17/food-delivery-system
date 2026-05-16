@@ -7,10 +7,10 @@ const router = express.Router();
 
 // Register
 router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, city } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword, role });
+    const user = new User({ name, email, password: hashedPassword, role, address: city });
     await user.save();
     res.status(201).json({ message: 'User registered' });
   } catch (err) {
@@ -85,6 +85,18 @@ router.put('/change-password', auth, async (req, res) => {
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+const City = require('../models/City');
+
+// Get Public Cities List
+router.get('/cities', async (req, res) => {
+  try {
+    const cities = await City.find({ isActive: true });
+    res.json(cities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

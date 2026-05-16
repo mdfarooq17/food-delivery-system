@@ -1,0 +1,68 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Ride with FoodFlow</h2>
+      <p>Flexible hours, great pay, and total freedom</p>
+    </div>
+
+    <form (submit)="register()" class="auth-form">
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user"></i>
+          <input type="text" [(ngModel)]="name" name="name" placeholder="Alex Johnson" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="alex@delivery.com" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Service City</label>
+        <div class="input-wrapper">
+          <i class="fas fa-map-marker-alt"></i>
+          <select [(ngModel)]="city" name="city" required>
+            <option value="" disabled>Select City</option>
+            <option *ngFor="let c of cities" [value]="c.name">{{ c.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock"></i>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-shield-alt"></i>
+          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="error-alert" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+      <div class="success-alert" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <button type="submit" class="btn-auth" [disabled]="isLoading">
+        {{ isLoading ? 'Setting up...' : 'Join as Rider' }}
+      </button>
+
+      <div class="auth-footer">
+        Already a Rider? <a routerLink="/login/rider">Login here</a>
+      </div>
+    </form>
+  </div>
+</div>

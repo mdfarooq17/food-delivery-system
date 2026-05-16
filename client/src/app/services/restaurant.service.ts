@@ -44,4 +44,8 @@ export class RestaurantService {
   updateOrderStatus(orderId: string, status: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/order/${orderId}/status`, { status }, { headers: this.getHeaders() });
   }
+
+  deleteMenuItem(itemId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/menu/${itemId}`, { headers: this.getHeaders() });
+  }
 }

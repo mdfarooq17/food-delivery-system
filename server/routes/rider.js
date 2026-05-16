@@ -1,64 +1,116 @@
 const express = require('express');
 const Order = require('../models/Order');
+const RiderProfile = require('../models/RiderProfile');
+const City = require('../models/City');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get available orders (ready for pickup and not assigned to a rider)
-router.get('/orders/available', authMiddleware, async (req, res) => {
+// Get Rider Profile & Status
+router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== 'rider') return res.status(403).json({ error: 'Access denied' });
-    
-    // An order is available if it's 'ready' and has no rider assigned
-    const orders = await Order.find({ status: 'ready', riderId: { $exists: false } })
-      .populate('restaurantId', 'name address')
-      .populate('customerId', 'name');
-    
-    res.json(orders);
+    let profile = await RiderProfile.findOne({ userId: req.user.id }).populate('currentOrderId');
+    if (!profile) {
+      profile = new RiderProfile({ userId: req.user.id });
+      await profile.save();
+    }
+    res.json(profile);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Get deliveries assigned to this rider
-router.get('/orders/my-deliveries', authMiddleware, async (req, res) => {
+// Toggle Ready Status & Select City
+router.put('/status', authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== 'rider') return res.status(403).json({ error: 'Access denied' });
+    const { isReady, city } = req.body;
+    let profile = await RiderProfile.findOne({ userId: req.user.id });
     
-    const orders = await Order.find({ riderId: req.user.id })
-      .populate('restaurantId', 'name address')
-      .populate('customerId', 'name');
+    if (!profile) {
+      profile = new RiderProfile({ userId: req.user.id });
+    }
+
+    profile.isReady = isReady;
+    profile.city = city;
+    profile.status = isReady ? 'idle' : 'idle'; // Reset status when toggling
+
+    if (isReady) {
+      // Assign next queue number for this city
+      const lastRider = await RiderProfile.findOne({ city, isReady: true }).sort('-queueNumber');
+      profile.queueNumber = lastRider ? lastRider.queueNumber + 1 : 1;
+    } else {
+      profile.queueNumber = 0;
+    }
+
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Get My Current Assignment (Auto-assigned)
+router.get('/assignment', authMiddleware, async (req, res) => {
+  try {
+    // 1. Cleanup timeout if needed
+    const profile = await RiderProfile.findOne({ userId: req.user.id });
+    if (profile && profile.status === 'assigned' && profile.assignmentTime) {
+      const oneMinAgo = new Date(Date.now() - 60000);
+      if (profile.assignmentTime < oneMinAgo) {
+        profile.status = 'idle';
+        profile.assignmentTime = null;
+        await profile.save();
+        
+        // Also clear order assignment
+        await Order.findOneAndUpdate(
+          { assignedRiderId: req.user.id, riderId: null },
+          { assignedRiderId: null, assignmentTime: null }
+        );
+      }
+    }
+
+    const order = await Order.findOne({
+      $or: [
+        { assignedRiderId: req.user.id, status: 'ready' },
+        { riderId: req.user.id, status: { $in: ['ready', 'pickedup', 'preparing'] } }
+      ]
+    }).populate('restaurantId', 'name address phone').populate('customerId', 'name address phone');
     
-    res.json(orders);
+    res.json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Accept an order
+// Accept Assignment
 router.put('/order/:id/accept', authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== 'rider') return res.status(403).json({ error: 'Access denied' });
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
     
-    const order = await Order.findOne({ _id: req.params.id, status: 'ready', riderId: { $exists: false } });
-    if (!order) return res.status(400).json({ error: 'Order not available for pickup' });
-    
+    if (!order.assignedRiderId || order.assignedRiderId.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'This order is not assigned to you or expired' });
+    }
+
     order.riderId = req.user.id;
-    // We could change status to 'assigned' or similar, but the user requested 'ready' -> 'picked_up' -> 'delivered'.
-    // Let's keep it 'ready' but now it has a riderId so it's assigned to this rider.
+    order.assignedRiderId = null;
     await order.save();
-    
+
+    // Update Rider Profile
+    await RiderProfile.findOneAndUpdate(
+      { userId: req.user.id }, 
+      { status: 'delivering', currentOrderId: order._id, assignmentTime: null }
+    );
+
     res.json(order);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// Update order status (e.g. 'picked_up', 'delivered')
+// Update Delivery Status
 router.put('/order/:id/status', authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== 'rider') return res.status(403).json({ error: 'Access denied' });
-    
     const { status } = req.body;
     const order = await Order.findOneAndUpdate(
       { _id: req.params.id, riderId: req.user.id },
@@ -67,9 +119,27 @@ router.put('/order/:id/status', authMiddleware, async (req, res) => {
     );
     
     if (!order) return res.status(404).json({ error: 'Order not found or not assigned to you' });
+    
+    if (status === 'delivered') {
+      await RiderProfile.findOneAndUpdate(
+        { userId: req.user.id }, 
+        { status: 'idle', currentOrderId: null }
+      );
+    }
+
     res.json(order);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Get Cities for Selection
+router.get('/cities', async (req, res) => {
+  try {
+    const cities = await City.find({ isActive: true });
+    res.json(cities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

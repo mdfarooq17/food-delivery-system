@@ -10,7 +10,10 @@ const orderSchema = new mongoose.Schema({
     quantity: Number
   }],
   totalAmount: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'accepted', 'preparing', 'ready', 'delivered', 'cancelled'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'accepted', 'preparing', 'ready', 'pickedup', 'delivered', 'cancelled'], default: 'pending' },
+  riderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  assignedRiderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  assignmentTime: { type: Date },
   deliveryAddress: String,
   phone: String,
   notes: String,

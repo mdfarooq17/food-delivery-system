@@ -18,6 +18,7 @@ export class LoginCustomerComponent implements OnInit {
   };
   rememberMe = false;
   isLoading = false;
+  errorMessage = '';
 
   constructor(
     private authService: AuthService,
@@ -45,22 +46,23 @@ export class LoginCustomerComponent implements OnInit {
 
   onSubmit() {
     if (!this.loginData.email || !this.loginData.password) {
-      alert('Please fill in all fields');
+      this.errorMessage = 'Please fill in all fields';
       return;
     }
 
     this.isLoading = true;
+    this.errorMessage = '';
 
-    this.authService.login(this.loginData.email, this.loginData.password).subscribe(
-      (response: any) => {
+    this.authService.login(this.loginData.email, this.loginData.password).subscribe({
+      next: (response: any) => {
         this.isLoading = false;
         const role = response?.user?.role || response?.role;
         this.redirectUser(role);
       },
-      (error: any) => {
+      error: (error: any) => {
         this.isLoading = false;
-        alert('Login failed: ' + (error.error?.error || 'Unknown error'));
+        this.errorMessage = error.error?.error || 'Login failed. Please check your credentials.';
       }
-    );
+    });
   }
 }

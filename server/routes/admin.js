@@ -76,4 +76,46 @@ router.get('/stats', authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
+// City Management
+const City = require('../models/City');
+
+router.get('/cities', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const cities = await City.find();
+    res.json(cities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/cities', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    const city = new City({ name, addedBy: req.user.id });
+    await city.save();
+    res.status(201).json(city);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.put('/cities/:id', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    const city = await City.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+    res.json(city);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/cities/:id', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    await City.findByIdAndDelete(req.params.id);
+    res.json({ message: 'City removed' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 module.exports = router;

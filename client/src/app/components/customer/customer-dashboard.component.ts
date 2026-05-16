@@ -194,14 +194,14 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   // --- Auth ---
-  goToLogin() { this.router.navigate(['/login']); }
-  goToRegister() { this.router.navigate(['/register']); }
+  goToLogin() { this.router.navigate(['/login/customer']); }
+  goToRegister() { this.router.navigate(['/register/customer']); }
   logout() {
-    this.authService.logout();
+    this.authService.logout('customer');
     this.cart = [];
     this.cartTotal = 0;
     this.isUserDropdownOpen = false;
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login/customer']);
   }
 
   toggleUserDropdown() {
@@ -364,7 +364,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   // --- Cart ---
   addToCart(item: any, quantity: number = 1) {
-    if (!this.isLoggedIn) { this.router.navigate(['/login']); return; }
+    // Customers can add to cart even if not logged in (Guest Mode)
     const existing = this.cart.find(c => c._id === item._id);
     if (existing) {
       existing.quantity += quantity;
@@ -401,7 +401,11 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   clearCart() { this.cart = []; this.cartTotal = 0; }
 
   openCheckout() {
-    if (!this.isLoggedIn) { this.router.navigate(['/login']); return; }
+    if (!this.isLoggedIn) { 
+      alert('Please login as a customer to proceed with your order.');
+      this.router.navigate(['/login/customer']); 
+      return; 
+    }
     if (this.cart.length === 0) { alert('Your cart is empty'); return; }
     this.showCartPanel = false;
     this.activeView = 'checkout';
@@ -459,7 +463,10 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   openMyOrders() {
-    if (!this.isLoggedIn) { this.router.navigate(['/login']); return; }
+    if (!this.isLoggedIn) { 
+      this.router.navigate(['/login/customer']); 
+      return; 
+    }
     this.loadMyOrders();
     this.activeView = 'orders';
     this.showOrdersPanel = false;

@@ -1,0 +1,40 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Admin Control</h2>
+      <p>Secure access for platform administrators</p>
+    </div>
+
+    <form (submit)="login()" class="auth-form">
+      <div class="form-group">
+        <label>Admin ID / Email</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user-shield"></i>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="admin@foodflow.com" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Secret Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-key"></i>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <div class="error-alert" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-auth" [disabled]="isLoading" style="background: #2c3e50; color: white;">
+        {{ isLoading ? 'Verifying...' : 'Authorize Access' }}
+      </button>
+
+      <div class="auth-footer">
+        <div class="back-link">
+          <a routerLink="/login" style="font-size: 0.8rem; opacity: 0.6;">← General Login</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

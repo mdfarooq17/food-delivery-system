@@ -8,70 +8,125 @@ import { tap } from 'rxjs/operators';
 })
 export class AuthService {
   private apiUrl = 'http://localhost:5000/api/auth';
-  private currentUserSubject: BehaviorSubject<any>;
-  public currentUser: Observable<any>;
+  
+  // Subjects for multi-role support
+  private roleSubjects: { [key: string]: BehaviorSubject<any> } = {
+    customer: new BehaviorSubject<any>(null),
+    restaurant: new BehaviorSubject<any>(null),
+    rider: new BehaviorSubject<any>(null),
+    admin: new BehaviorSubject<any>(null)
+  };
+
+  public customer$ = this.roleSubjects['customer'].asObservable();
+  public restaurant$ = this.roleSubjects['restaurant'].asObservable();
+  public rider$ = this.roleSubjects['rider'].asObservable();
+  public admin$ = this.roleSubjects['admin'].asObservable();
+
+  // Primary stream for backward compatibility (defaults to customer)
+  public currentUser = this.customer$;
 
   constructor(private http: HttpClient) {
-    const savedUser = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<any>(savedUser ? JSON.parse(savedUser).user : null);
-    this.currentUser = this.currentUserSubject.asObservable();
+    this.initSessions();
   }
 
+  private initSessions() {
+    ['customer', 'restaurant', 'rider', 'admin'].forEach(role => {
+      const storage = role === 'admin' ? sessionStorage : localStorage;
+      const saved = storage.getItem(`${role}_session`);
+      if (saved) {
+        this.roleSubjects[role].next(JSON.parse(saved).user);
+      }
+    });
+  }
+
+  // Compatibility getter for existing code
   public get currentUserValue(): any {
-    return this.currentUserSubject.value;
+    // Return any active session, prioritizing customer
+    return this.roleSubjects['customer'].value || 
+           this.roleSubjects['restaurant'].value || 
+           this.roleSubjects['rider'].value || 
+           this.roleSubjects['admin'].value;
   }
 
-  register(name: string, email: string, password: string, role: string) {
-    return this.http.post(`${this.apiUrl}/register`, { name, email, password, role });
+  // Role-specific getters
+  public getUserRoleValue(role: string): any {
+    return this.roleSubjects[role]?.value;
+  }
+
+  register(name: string, email: string, password: string, role: string, city: string = '') {
+    return this.http.post(`${this.apiUrl}/register`, { name, email, password, role, city });
+  }
+
+  getCities(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/cities`);
   }
 
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         if (response && response.token) {
-          localStorage.setItem('currentUser', JSON.stringify(response));
-          localStorage.setItem('token', response.token);
-          this.currentUserSubject.next(response.user);
+          const role = response.user.role;
+          const storage = role === 'admin' ? sessionStorage : localStorage;
+          
+          storage.setItem(`${role}_session`, JSON.stringify(response));
+          storage.setItem(`${role}_token`, response.token);
+          this.roleSubjects[role].next(response.user);
         }
       })
     );
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
+  getToken(role: string = ''): string | null {
+    if (role) {
+      const storage = role === 'admin' ? sessionStorage : localStorage;
+      return storage.getItem(`${role}_token`);
+    }
+    // Fallback for general calls
+    return localStorage.getItem('customer_token') || 
+           localStorage.getItem('restaurant_token') || 
+           localStorage.getItem('rider_token') || 
+           sessionStorage.getItem('admin_token');
   }
 
-  me(): Observable<any> {
-    const token = this.getToken();
+  me(role: string = 'customer'): Observable<any> {
+    const token = this.getToken(role);
     return this.http.get<any>(`${this.apiUrl}/me`, {
       headers: { Authorization: `Bearer ${token}` }
     });
   }
 
-  updateProfile(userData: any): Observable<any> {
-    const token = this.getToken();
-    return this.http.put<any>(`${this.apiUrl}/update-profile`, userData, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).pipe(
-      tap(user => {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        currentUser.user = user;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        this.currentUserSubject.next(user);
-      })
-    );
-  }
-
-  changePassword(data: { currentPassword: string; newPassword: string }): Observable<any> {
-    const token = this.getToken();
+  changePassword(data: { currentPassword: string; newPassword: string }, role: string = 'customer'): Observable<any> {
+    const token = this.getToken(role);
     return this.http.put<any>(`${this.apiUrl}/change-password`, data, {
       headers: { Authorization: `Bearer ${token}` }
     });
   }
 
-  logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('token');
-    this.currentUserSubject.next(null);
+  logout(role: string = '') {
+    if (role) {
+      const storage = role === 'admin' ? sessionStorage : localStorage;
+      storage.removeItem(`${role}_session`);
+      storage.removeItem(`${role}_token`);
+      this.roleSubjects[role].next(null);
+    } else {
+      // Logout all
+      ['customer', 'restaurant', 'rider', 'admin'].forEach(r => this.logout(r));
+    }
+  }
+
+  // Needed for profile updates
+  updateProfile(userData: any, role: string = 'customer'): Observable<any> {
+    const token = this.getToken(role);
+    return this.http.put<any>(`${this.apiUrl}/update-profile`, userData, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).pipe(
+      tap(user => {
+        const storage = role === 'admin' ? sessionStorage : localStorage;
+        const saved = JSON.parse(storage.getItem(`${role}_session`) || '{}');
+        saved.user = user;
+        storage.setItem(`${role}_session`, JSON.stringify(saved));
+        this.roleSubjects[role].next(user);
+      })
+    );
   }
 }

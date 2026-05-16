@@ -17,15 +17,23 @@ export class RiderService {
     });
   }
 
-  getAvailableOrders(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/orders/available`, { headers: this.getHeaders() });
+  getRiderProfile(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/profile`, { headers: this.getHeaders() });
   }
 
-  getMyDeliveries(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/orders/my-deliveries`, { headers: this.getHeaders() });
+  getAvailableCities(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/cities`, { headers: this.getHeaders() });
   }
 
-  acceptOrder(orderId: string): Observable<any> {
+  updateStatus(isReady: boolean, city: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/status`, { isReady, city }, { headers: this.getHeaders() });
+  }
+
+  getAssignment(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/assignment`, { headers: this.getHeaders() });
+  }
+
+  acceptAssignment(orderId: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/order/${orderId}/accept`, {}, { headers: this.getHeaders() });
   }
 

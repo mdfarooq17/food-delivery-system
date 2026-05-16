@@ -1,22 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../services/auth.service';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-register-restaurant',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './register-restaurant.component.html',
+  styleUrls: ['../auth-shared.css']
 })
-export class RegisterComponent {
+export class RegisterRestaurantComponent implements OnInit {
   name = '';
   email = '';
   password = '';
   confirmPassword = '';
-  role = 'customer';
   city = '';
   cities: any[] = [];
   errorMessage = '';
@@ -37,7 +36,7 @@ export class RegisterComponent {
   }
 
   register() {
-    if (!this.name || !this.email || !this.password || !this.confirmPassword || (!this.city && this.role !== 'admin')) {
+    if (!this.name || !this.email || !this.password || !this.confirmPassword || !this.city) {
       this.errorMessage = 'All fields are required';
       return;
     }
@@ -49,15 +48,12 @@ export class RegisterComponent {
 
     this.isLoading = true;
     this.errorMessage = '';
-    this.successMessage = '';
 
-    this.authService.register(this.name, this.email, this.password, this.role, this.city).subscribe({
+    this.authService.register(this.name, this.email, this.password, 'restaurant', this.city).subscribe({
       next: (response: any) => {
         this.isLoading = false;
-        this.successMessage = 'Registration successful! Please login.';
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
+        this.successMessage = 'Partner registration successful! Welcome to the family.';
+        setTimeout(() => this.router.navigate(['/login/restaurant']), 2000);
       },
       error: (err: any) => {
         this.isLoading = false;
