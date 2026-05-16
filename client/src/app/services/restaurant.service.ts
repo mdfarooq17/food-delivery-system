@@ -48,4 +48,8 @@ export class RestaurantService {
   deleteMenuItem(itemId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/menu/${itemId}`, { headers: this.getHeaders() });
   }
+
+  dispatchRider(orderId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/order/${orderId}/dispatch-rider`, {}, { headers: this.getHeaders() });
+  }
 }

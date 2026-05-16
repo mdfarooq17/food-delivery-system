@@ -124,6 +124,8 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     private router: Router
   ) { }
 
+  pollingInterval: any;
+
   ngOnInit() {
     this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
@@ -142,6 +144,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.loadRestaurants();
     this.loadRandomMenuItems();
     this.startAutoSlider();
+    this.startPolling();
   }
 
   loadRandomMenuItems() {
@@ -153,6 +156,42 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopAutoSlider();
+    this.stopPolling();
+  }
+
+  startPolling() {
+    this.pollingInterval = setInterval(() => {
+      if (this.isLoggedIn) {
+        if (this.activeView === 'orders') {
+          this.loadMyOrders();
+        } else if (this.activeView === 'tracking' && this.trackingOrder) {
+          this.pollTrackingOrder();
+        }
+      }
+    }, 5000); // Poll every 5 seconds
+  }
+
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+  }
+
+  pollTrackingOrder() {
+    if (!this.trackingOrder?._id) return;
+    this.customerService.getOrderDetails(this.trackingOrder._id).subscribe({
+      next: (order) => {
+        if (order) {
+          this.trackingOrder = order;
+          // also update this order in the orders list if it is there
+          const idx = this.orders.findIndex(o => o._id === order._id);
+          if (idx !== -1) {
+            this.orders[idx] = order;
+          }
+        }
+      },
+      error: (err) => console.error('Error polling order tracking details', err)
+    });
   }
 
   startAutoSlider() {
@@ -432,6 +471,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
         quantity: item.quantity
       })),
       totalAmount: this.grandTotal,
+      deliveryFee: this.deliveryFee,
       deliveryAddress: this.deliveryAddress,
       phone: this.phone,
       notes: this.notes,

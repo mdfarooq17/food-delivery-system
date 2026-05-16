@@ -35,7 +35,7 @@
   </div>
 
   <!-- MAIN CONTENT AREA -->
-  <div class="assignment-container">
+  <div class="assignment-container" *ngIf="activeTab === 'requests'">
     
     <!-- LOADING / INITIAL STATE -->
     <div class="queue-state" *ngIf="!assignedOrder && isReady">
@@ -53,12 +53,17 @@
     </div>
 
     <!-- NEW ASSIGNMENT ALERT -->
-    <div class="assignment-card new-alert" *ngIf="assignedOrder && assignedOrder.status === 'ready' && !assignedOrder.riderId">
+    <div class="assignment-card new-alert" *ngIf="assignedOrder && ['ready', 'preparing'].includes(assignedOrder.status) && !assignedOrder.riderId">
       <div class="timeout-timer">
         <i class="fas fa-clock"></i> Expiring in {{ assignmentTimeLeft }}s
       </div>
       <h2>New Assignment!</h2>
       <p class="text-muted">Incoming order detected near your location</p>
+      
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--rider-neon); padding: 12px; border-radius: 8px; margin: 15px 0; text-align: center;">
+        <span style="font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">Est. Earning</span>
+        <h3 style="color: var(--rider-neon); margin: 5px 0 0 0; font-size: 1.5rem;">Rs. {{ assignedOrder.deliveryFee || 150 }}</h3>
+      </div>
 
       <div class="location-details">
         <div class="loc-row">
@@ -79,13 +84,18 @@
         </div>
       </div>
 
-      <button class="btn-accept" (click)="acceptOrder()">
-        Confirm & Start Journey
-      </button>
+      <div class="delivery-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn-accept" style="flex: 2;" (click)="acceptOrder()">
+          Confirm & Start Journey
+        </button>
+        <button class="btn-outline" style="flex: 1; border-color: #ff4757; color: #ff4757;" (click)="rejectOrder()">
+          Reject
+        </button>
+      </div>
     </div>
 
     <!-- ACTIVE DELIVERY -->
-    <div class="assignment-card active-delivery" *ngIf="assignedOrder && (assignedOrder.riderId || assignedOrder.status !== 'ready')">
+    <div class="assignment-card active-delivery" *ngIf="assignedOrder && (assignedOrder.riderId || !['ready', 'preparing'].includes(assignedOrder.status))">
       <div class="status-badge-container">
         <span class="status-badge">
           <i class="fas fa-truck-fast"></i> {{ assignedOrder.status | uppercase }}
@@ -93,6 +103,10 @@
       </div>
       
       <h2>Ongoing Delivery</h2>
+      
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed var(--rider-neon); padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+        <span style="font-size: 0.8rem; color: #888;">Delivery Earning: <strong>Rs. {{ assignedOrder.deliveryFee || 150 }}</strong></span>
+      </div>
 
       <div class="location-details">
         <div class="loc-row">
@@ -136,4 +150,83 @@
       </div>
     </div>
   </div>
+
+  <!-- PROFILE TAB -->
+  <div class="assignment-container" *ngIf="activeTab === 'profile'">
+    <div class="assignment-card">
+      <h2>Rider Profile</h2>
+      <div class="location-details">
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-user"></i></div>
+          <div class="loc-info">
+            <h4>Name</h4>
+            <p>{{ riderProfile?.userId?.name || 'Rider' }}</p>
+          </div>
+        </div>
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-envelope"></i></div>
+          <div class="loc-info">
+            <h4>Email</h4>
+            <p>{{ riderProfile?.userId?.email || 'N/A' }}</p>
+          </div>
+        </div>
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-city"></i></div>
+          <div class="loc-info">
+            <h4>Current City</h4>
+            <p>{{ selectedCity || 'Not Selected' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EARNINGS TAB -->
+  <div class="assignment-container" *ngIf="activeTab === 'earnings'">
+    <div class="assignment-card">
+      <h2>Earnings</h2>
+      <div class="queue-number" style="margin-bottom: 20px;">
+        <small>Rs.</small>{{ (riderProfile?.earnings || 0) | number:'1.2-2' }}
+      </div>
+      <p class="text-muted" *ngIf="!riderProfile?.earnings">You haven't completed any paid deliveries today.</p>
+      <p style="color: var(--rider-neon); text-align: center;" *ngIf="riderProfile?.earnings">🎉 Keep up the great work! Deliver more to earn more!</p>
+    </div>
+  </div>
+
+  <!-- ANALYTICS TAB -->
+  <div class="assignment-container" *ngIf="activeTab === 'analytics'">
+    <div class="assignment-card">
+      <h2>Analytics</h2>
+      <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+        <div>
+          <h3 style="color: var(--rider-neon); font-size: 2rem;">{{ riderProfile?.completedTrips || 0 }}</h3>
+          <p class="text-muted">Total Trips</p>
+        </div>
+        <div>
+          <h3 style="color: var(--rider-neon); font-size: 2rem;">100%</h3>
+          <p class="text-muted">Acceptance Rate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="rider-bottom-nav">
+    <button [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
+      <i class="fas fa-list"></i>
+      <span>Requests</span>
+    </button>
+    <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </button>
+    <button [class.active]="activeTab === 'earnings'" (click)="activeTab = 'earnings'">
+      <i class="fas fa-wallet"></i>
+      <span>Earnings</span>
+    </button>
+    <button [class.active]="activeTab === 'analytics'" (click)="activeTab = 'analytics'">
+      <i class="fas fa-chart-line"></i>
+      <span>Analytics</span>
+    </button>
+  </nav>
 </div>

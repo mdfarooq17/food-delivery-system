@@ -9,14 +9,14 @@ const router = express.Router();
 // Create/Update restaurant profile
 router.post('/profile', authMiddleware, async (req, res) => {
   try {
-    const { name, description, address, phone, image } = req.body;
+    const { name, description, address, city, phone, image } = req.body;
     let restaurant = await Restaurant.findOne({ userId: req.user.id });
     if (restaurant) {
       restaurant = await Restaurant.findByIdAndUpdate(restaurant._id, 
-        { name, description, address, phone, image }, 
+        { name, description, address, city, phone, image }, 
         { new: true });
     } else {
-      restaurant = new Restaurant({ userId: req.user.id, name, description, address, phone, image });
+      restaurant = new Restaurant({ userId: req.user.id, name, description, address, city, phone, image });
       await restaurant.save();
     }
     res.json(restaurant);
@@ -104,7 +104,7 @@ router.put('/order/:id/status', authMiddleware, async (req, res) => {
       { status, updatedAt: new Date() }, 
       { new: true });
 
-    if (status === 'ready') {
+    if (status === 'preparing') {
       // Trigger automatic rider assignment
       await assignRider(order);
     }
@@ -112,6 +112,20 @@ router.put('/order/:id/status', authMiddleware, async (req, res) => {
     res.json(order);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Manually dispatch/request rider
+router.post('/order/:id/dispatch-rider', authMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    
+    await assignRider(order);
+    const updatedOrder = await Order.findById(order._id);
+    res.json({ message: 'Rider request triggered successfully!', order: updatedOrder });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -125,18 +139,39 @@ async function assignRider(order) {
 
     // 1. Cleanup timed out assignments first
     const oneMinAgo = new Date(Date.now() - 60000);
+    const timedOutRiders = await RiderProfile.find({ status: 'assigned', assignmentTime: { $lt: oneMinAgo } });
     
-    // Riders who timed out
-    await RiderProfile.updateMany(
-      { status: 'assigned', assignmentTime: { $lt: oneMinAgo } },
-      { status: 'idle', assignmentTime: null }
-    );
+    for (let p of timedOutRiders) {
+      const timedOutOrder = await Order.findOne({ assignedRiderId: p.userId, riderId: null });
+      
+      const lastRider = await RiderProfile.findOne({ city: p.city, isReady: true }).sort('-queueNumber');
+      p.queueNumber = lastRider ? lastRider.queueNumber + 1 : p.queueNumber + 1;
+      p.status = 'idle';
+      p.assignmentTime = null;
+      await p.save();
+      
+      if (timedOutOrder) {
+        timedOutOrder.assignedRiderId = null;
+        timedOutOrder.assignmentTime = null;
+        await timedOutOrder.save();
 
-    // Orders that timed out
-    await Order.updateMany(
-      { assignedRiderId: { $ne: null }, riderId: null, assignmentTime: { $lt: oneMinAgo } },
-      { assignedRiderId: null, assignmentTime: null }
-    );
+        const nextRider = await RiderProfile.findOne({ 
+          city: p.city, 
+          isReady: true,
+          status: 'idle'
+        }).sort('queueNumber');
+
+        if (nextRider) {
+          timedOutOrder.assignedRiderId = nextRider.userId;
+          timedOutOrder.assignmentTime = new Date();
+          await timedOutOrder.save();
+          
+          nextRider.status = 'assigned';
+          nextRider.assignmentTime = new Date();
+          await nextRider.save();
+        }
+      }
+    }
 
     // 2. Find the next available rider in the same city
     const rider = await RiderProfile.findOne({ 

@@ -10,7 +10,9 @@ const riderProfileSchema = new mongoose.Schema({
   currentOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   assignmentTime: { type: Date },
   vehicleType: { type: String },
-  phone: { type: String }
+  phone: { type: String },
+  earnings: { type: Number, default: 0 },
+  completedTrips: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('RiderProfile', riderProfileSchema);

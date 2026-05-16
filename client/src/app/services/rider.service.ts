@@ -41,4 +41,8 @@ export class RiderService {
   updateOrderStatus(orderId: string, status: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/order/${orderId}/status`, { status }, { headers: this.getHeaders() });
   }
+
+  rejectAssignment(orderId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/order/${orderId}/reject`, {}, { headers: this.getHeaders() });
+  }
 }

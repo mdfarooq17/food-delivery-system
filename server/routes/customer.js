@@ -71,12 +71,13 @@ router.get('/menu-items/random', async (req, res) => {
 // Place order
 router.post('/order', authMiddleware, async (req, res) => {
   try {
-    const { restaurantId, items, totalAmount, deliveryAddress, phone, notes } = req.body;
+    const { restaurantId, items, totalAmount, deliveryFee, deliveryAddress, phone, notes } = req.body;
     const order = new Order({
       customerId: req.user.id,
       restaurantId,
       items,
       totalAmount,
+      deliveryFee,
       deliveryAddress,
       phone,
       notes

@@ -14,6 +14,7 @@ const orderSchema = new mongoose.Schema({
   riderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   assignedRiderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   assignmentTime: { type: Date },
+  deliveryFee: { type: Number, default: 0 },
   deliveryAddress: String,
   phone: String,
   notes: String,

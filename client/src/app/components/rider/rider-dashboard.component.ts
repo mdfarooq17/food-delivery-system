@@ -21,6 +21,7 @@ export class RiderDashboardComponent implements OnInit {
   assignmentTimer: any;
   assignmentTimeLeft = 60;
   assignmentInterval: any;
+  activeTab = 'requests';
 
   constructor(
     private riderService: RiderService,
@@ -87,7 +88,7 @@ export class RiderDashboardComponent implements OnInit {
       next: (order) => {
         if (order) {
           this.assignedOrder = order;
-          if (order.status === 'ready' && !order.riderId) {
+          if (['ready', 'preparing'].includes(order.status) && !order.riderId) {
             this.startTimer();
           } else {
             this.stopTimer();
@@ -108,7 +109,7 @@ export class RiderDashboardComponent implements OnInit {
       this.assignmentTimeLeft--;
       if (this.assignmentTimeLeft <= 0) {
         this.stopTimer();
-        this.checkAssignment(); // Refresh to see if it's gone
+        this.rejectOrder(true);
       }
     }, 1000);
   }
@@ -132,12 +133,28 @@ export class RiderDashboardComponent implements OnInit {
     });
   }
 
+  rejectOrder(isAuto = false) {
+    if (!this.assignedOrder) return;
+    this.riderService.rejectAssignment(this.assignedOrder._id).subscribe({
+      next: () => {
+        if (!isAuto) {
+          alert('Order rejected and passed to next rider.');
+        }
+        this.assignedOrder = null;
+        this.stopTimer();
+        this.checkAssignment();
+      },
+      error: (err) => alert(err.error?.error || 'Error rejecting order')
+    });
+  }
+
   updateStatus(status: string) {
     if (!this.assignedOrder) return;
     this.riderService.updateOrderStatus(this.assignedOrder._id, status).subscribe({
       next: () => {
         alert(`Status updated to ${status}`);
         this.checkAssignment();
+        this.loadProfile();
       },
       error: (err) => alert('Error updating status')
     });

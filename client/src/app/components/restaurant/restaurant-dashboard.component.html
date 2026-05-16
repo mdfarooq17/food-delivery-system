@@ -78,7 +78,12 @@
       </div>
 
       <div class="card-container">
-        <h3 style="margin-bottom: 20px;">Recent Orders</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="margin: 0;">Recent Orders</h3>
+          <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer;" (click)="loadOrders()">
+            <i class="fas fa-arrows-rotate"></i> Refresh
+          </button>
+        </div>
         <table class="modern-table">
           <thead>
             <tr>
@@ -100,7 +105,7 @@
                 </span>
               </td>
               <td>
-                <button class="btn-outline" (click)="activeTab = 'orders'">View</button>
+                <button class="btn-outline" style="cursor: pointer;" (click)="viewOrderDetails(order)">View</button>
               </td>
             </tr>
           </tbody>
@@ -110,6 +115,12 @@
 
     <!-- Live Orders Tab -->
     <div *ngIf="activeTab === 'orders'" class="card-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">Live Orders</h3>
+        <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer;" (click)="loadOrders()">
+          <i class="fas fa-arrows-rotate"></i> Refresh
+        </button>
+      </div>
       <table class="modern-table">
         <thead>
           <tr>
@@ -133,14 +144,31 @@
               </span>
             </td>
             <td>
-              <select (change)="updateOrderStatus(order, $event)" 
-                      style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
-                <option [selected]="order.status === 'pending'" value="pending">Pending</option>
-                <option [selected]="order.status === 'accepted'" value="accepted">Accepted</option>
-                <option [selected]="order.status === 'preparing'" value="preparing">Preparing</option>
-                <option [selected]="order.status === 'ready'" value="ready">Ready</option>
-                <option [selected]="order.status === 'delivered'" value="delivered">Delivered</option>
-              </select>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px;" (click)="viewOrderDetails(order)">
+                  <i class="fas fa-eye"></i> View Details
+                </button>
+                <button *ngIf="order.status === 'pending'" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" (click)="acceptAndPrepare(order)">
+                  Accept & Prepare
+                </button>
+                <button *ngIf="order.status === 'pending'" class="btn-outline" style="padding: 6px 12px; font-size: 0.8rem; color: #ff4757; border-color: #ff4757;" (click)="rejectOrder(order)">
+                  Reject
+                </button>
+                <button *ngIf="order.status === 'preparing'" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" (click)="markAsReady(order)">
+                  Mark as Ready
+                </button>
+                <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
+                  <span *ngIf="order.status === 'ready'" style="font-size: 0.85rem; color: #888;">
+                    Waiting for Rider
+                  </span>
+                  <button *ngIf="['preparing', 'ready'].includes(order.status)" class="btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: var(--res-orange); border-color: var(--res-orange); cursor: pointer;" (click)="dispatchRiderManually(order)">
+                    <i class="fas fa-motorcycle"></i> Call Rider Manually
+                  </button>
+                </div>
+                <span *ngIf="['delivered', 'cancelled', 'pickedup', 'accepted'].includes(order.status)" style="font-size: 0.85rem; color: #888;">
+                  No Actions Needed
+                </span>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -272,4 +300,153 @@
       </div>
     </div>
   </main>
+
+  <!-- NEW PENDING ORDER INCOMING ALERT MODAL -->
+  <div class="modal-overlay" *ngIf="incomingOrderAlert">
+    <div class="card-container" style="max-width: 550px; border: 2px solid #ff6b35; position: relative;">
+      <button style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #888; cursor: pointer; font-size: 1.2rem;" (click)="dismissIncomingAlert()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="alert-pulse-ring">
+        <i class="fas fa-bell"></i>
+      </div>
+
+      <h2 style="text-align: center; margin-bottom: 5px; color: #ff6b35 !important;">New Incoming Order!</h2>
+      <p style="text-align: center; color: #888; font-size: 0.85rem; margin-bottom: 25px;">
+        Order <code>#{{ incomingOrderAlert._id.slice(-6).toUpperCase() }}</code> was just placed. Action required!
+      </p>
+
+      <div class="detail-section" style="border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px 0; margin-bottom: 15px;">
+        <div class="detail-section-title" style="color: #ff6b35; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">
+          <i class="fas fa-user"></i> Customer Details
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #888;">Name:</span>
+            <strong>{{ incomingOrderAlert.customerId?.name || 'Guest Customer' }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #888;">Contact Phone:</span>
+            <strong>{{ incomingOrderAlert.phone || incomingOrderAlert.customerId?.phone || 'N/A' }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+            <span style="color: #888; flex-shrink: 0;">Address:</span>
+            <strong style="text-align: right; word-break: break-word;">{{ incomingOrderAlert.deliveryAddress }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+        <div class="detail-section-title" style="color: #ff6b35; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">
+          <i class="fas fa-receipt"></i> Items Ordered
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+          <div *ngFor="let item of incomingOrderAlert.items" style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+            <span>
+              <strong style="color: #ff6b35;">{{ item.quantity }}x</strong> {{ item.name }}
+            </span>
+            <span>Rs. {{ item.price * item.quantity }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px;">
+        <span style="font-size: 1rem; color: #888;">Grand Total:</span>
+        <strong style="font-size: 1.5rem; color: #ff6b35;">Rs. {{ incomingOrderAlert.totalAmount }}</strong>
+      </div>
+
+      <div class="form-actions" style="margin-top: 25px; display: flex; gap: 15px;">
+        <button class="btn-save" style="flex: 2; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;" (click)="acceptIncomingOrder()">
+          <i class="fas fa-circle-check"></i> Accept & Prepare
+        </button>
+        <button class="btn-cancel" style="flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; color: #ff4757 !important; background: rgba(255, 71, 87, 0.1) !important; display: flex; align-items: center; justify-content: center; gap: 8px;" (click)="rejectIncomingOrder()">
+          <i class="fas fa-circle-xmark"></i> Reject
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER DETAILS MODAL (VIEW ANY ORDER ANY TIME) -->
+  <div class="modal-overlay" *ngIf="selectedOrderDetails" (click)="closeOrderDetails()">
+    <div class="card-container" style="max-width: 550px; position: relative;" (click)="$event.stopPropagation()">
+      <button style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #888; cursor: pointer; font-size: 1.2rem;" (click)="closeOrderDetails()">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <h2 style="margin-bottom: 5px;">Order Details</h2>
+      <p style="color: #888; font-size: 0.85rem; margin-bottom: 25px;">
+        Detailed summary of order <code>#{{ selectedOrderDetails._id.slice(-6).toUpperCase() }}</code>
+      </p>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 12px 18px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
+        <span style="font-size: 0.9rem; color: #888;">Current Status</span>
+        <span class="status-badge" [ngClass]="'status-' + selectedOrderDetails.status">
+          {{ selectedOrderDetails.status | uppercase }}
+        </span>
+      </div>
+
+      <div class="detail-section" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+        <div class="detail-section-title" style="color: #ff6b35; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">
+          <i class="fas fa-user"></i> Customer Details
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #888;">Name:</span>
+            <strong>{{ selectedOrderDetails.customerId?.name || 'Guest Customer' }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #888;">Contact Phone:</span>
+            <strong>{{ selectedOrderDetails.phone || selectedOrderDetails.customerId?.phone || 'N/A' }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+            <span style="color: #888; flex-shrink: 0;">Address:</span>
+            <strong style="text-align: right; word-break: break-word;">{{ selectedOrderDetails.deliveryAddress }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+        <div class="detail-section-title" style="color: #ff6b35; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">
+          <i class="fas fa-receipt"></i> Items Ordered
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+          <div *ngFor="let item of selectedOrderDetails.items" style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+            <span>
+              <strong style="color: #ff6b35;">{{ item.quantity }}x</strong> {{ item.name }}
+            </span>
+            <span>Rs. {{ item.price * item.quantity }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+        <span style="font-size: 1rem; color: #888;">Grand Total:</span>
+        <strong style="font-size: 1.5rem; color: #ff6b35;">Rs. {{ selectedOrderDetails.totalAmount }}</strong>
+      </div>
+
+      <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; gap: 10px;" *ngIf="selectedOrderDetails.status === 'pending'">
+          <button class="btn-save" style="flex: 1.5; padding: 12px; font-size: 0.9rem;" (click)="acceptAndPrepare(selectedOrderDetails); closeOrderDetails();">
+            Accept & Prepare
+          </button>
+          <button class="btn-cancel" style="flex: 1; padding: 12px; font-size: 0.9rem; color: #ff4757 !important; background: rgba(255,71,87,0.1) !important;" (click)="rejectOrder(selectedOrderDetails); closeOrderDetails();">
+            Reject
+          </button>
+        </div>
+
+        <button *ngIf="selectedOrderDetails.status === 'preparing'" class="btn-save" style="width: 100%; padding: 12px; font-size: 0.9rem;" (click)="markAsReady(selectedOrderDetails); closeOrderDetails();">
+          Mark as Ready
+        </button>
+
+        <button *ngIf="['preparing', 'ready'].includes(selectedOrderDetails.status)" class="btn-outline" style="width: 100%; padding: 12px; font-size: 0.9rem; color: var(--res-orange) !important; border-color: var(--res-orange) !important; cursor: pointer;" (click)="dispatchRiderManually(selectedOrderDetails); closeOrderDetails();">
+          <i class="fas fa-motorcycle"></i> Call Rider Manually
+        </button>
+
+        <button class="btn-cancel" style="width: 100%; padding: 12px; font-size: 0.9rem; margin-top: 5px;" (click)="closeOrderDetails()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

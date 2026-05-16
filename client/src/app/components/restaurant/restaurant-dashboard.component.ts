@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './restaurant-dashboard.component.html',
   styleUrls: ['./restaurant-dashboard.component.css']
 })
-export class RestaurantDashboardComponent implements OnInit {
+export class RestaurantDashboardComponent implements OnInit, OnDestroy {
   restaurant: any = null;
   menuItems: any[] = [];
   orders: any[] = [];
@@ -25,6 +25,10 @@ export class RestaurantDashboardComponent implements OnInit {
   isEditing = false;
   editingItemId: string | null = null;
   
+  alertedOrderIds: Set<string> = new Set();
+  incomingOrderAlert: any = null;
+  selectedOrderDetails: any = null;
+
   setActiveTab(tab: string) {
     this.activeTab = tab;
   }
@@ -52,12 +56,31 @@ export class RestaurantDashboardComponent implements OnInit {
     private router: Router
   ) { }
 
+  pollingInterval: any;
+
   ngOnInit() {
     this.loadProfile();
     this.loadMenu();
     this.loadOrders();
     this.loadCities();
     this.loadCategories();
+    this.startPolling();
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
+  }
+
+  startPolling() {
+    this.pollingInterval = setInterval(() => {
+      this.loadOrders();
+    }, 5000);
+  }
+
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
   }
 
   loadCities() {
@@ -93,9 +116,55 @@ export class RestaurantDashboardComponent implements OnInit {
 
   loadOrders() {
     this.restaurantService.getOrders().subscribe({
-      next: (data) => this.orders = data,
+      next: (data) => {
+        this.orders = data;
+        this.checkForNewOrders();
+      },
       error: (err) => console.error('Error loading orders', err)
     });
+  }
+
+  checkForNewOrders() {
+    const pendingOrders = this.orders.filter(o => o.status === 'pending');
+    for (const order of pendingOrders) {
+      if (!this.alertedOrderIds.has(order._id)) {
+        this.incomingOrderAlert = order;
+        this.alertedOrderIds.add(order._id);
+        
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav');
+          audio.volume = 0.5;
+          audio.play();
+        } catch (e) {
+          console.log('Audio autoplay blocked or unsupported');
+        }
+        break;
+      }
+    }
+  }
+
+  acceptIncomingOrder() {
+    if (!this.incomingOrderAlert) return;
+    this.acceptAndPrepare(this.incomingOrderAlert);
+    this.incomingOrderAlert = null;
+  }
+
+  rejectIncomingOrder() {
+    if (!this.incomingOrderAlert) return;
+    this.rejectOrder(this.incomingOrderAlert);
+    this.incomingOrderAlert = null;
+  }
+
+  dismissIncomingAlert() {
+    this.incomingOrderAlert = null;
+  }
+
+  viewOrderDetails(order: any) {
+    this.selectedOrderDetails = order;
+  }
+
+  closeOrderDetails() {
+    this.selectedOrderDetails = null;
   }
 
   openAddItem() {
@@ -156,6 +225,7 @@ export class RestaurantDashboardComponent implements OnInit {
     this.restaurantService.updateProfile(this.profileData).subscribe({
       next: (response) => {
         this.restaurant = response;
+        this.profileData = { ...response };
         this.showProfileForm = false;
         alert('Profile updated successfully!');
       },
@@ -163,14 +233,45 @@ export class RestaurantDashboardComponent implements OnInit {
     });
   }
 
-  updateOrderStatus(order: any, event: any) {
-    const newStatus = event.target.value;
-    this.restaurantService.updateOrderStatus(order._id, newStatus).subscribe({
+  acceptAndPrepare(order: any) {
+    this.restaurantService.updateOrderStatus(order._id, 'preparing').subscribe({
       next: () => {
-        order.status = newStatus;
-        alert('Status updated to ' + newStatus);
+        order.status = 'preparing';
+        alert('Order accepted and preparing. Rider will be notified.');
       },
-      error: (err) => alert('Error updating status')
+      error: (err) => alert('Error accepting order')
+    });
+  }
+
+  rejectOrder(order: any) {
+    const reason = prompt('Please enter a reason for rejecting this order:');
+    if (reason === null) return;
+    this.restaurantService.updateOrderStatus(order._id, 'cancelled').subscribe({
+      next: () => {
+        order.status = 'cancelled';
+        alert('Order rejected.');
+      },
+      error: (err) => alert('Error rejecting order')
+    });
+  }
+
+  markAsReady(order: any) {
+    this.restaurantService.updateOrderStatus(order._id, 'ready').subscribe({
+      next: () => {
+        order.status = 'ready';
+        alert('Order marked as ready for pickup.');
+      },
+      error: (err) => alert('Error marking order as ready')
+    });
+  }
+
+  dispatchRiderManually(order: any) {
+    this.restaurantService.dispatchRider(order._id).subscribe({
+      next: (res: any) => {
+        alert(res.message || 'Rider request sent successfully!');
+        this.loadOrders();
+      },
+      error: (err) => alert(err.error?.error || 'Failed to dispatch rider')
     });
   }
 

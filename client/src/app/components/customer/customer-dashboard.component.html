@@ -599,9 +599,14 @@
 
     <!-- FULL PAGE ORDERS VIEW -->
     <section class="orders-view fade-in" *ngIf="activeView === 'orders'">
-      <div class="section-title">
-        <h2>My Order History</h2>
-        <span class="count-badge">{{ orders.length }} total orders</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div class="section-title" style="margin: 0;">
+          <h2>My Order History</h2>
+          <span class="count-badge">{{ orders.length }} total orders</span>
+        </div>
+        <button class="btn btn-outline-green" style="padding: 6px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;" (click)="loadMyOrders()">
+          <i class="fas fa-arrows-rotate"></i> Refresh
+        </button>
       </div>
 
       <div class="orders-full-list" *ngIf="orders.length > 0">
@@ -641,7 +646,12 @@
 
     <!-- LIVE TRACKING VIEW -->
     <section class="tracking-view fade-in" *ngIf="activeView === 'tracking' && trackingOrder">
-      <button class="back-btn mb-2" (click)="activeView = 'orders'">← Back to Orders</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <button class="back-btn" style="margin: 0;" (click)="activeView = 'orders'">← Back to Orders</button>
+        <button class="btn btn-outline-green" style="padding: 6px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;" (click)="pollTrackingOrder()">
+          <i class="fas fa-arrows-rotate"></i> Refresh Status
+        </button>
+      </div>
       
       <div class="tracking-container">
         <div class="tracking-header">
