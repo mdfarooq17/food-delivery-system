@@ -118,6 +118,12 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   paymentMethod = 'cod';
   isPlacingOrder = false;
 
+  // Review System
+  showReviewModal = false;
+  reviewOrderId: string | null = null;
+  reviewRating = 5;
+  reviewComment = '';
+
   constructor(
     private customerService: CustomerService,
     private authService: AuthService,
@@ -555,6 +561,36 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   // --- Theme ---
+  // --- Rating & Review System ---
+  openReviewModal(order: any) {
+    this.reviewOrderId = order._id;
+    this.reviewRating = 5;
+    this.reviewComment = '';
+    this.showReviewModal = true;
+  }
+
+  closeReviewModal() {
+    this.showReviewModal = false;
+    this.reviewOrderId = null;
+  }
+
+  submitReview() {
+    if (!this.reviewOrderId) return;
+    this.customerService.submitOrderReview(this.reviewOrderId, this.reviewRating, this.reviewComment).subscribe({
+      next: (response: any) => {
+        alert('Thank you! Your rating and review was submitted successfully.');
+        this.loadMyOrders();
+        this.closeReviewModal();
+        if (this.trackingOrder && this.trackingOrder._id === this.reviewOrderId) {
+          this.trackingOrder = response.order;
+        }
+      },
+      error: (err: any) => {
+        alert('Error submitting review: ' + (err.error?.error || 'Unknown error'));
+      }
+    });
+  }
+
   toggleTheme() {
     this.isDarkTheme = !this.isDarkTheme;
     document.body.classList.toggle('dark-theme', this.isDarkTheme);

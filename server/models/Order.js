@@ -18,6 +18,11 @@ const orderSchema = new mongoose.Schema({
   deliveryAddress: String,
   phone: String,
   notes: String,
+  review: {
+    rating: { type: Number, min: 1, max: 5 },
+    comment: { type: String },
+    createdAt: { type: Date }
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

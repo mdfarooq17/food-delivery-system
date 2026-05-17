@@ -45,4 +45,8 @@ export class CustomerService {
   getOrderDetails(orderId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/order/${orderId}`, { headers: this.getHeaders() });
   }
+
+  submitOrderReview(orderId: string, rating: number, comment: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/order/${orderId}/review`, { rating, comment }, { headers: this.getHeaders() });
+  }
 }

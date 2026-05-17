@@ -110,4 +110,43 @@ router.get('/order/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Submit order rating and review
+router.post('/order/:id/review', authMiddleware, async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+
+    const order = await Order.findOne({ _id: req.params.id, customerId: req.user.id });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ error: 'You can only review delivered orders' });
+    }
+
+    order.review = {
+      rating,
+      comment,
+      createdAt: new Date()
+    };
+    await order.save();
+
+    // Recalculate average rating of the restaurant
+    const Restaurant = require('../models/Restaurant');
+    const restaurantOrders = await Order.find({ restaurantId: order.restaurantId, 'review.rating': { $exists: true } });
+    
+    if (restaurantOrders.length > 0) {
+      const sum = restaurantOrders.reduce((acc, curr) => acc + curr.review.rating, 0);
+      const avgRating = sum / restaurantOrders.length;
+      
+      await Restaurant.findByIdAndUpdate(order.restaurantId, { rating: Number(avgRating.toFixed(1)) });
+    }
+
+    res.json({ message: 'Review submitted successfully', order });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
