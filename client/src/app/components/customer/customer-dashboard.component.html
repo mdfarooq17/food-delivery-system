@@ -633,7 +633,7 @@
           <div class="order-actions" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
             <button class="btn btn-outline-green btn-small" (click)="trackOrder(order)">Track Order</button>
             
-            <button *ngIf="order.status === 'delivered' && !order.review?.rating" class="btn btn-green btn-small" (style)="cursor: pointer;" (click)="openReviewModal(order)">
+            <button *ngIf="order.status === 'delivered' && !order.review?.rating" class="btn btn-green btn-small" style="cursor: pointer;" (click)="openReviewModal(order)">
               <i class="fas fa-star"></i> Rate & Review
             </button>
             
@@ -642,12 +642,12 @@
                 <i class="fas fa-check-circle"></i> Rated: 
                 <strong style="color: #ffb800; font-size: 1rem;">
                   <span *ngFor="let star of [1,2,3,4,5]">
-                    {{ star <= order.review.rating ? '★' : '☆' }}
+                    {{ star <= (order.review?.rating || 0) ? '★' : '☆' }}
                   </span>
                 </strong>
               </span>
-              <p style="font-size: 0.75rem; color: #888; font-style: italic; margin: 0;" *ngIf="order.review.comment">
-                "{{ order.review.comment }}"
+              <p style="font-size: 0.75rem; color: #888; font-style: italic; margin: 0;" *ngIf="order.review?.comment">
+                "{{ order.review?.comment }}"
               </p>
             </div>
             
@@ -767,11 +767,11 @@
             </span>
             <strong style="color: #ffb800; font-size: 1.4rem; letter-spacing: 2px;">
               <span *ngFor="let star of [1,2,3,4,5]">
-                {{ star <= trackingOrder.review.rating ? '★' : '☆' }}
+                {{ star <= (trackingOrder.review?.rating || 0) ? '★' : '☆' }}
               </span>
             </strong>
-            <p style="font-size: 0.85rem; color: #aaa; font-style: italic; max-width: 400px; margin: 0;" *ngIf="trackingOrder.review.comment">
-              "{{ trackingOrder.review.comment }}"
+            <p style="font-size: 0.85rem; color: #aaa; font-style: italic; max-width: 400px; margin: 0;" *ngIf="trackingOrder.review?.comment">
+              "{{ trackingOrder.review?.comment }}"
             </p>
           </div>
         </div>

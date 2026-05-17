@@ -23,6 +23,11 @@ interface Order {
   totalAmount: number;
   createdAt: string;
   restaurantId?: { name: string };
+  review?: {
+    rating: number;
+    comment?: string;
+    createdAt?: string;
+  };
 }
 
 @Component({
