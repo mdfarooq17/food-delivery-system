@@ -2,6 +2,7 @@ const express = require('express');
 const Restaurant = require('../models/Restaurant');
 const MenuItem = require('../models/MenuItem');
 const Order = require('../models/Order');
+const Slider = require('../models/Slider');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -276,6 +277,16 @@ router.get('/menu-item/:id/reviews', async (req, res) => {
     .populate('customerId', 'name')
     .select('review customerId createdAt');
     res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get active sliders
+router.get('/sliders', async (req, res) => {
+  try {
+    const sliders = await Slider.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
+    res.json(sliders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

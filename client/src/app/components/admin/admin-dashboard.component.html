@@ -20,6 +20,15 @@
       <button [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
         <i class="fas fa-shopping-bag"></i> Live Orders
       </button>
+      <button [class.active]="activeTab === 'feedbacks'" (click)="setActiveTab('feedbacks')">
+        <i class="fas fa-comments"></i> Feedbacks
+      </button>
+      <button [class.active]="activeTab === 'notifications'" (click)="setActiveTab('notifications')">
+        <i class="fas fa-bell"></i> Broadcasts
+      </button>
+      <button [class.active]="activeTab === 'sliders'" (click)="setActiveTab('sliders')">
+        <i class="fas fa-images"></i> Sliders
+      </button>
       <button class="logout-btn" (click)="logout()">
         <i class="fas fa-sign-out-alt"></i> Logout
       </button>
@@ -37,25 +46,75 @@
         <div class="stat-card">
           <h3>Total Revenue</h3>
           <p class="value">Rs. {{ stats.totalRevenue | number:'1.0-0' }}</p>
+          <div class="progress-bar-container" style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
+            <div class="progress-bar" [style.width]="(stats.totalRevenue ? (stats.totalRevenue / 1000000) * 100 : 0) + '%'" style="background: #2ed573; height: 100%;"></div>
+          </div>
         </div>
         <div class="stat-card">
           <h3>Active Orders</h3>
           <p class="value">{{ stats.totalOrders }}</p>
+          <div class="progress-bar-container" style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
+            <div class="progress-bar" [style.width]="(stats.totalOrders ? (stats.totalOrders / 100) * 100 : 0) + '%'" style="background: #ffa502; height: 100%;"></div>
+          </div>
         </div>
         <div class="stat-card">
           <h3>Registered Users</h3>
           <p class="value">{{ stats.totalUsers }}</p>
+          <div class="progress-bar-container" style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
+            <div class="progress-bar" [style.width]="(stats.totalUsers ? (stats.totalUsers / 500) * 100 : 0) + '%'" style="background: #3742fa; height: 100%;"></div>
+          </div>
         </div>
         <div class="stat-card">
           <h3>Partner Restaurants</h3>
           <p class="value">{{ stats.totalRestaurants }}</p>
+          <div class="progress-bar-container" style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
+            <div class="progress-bar" [style.width]="(stats.totalRestaurants ? (stats.totalRestaurants / 50) * 100 : 0) + '%'" style="background: #ff4757; height: 100%;"></div>
+          </div>
         </div>
       </div>
       
-      <!-- Placeholder for a Chart or Recent Activity -->
-      <div class="tab-content">
-         <h4 style="margin-bottom: 20px; opacity: 0.8;">Recent System Activity</h4>
-         <p class="text-muted">Live system monitoring active. All nodes operational.</p>
+      <!-- Dynamic Graphics & Database Storage Used -->
+      <div class="tab-content" style="margin-top: 2rem; background: rgba(255,255,255,0.02); padding: 25px; border-radius: 15px; border: 1px solid var(--admin-border);">
+         <h3 style="margin-bottom: 20px; color: var(--admin-primary); display: flex; align-items: center; gap: 10px;">
+           <i class="fas fa-database"></i> Database & Storage Utilization
+         </h3>
+         
+         <div class="db-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+           <div class="db-stat-box" style="background: #0f171e; padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+             <h4 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Total Data Size</h4>
+             <p style="font-size: 1.8rem; font-weight: 800; color: white; margin: 0;">
+               {{ stats.dbStats?.dataSize ? (stats.dbStats.dataSize / (1024 * 1024)).toFixed(2) : '0.00' }} MB
+             </p>
+           </div>
+           <div class="db-stat-box" style="background: #0f171e; padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+             <h4 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Storage Size</h4>
+             <p style="font-size: 1.8rem; font-weight: 800; color: white; margin: 0;">
+               {{ stats.dbStats?.storageSize ? (stats.dbStats.storageSize / (1024 * 1024)).toFixed(2) : '0.00' }} MB
+             </p>
+           </div>
+           <div class="db-stat-box" style="background: #0f171e; padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+             <h4 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Collections Count</h4>
+             <p style="font-size: 1.8rem; font-weight: 800; color: white; margin: 0;">
+               {{ stats.dbStats?.collections || 7 }}
+             </p>
+           </div>
+           <div class="db-stat-box" style="background: #0f171e; padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+             <h4 style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Total Objects</h4>
+             <p style="font-size: 1.8rem; font-weight: 800; color: white; margin: 0;">
+               {{ stats.dbStats?.objects || (stats.totalUsers + stats.totalRestaurants + stats.totalOrders) }}
+             </p>
+           </div>
+         </div>
+
+         <div class="storage-graphic" style="margin-top: 15px;">
+           <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted);">
+             <span>Storage Quota Utilization</span>
+             <span>{{ stats.dbStats?.storageSize ? ((stats.dbStats.storageSize / (512 * 1024 * 1024)) * 100).toFixed(2) : '0.1' }}% (512 MB Max)</span>
+           </div>
+           <div style="background: rgba(255,255,255,0.1); height: 12px; border-radius: 6px; overflow: hidden;">
+             <div [style.width]="(stats.dbStats?.storageSize ? ((stats.dbStats.storageSize / (512 * 1024 * 1024)) * 100) : 1) + '%'" style="background: linear-gradient(90deg, var(--admin-primary), #ffa502); height: 100%; border-radius: 6px;"></div>
+           </div>
+         </div>
       </div>
     </div>
 
@@ -130,13 +189,22 @@
 
     <!-- Users Tab -->
     <div *ngIf="activeTab === 'users'" class="tab-content">
+      <div class="action-bar" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px;">
+        <h3 style="margin: 0; color: white;">User Accounts Management</h3>
+        <button (click)="openAddUserModal()" class="btn-primary" style="background: var(--admin-primary); color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+          <i class="fas fa-user-plus"></i> Add User Manually
+        </button>
+      </div>
+
       <table class="modern-table">
         <thead>
           <tr>
             <th>User</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Status</th>
             <th>Joined</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -144,7 +212,25 @@
             <td><strong>{{ user.name }}</strong></td>
             <td>{{ user.email }}</td>
             <td><span class="role-badge" [attr.data-role]="user.role">{{ user.role }}</span></td>
+            <td>
+              <span [style.color]="user.isActive ? '#2ed573' : '#ff4757'" style="font-weight: 800; font-size: 0.75rem; display: block;">
+                ● {{ user.isActive ? 'ACTIVE' : 'SUSPENDED' }}
+              </span>
+              <span *ngIf="user.isBlocked" style="color: #ff4757; font-weight: 800; font-size: 0.75rem; display: block;">
+                🚫 BLOCKED
+              </span>
+            </td>
             <td class="text-muted">{{ user.createdAt | date:'mediumDate' }}</td>
+            <td style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button (click)="openEditUserModal(user)" class="btn-small" style="background: #3742fa; color: white;"><i class="fas fa-edit"></i> Edit</button>
+              <button (click)="toggleUserActive(user)" class="btn-small" [style.background]="user.isActive ? '#ffa502' : '#2ed573'" style="color: white;">
+                {{ user.isActive ? 'Suspend' : 'Activate' }}
+              </button>
+              <button (click)="toggleUserBlocked(user)" class="btn-small" [style.background]="user.isBlocked ? '#2ed573' : '#ff4757'" style="color: white;">
+                {{ user.isBlocked ? 'Unblock' : 'Block' }}
+              </button>
+              <button (click)="deleteUser(user._id)" class="btn-small btn-danger"><i class="fas fa-trash"></i></button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -170,9 +256,11 @@
                 {{ res.isActive ? 'APPROVED' : 'PENDING REVIEW' }}
               </span>
             </td>
-            <td>
+            <td style="display: flex; gap: 6px;">
               <button *ngIf="!res.isActive" (click)="updateRestaurantStatus(res, true)" class="btn-small" style="background: #2ed573; color: #000;">Approve</button>
               <button *ngIf="res.isActive" (click)="updateRestaurantStatus(res, false)" class="btn-small btn-danger">Suspend</button>
+              <button (click)="openEditResModal(res)" class="btn-small" style="background: #3742fa; color: white;"><i class="fas fa-edit"></i> Edit</button>
+              <button (click)="deleteRestaurant(res._id)" class="btn-small btn-danger"><i class="fas fa-trash"></i></button>
             </td>
           </tr>
         </tbody>
@@ -206,6 +294,406 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Feedbacks Tab -->
+    <div *ngIf="activeTab === 'feedbacks'" class="tab-content">
+      <div style="display: flex; gap: 2rem; flex-direction: column;">
+        <div class="feedback-section">
+          <h3 style="color: white; margin-bottom: 1rem;"><i class="fas fa-star" style="color: #ffb800;"></i> Customer Order Reviews</h3>
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Restaurant</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of orderReviews">
+                <td><strong>{{ order.customerId?.name || 'Customer' }}</strong></td>
+                <td>{{ order.restaurantId?.name }}</td>
+                <td><span style="color: #ffb800; font-weight: 700;"><i class="fas fa-star"></i> {{ order.review?.rating }} / 5</span></td>
+                <td><p style="margin: 0; max-width: 300px; white-space: normal;">{{ order.review?.comment || 'No comment provided' }}</p></td>
+                <td class="text-muted">{{ order.review?.createdAt | date:'mediumDate' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="orderReviews.length === 0" style="padding: 2rem; text-align: center; color: var(--text-muted);">No order reviews available.</div>
+        </div>
+
+        <div class="feedback-section">
+          <h3 style="color: white; margin-bottom: 1rem;"><i class="fas fa-envelope" style="color: var(--admin-primary);"></i> General Complaints & Feedback</h3>
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Sender</th>
+                <th>Subject</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let fb of generalFeedbacks">
+                <td><strong>{{ fb.name }}</strong><br><span style="font-size: 0.8rem; color: var(--text-muted);">{{ fb.email }}</span></td>
+                <td><strong>{{ fb.subject }}</strong><br><span style="font-size: 0.75rem; text-transform: uppercase; color: var(--admin-primary);">{{ fb.type }}</span></td>
+                <td><p style="margin: 0; max-width: 300px; white-space: normal;">{{ fb.message }}</p></td>
+                <td><span class="status-badge" [attr.data-status]="fb.status">{{ fb.status | uppercase }}</span></td>
+                <td style="display: flex; gap: 6px;">
+                  <button *ngIf="fb.status !== 'investigating'" (click)="updateFeedbackStatus(fb, 'investigating')" class="btn-small" style="background: #ffa502; color: white;">Investigate</button>
+                  <button *ngIf="fb.status !== 'resolved'" (click)="updateFeedbackStatus(fb, 'resolved')" class="btn-small" style="background: #2ed573; color: white;">Resolve</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="generalFeedbacks.length === 0" style="padding: 2rem; text-align: center; color: var(--text-muted);">No general complaints or feedback submitted yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div *ngIf="activeTab === 'notifications'" class="tab-content">
+      <div class="broadcast-box" style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 15px; border: 1px solid var(--admin-border); margin-bottom: 2rem;">
+        <h3 style="color: white; margin-bottom: 20px;"><i class="fas fa-bullhorn" style="color: var(--admin-primary);"></i> Send Custom Broadcast / Notification</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+          <div>
+            <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Target Group</label>
+            <select [(ngModel)]="newNotification.targetRole" style="width: 100%; padding: 12px; border-radius: 10px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+              <option value="all">All Users (Broadcast)</option>
+              <option value="customer">Customers Only</option>
+              <option value="restaurant">Restaurants Only</option>
+              <option value="rider">Riders Only</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Notification Type</label>
+            <select [(ngModel)]="newNotification.type" style="width: 100%; padding: 12px; border-radius: 10px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+              <option value="info">Information (Blue)</option>
+              <option value="success">Success (Green)</option>
+              <option value="warning">Warning (Yellow)</option>
+              <option value="danger">Alert/Urgent (Red)</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Specific User (Optional)</label>
+            <select [(ngModel)]="newNotification.recipientId" style="width: 100%; padding: 12px; border-radius: 10px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+              <option value="">None (Send to Group Selected Above)</option>
+              <option *ngFor="let u of users" [value]="u._id">{{ u.name }} ({{ u.email }})</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Notification Title</label>
+          <input type="text" [(ngModel)]="newNotification.title" placeholder="e.g. Scheduled Maintenance / Special Holiday Discount" style="width: 100%; padding: 12px; border-radius: 10px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Notification Message</label>
+          <textarea [(ngModel)]="newNotification.message" rows="4" placeholder="Enter the complete notification details..." style="width: 100%; padding: 12px; border-radius: 10px; background: #0f171e; border: 1px solid var(--admin-border); color: white; resize: vertical;"></textarea>
+        </div>
+        <button (click)="sendNotification()" class="btn-primary" style="background: var(--admin-primary); color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+          <i class="fas fa-paper-plane"></i> Send Notification
+        </button>
+      </div>
+
+      <h3 style="color: white; margin-bottom: 1rem;"><i class="fas fa-history"></i> Notification History</h3>
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Target Group / User</th>
+            <th>Type</th>
+            <th>Sent Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let n of notifications">
+            <td><strong>{{ n.title }}</strong></td>
+            <td><p style="margin: 0; max-width: 300px; white-space: normal;">{{ n.message }}</p></td>
+            <td>
+              <span *ngIf="n.recipientId">User: {{ n.recipientId.name }}</span>
+              <span *ngIf="!n.recipientId" style="text-transform: uppercase; font-weight: 700;">Group: {{ n.targetRole }}</span>
+            </td>
+            <td><span class="status-badge" [attr.data-status]="n.type">{{ n.type | uppercase }}</span></td>
+            <td class="text-muted">{{ n.createdAt | date:'mediumDate' }}</td>
+            <td><button (click)="deleteNotification(n._id)" class="btn-small btn-danger"><i class="fas fa-trash"></i></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Sliders Tab -->
+    <div *ngIf="activeTab === 'sliders'" class="tab-content">
+      <div class="action-bar" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px;">
+        <h3 style="margin: 0; color: white;">Dynamic Hero Slider Management</h3>
+        <button (click)="openAddSliderModal()" class="btn-primary" style="background: var(--admin-primary); color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+          <i class="fas fa-plus"></i> Add New Slide
+        </button>
+      </div>
+
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Preview</th>
+            <th>Badge & Title</th>
+            <th>Description & Price</th>
+            <th>Order</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of sliders">
+            <td>
+              <img [src]="s.thumb || s.image" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+            </td>
+            <td>
+              <span style="font-size: 0.75rem; background: var(--admin-primary); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 700;">{{ s.badge }}</span><br>
+              <strong style="font-size: 1.1rem; color: white;">{{ s.title1 }} {{ s.title2 }}</strong>
+            </td>
+            <td>
+              <p style="margin: 0; max-width: 250px; white-space: normal; font-size: 0.85rem; color: var(--text-muted);">{{ s.description }}</p>
+              <strong style="color: #2ed573;">{{ s.price }}</strong>
+            </td>
+            <td><strong>{{ s.order }}</strong></td>
+            <td>
+              <span [style.color]="s.isActive ? '#2ed573' : '#ff4757'" style="font-weight: 800; font-size: 0.8rem;">
+                ● {{ s.isActive ? 'ACTIVE' : 'DISABLED' }}
+              </span>
+            </td>
+            <td style="display: flex; gap: 6px;">
+              <button (click)="openEditSliderModal(s)" class="btn-small" style="background: #3742fa; color: white;"><i class="fas fa-edit"></i> Edit</button>
+              <button (click)="deleteSlider(s._id)" class="btn-small btn-danger"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modals Overlay Section -->
+    <!-- Add User Modal -->
+    <div class="modal-overlay" *ngIf="showAddUserModal" (click)="showAddUserModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="background: #151f28; border: 1px solid var(--admin-border); border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">Add New User Manually</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Full Name</label>
+            <input type="text" [(ngModel)]="newUser.name" placeholder="Enter full name" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Email Address</label>
+            <input type="email" [(ngModel)]="newUser.email" placeholder="Enter email address" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Password</label>
+            <input type="password" [(ngModel)]="newUser.password" placeholder="Default: DefaultPass123!" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">User Role</label>
+            <select [(ngModel)]="newUser.role" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+              <option value="customer">Customer</option>
+              <option value="restaurant">Restaurant Owner</option>
+              <option value="rider">Rider</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Phone Number</label>
+            <input type="text" [(ngModel)]="newUser.phone" placeholder="Enter phone number" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">City</label>
+            <input type="text" [(ngModel)]="newUser.city" placeholder="Enter city" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button (click)="showAddUserModal=false" style="background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
+          <button (click)="addUser()" style="background: var(--admin-primary); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Add User</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal-overlay" *ngIf="showEditUserModal && selectedUser" (click)="showEditUserModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="background: #151f28; border: 1px solid var(--admin-border); border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">Edit User Account</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Full Name</label>
+            <input type="text" [(ngModel)]="selectedUser.name" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Email Address</label>
+            <input type="email" [(ngModel)]="selectedUser.email" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">User Role</label>
+            <select [(ngModel)]="selectedUser.role" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+              <option value="customer">Customer</option>
+              <option value="restaurant">Restaurant Owner</option>
+              <option value="rider">Rider</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Phone Number</label>
+            <input type="text" [(ngModel)]="selectedUser.phone" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">City</label>
+            <input type="text" [(ngModel)]="selectedUser.city" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div style="display: flex; gap: 20px; margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" [(ngModel)]="selectedUser.isActive"> Active Account
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ff4757;">
+              <input type="checkbox" [(ngModel)]="selectedUser.isBlocked"> Blocked
+            </label>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button (click)="showEditUserModal=false" style="background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
+          <button (click)="saveUserEdit()" style="background: #3742fa; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Restaurant Modal -->
+    <div class="modal-overlay" *ngIf="showEditResModal && selectedRestaurant" (click)="showEditResModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="background: #151f28; border: 1px solid var(--admin-border); border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">Edit Restaurant Details</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Restaurant Name</label>
+            <input type="text" [(ngModel)]="selectedRestaurant.name" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Description</label>
+            <textarea [(ngModel)]="selectedRestaurant.description" rows="3" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white; resize: vertical;"></textarea>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Address</label>
+            <input type="text" [(ngModel)]="selectedRestaurant.address" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">City</label>
+            <input type="text" [(ngModel)]="selectedRestaurant.city" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Phone</label>
+            <input type="text" [(ngModel)]="selectedRestaurant.phone" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" [(ngModel)]="selectedRestaurant.isActive"> Approved / Active
+            </label>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button (click)="showEditResModal=false" style="background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
+          <button (click)="saveRestaurantEdit()" style="background: #3742fa; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Slider Modal -->
+    <div class="modal-overlay" *ngIf="showAddSliderModal" (click)="showAddSliderModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="background: #151f28; border: 1px solid var(--admin-border); border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">Add New Hero Slide</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Badge Text</label>
+            <input type="text" [(ngModel)]="newSlider.badge" placeholder="e.g. FEATURED / 20% OFF" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Title Part 1 (Regular)</label>
+            <input type="text" [(ngModel)]="newSlider.title1" placeholder="e.g. Delicious & Hot" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Title Part 2 (Highlighted)</label>
+            <input type="text" [(ngModel)]="newSlider.title2" placeholder="e.g. Margherita Pizza" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Description</label>
+            <textarea [(ngModel)]="newSlider.description" rows="3" placeholder="Enter slide description..." style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white; resize: vertical;"></textarea>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Price Display</label>
+            <input type="text" [(ngModel)]="newSlider.price" placeholder="e.g. Rs. 299 / Starts at Rs. 199" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Main Image URL</label>
+            <input type="text" [(ngModel)]="newSlider.image" placeholder="https://..." style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Thumbnail Image URL</label>
+            <input type="text" [(ngModel)]="newSlider.thumb" placeholder="https://..." style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Display Order</label>
+            <input type="number" [(ngModel)]="newSlider.order" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button (click)="showAddSliderModal=false" style="background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
+          <button (click)="addSlider()" style="background: var(--admin-primary); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Add Slide</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Slider Modal -->
+    <div class="modal-overlay" *ngIf="showEditSliderModal && selectedSlider" (click)="showEditSliderModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="background: #151f28; border: 1px solid var(--admin-border); border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">Edit Hero Slide</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Badge Text</label>
+            <input type="text" [(ngModel)]="selectedSlider.badge" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Title Part 1 (Regular)</label>
+            <input type="text" [(ngModel)]="selectedSlider.title1" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Title Part 2 (Highlighted)</label>
+            <input type="text" [(ngModel)]="selectedSlider.title2" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Description</label>
+            <textarea [(ngModel)]="selectedSlider.description" rows="3" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white; resize: vertical;"></textarea>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Price Display</label>
+            <input type="text" [(ngModel)]="selectedSlider.price" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Main Image URL</label>
+            <input type="text" [(ngModel)]="selectedSlider.image" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Thumbnail Image URL</label>
+            <input type="text" [(ngModel)]="selectedSlider.thumb" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.9rem;">Display Order</label>
+            <input type="number" [(ngModel)]="selectedSlider.order" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+          </div>
+          <div>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" [(ngModel)]="selectedSlider.isActive"> Active Slide
+            </label>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button (click)="showEditSliderModal=false" style="background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
+          <button (click)="saveSliderEdit()" style="background: #3742fa; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
+        </div>
+      </div>
     </div>
   </main>
 </div>

@@ -176,8 +176,20 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     });
     this.loadRestaurants();
     this.loadRandomMenuItems();
+    this.loadSliders();
     this.startAutoSlider();
     this.startPolling();
+  }
+
+  loadSliders() {
+    this.customerService.getSliders().subscribe({
+      next: (data: any) => {
+        if (data && data.length > 0) {
+          this.slides = data;
+        }
+      },
+      error: (err) => console.error('Error loading sliders', err)
+    });
   }
 
   loadCities() {

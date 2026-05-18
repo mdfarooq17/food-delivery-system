@@ -69,4 +69,8 @@ export class CustomerService {
   getMenuItemReviews(menuItemId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/menu-item/${menuItemId}/reviews`);
   }
+
+  getSliders(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/sliders`);
+  }
 }

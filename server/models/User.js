@@ -14,6 +14,8 @@ const userSchema = new mongoose.Schema({
     label: { type: String, default: 'Home' }
   }],
   profileImage: { type: String },
+  isActive: { type: Boolean, default: true },
+  isBlocked: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 
