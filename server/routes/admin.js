@@ -9,13 +9,152 @@ const Notification = require('../models/Notification');
 const Slider = require('../models/Slider');
 const authMiddleware = require('../middleware/auth');
 
+const SecurityLog = require('../models/SecurityLog');
+const BlockedIP = require('../models/BlockedIP');
+const UserLog = require('../models/UserLog');
+
 const router = express.Router();
 
 // Middleware to check admin role
-const isAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+const isAdmin = async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    try {
+      await SecurityLog.create({
+        eventType: 'UNAUTHORIZED_ADMIN_ACCESS',
+        ipAddress: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'] || 'unknown',
+        endpoint: req.originalUrl,
+        method: req.method,
+        attemptedCredentials: { email: req.user.email || 'unknown', role: req.user.role, providedToken: req.headers.authorization },
+        severity: 'high',
+        details: `User with role ${req.user.role} attempted to access protected admin endpoint.`
+      });
+    } catch (e) { console.error('Security log error', e); }
+    return res.status(403).json({ error: 'Access denied: Security incident logged.' });
+  }
   next();
 };
+
+// Get all security logs
+router.get('/security-logs', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const logs = await SecurityLog.find().sort({ timestamp: -1 });
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark security logs as read
+router.put('/security-logs/mark-read', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    await SecurityLog.updateMany({ isRead: { $ne: true } }, { $set: { isRead: true } });
+    res.json({ message: 'All security logs marked as read' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Block IP address and associated user account
+router.post('/security/block-ip', authMiddleware, isAdmin, async (req, res) => {
+  const { ipAddress, email } = req.body;
+  try {
+    if (ipAddress && ipAddress !== 'unknown') {
+      await BlockedIP.findOneAndUpdate(
+        { ipAddress },
+        { ipAddress, reason: 'Security Threat / Attack' },
+        { upsert: true }
+      );
+    }
+    if (email) {
+      await User.findOneAndUpdate({ email }, { isBlocked: true });
+    }
+    res.json({ message: 'IP address and associated account blocked successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Force logout associated user account
+router.post('/security/force-logout', authMiddleware, isAdmin, async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (email) {
+      await User.findOneAndUpdate({ email }, { forceLogout: true });
+      res.json({ message: 'User session terminated successfully' });
+    } else {
+      res.status(400).json({ error: 'No email associated with this log' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a security log
+router.delete('/security-logs/:id', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    await SecurityLog.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Security log deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- User Activity & Audit Logs ---
+
+// Get all user activity logs
+router.get('/user-logs', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const logs = await UserLog.find()
+      .populate('userId', 'name email role profileImage')
+      .sort({ timestamp: -1 });
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get user audit summary
+router.get('/user-audit-summary', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const users = await User.find({}, '-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a user log
+router.delete('/user-logs/:id', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    await UserLog.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User log deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear all user logs
+router.post('/user-logs/clear', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    await UserLog.deleteMany({});
+    res.json({ message: 'All user logs cleared successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reset user attempts / requests counter
+router.post('/user-audit/reset-attempts', authMiddleware, isAdmin, async (req, res) => {
+  const { userId, type } = req.body;
+  try {
+    const update = type === 'logins' ? { loginAttempts: 0 } : { apiRequestsCount: 0 };
+    await User.findByIdAndUpdate(userId, update);
+    res.json({ message: 'Counter reset successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Get all users
 router.get('/users', authMiddleware, isAdmin, async (req, res) => {

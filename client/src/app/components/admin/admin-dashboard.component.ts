@@ -36,6 +36,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   orderReviews: any[] = [];
   notifications: any[] = [];
   sliders: any[] = [];
+  
+  securityLogs: any[] = [];
+  filteredSecurityLogs: any[] = [];
+  highSeverityCount: number = 0;
+  unreadSecurityCount: number = 0;
+  securitySearchQuery = '';
+  securityFilterSeverity = 'all';
+
+  // User Activity & Audit State
+  userLogs: any[] = [];
+  filteredUserLogs: any[] = [];
+  userAuditSummary: any[] = [];
+  selectedAuditUser: any = null;
+  showAuditUserModal = false;
+  userLogSearch = '';
+  userLogFilterAction = 'all';
+  totalUserRequestsCount = 0;
+  totalUserLoginAttempts = 0;
+  multiDeviceUsersCount = 0;
 
   // User Modals
   showAddUserModal = false;
@@ -72,7 +91,37 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadFeedbacks();
     this.loadNotifications();
     this.loadSliders();
+    this.loadSecurityLogs();
+    this.loadUserAuditData();
     this.resetTimer();
+  }
+
+  loadSecurityLogs() {
+    this.adminService.getSecurityLogs().subscribe({
+      next: (data) => {
+        data.forEach((l: any) => {
+          l.isNewlyUnread = !l.isRead;
+        });
+        this.securityLogs = data;
+        this.filteredSecurityLogs = data;
+        this.highSeverityCount = data.filter((l: any) => l.severity === 'high').length;
+        this.unreadSecurityCount = data.filter((l: any) => !l.isRead).length;
+      },
+      error: (err) => console.error('Error loading security logs', err)
+    });
+  }
+
+  filterSecurityLogs() {
+    this.filteredSecurityLogs = this.securityLogs.filter(log => {
+      const matchQuery = !this.securitySearchQuery || 
+        log.eventType?.toLowerCase().includes(this.securitySearchQuery.toLowerCase()) ||
+        log.ipAddress?.toLowerCase().includes(this.securitySearchQuery.toLowerCase()) ||
+        log.attemptedCredentials?.email?.toLowerCase().includes(this.securitySearchQuery.toLowerCase());
+      
+      const matchSeverity = this.securityFilterSeverity === 'all' || log.severity === this.securityFilterSeverity;
+      
+      return matchQuery && matchSeverity;
+    });
   }
 
   loadCategories() {
@@ -396,6 +445,131 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    if (tab === 'security' && this.unreadSecurityCount > 0) {
+      this.adminService.markSecurityLogsAsRead().subscribe({
+        next: () => {
+          this.unreadSecurityCount = 0;
+          this.securityLogs.forEach(l => l.isRead = true);
+        },
+        error: (err) => console.error('Error marking security logs read', err)
+      });
+    }
+  }
+
+  blockSecurityIP(ipAddress: string, email?: string) {
+    if (confirm(`Are you sure you want to permanently block IP ${ipAddress}${email ? ` and user ${email}` : ''}?`)) {
+      this.adminService.blockSecurityIP(ipAddress, email).subscribe({
+        next: () => {
+          alert('IP and associated user blocked successfully.');
+          this.loadSecurityLogs();
+        },
+        error: (err) => alert('Error blocking IP/user')
+      });
+    }
+  }
+
+  forceLogoutUser(email: string) {
+    if (confirm(`Are you sure you want to terminate the active session for ${email}?`)) {
+      this.adminService.forceLogoutUser(email).subscribe({
+        next: () => {
+          alert('User session terminated successfully.');
+          this.loadSecurityLogs();
+        },
+        error: (err) => alert('Error terminating user session')
+      });
+    }
+  }
+
+  deleteSecurityLog(id: string) {
+    if (confirm('Delete this security log entry?')) {
+      this.adminService.deleteSecurityLog(id).subscribe({
+        next: () => {
+          this.securityLogs = this.securityLogs.filter(l => l._id !== id);
+          this.filterSecurityLogs();
+        },
+        error: (err) => alert('Error deleting security log')
+      });
+    }
+  }
+
+  // --- User Activity & Audit Methods ---
+  loadUserAuditData() {
+    this.adminService.getUserLogs().subscribe({
+      next: (logs) => {
+        this.userLogs = logs;
+        this.filteredUserLogs = logs;
+      },
+      error: (err) => console.error('Error loading user logs', err)
+    });
+
+    this.adminService.getUserAuditSummary().subscribe({
+      next: (users) => {
+        this.userAuditSummary = users;
+        this.totalUserRequestsCount = users.reduce((sum: number, u: any) => sum + (u.apiRequestsCount || 0), 0);
+        this.totalUserLoginAttempts = users.reduce((sum: number, u: any) => sum + (u.loginAttempts || 0), 0);
+        this.multiDeviceUsersCount = users.filter((u: any) => u.loginDevices?.length > 1).length;
+      },
+      error: (err) => console.error('Error loading user audit summary', err)
+    });
+  }
+
+  filterUserLogs() {
+    this.filteredUserLogs = this.userLogs.filter(log => {
+      const matchSearch = !this.userLogSearch || 
+        log.email?.toLowerCase().includes(this.userLogSearch.toLowerCase()) ||
+        log.action?.toLowerCase().includes(this.userLogSearch.toLowerCase()) ||
+        log.ipAddress?.toLowerCase().includes(this.userLogSearch.toLowerCase()) ||
+        log.userId?.name?.toLowerCase().includes(this.userLogSearch.toLowerCase());
+      
+      const matchAction = this.userLogFilterAction === 'all' || log.action === this.userLogFilterAction;
+      return matchSearch && matchAction;
+    });
+  }
+
+  openUserAuditDetails(user: any) {
+    this.selectedAuditUser = user;
+    this.showAuditUserModal = true;
+  }
+
+  deleteUserLog(id: string) {
+    if (confirm('Delete this user activity log?')) {
+      this.adminService.deleteUserLog(id).subscribe({
+        next: () => {
+          this.userLogs = this.userLogs.filter(l => l._id !== id);
+          this.filterUserLogs();
+        },
+        error: (err) => alert('Error deleting user log')
+      });
+    }
+  }
+
+  clearAllUserLogs() {
+    if (confirm('Are you sure you want to clear all user activity logs? This cannot be undone.')) {
+      this.adminService.clearUserLogs().subscribe({
+        next: () => {
+          this.userLogs = [];
+          this.filteredUserLogs = [];
+          alert('All user logs cleared.');
+        },
+        error: (err) => alert('Error clearing user logs')
+      });
+    }
+  }
+
+  resetUserAuditCounter(userId: string, type: string) {
+    if (confirm(`Reset ${type} counter for this user?`)) {
+      this.adminService.resetUserAuditCounter(userId, type).subscribe({
+        next: () => {
+          alert('Counter reset successfully.');
+          this.loadUserAuditData();
+          if (this.selectedAuditUser) {
+            const updated = this.userAuditSummary.find(u => u._id === userId);
+            if (updated) this.selectedAuditUser = updated;
+          }
+        },
+        error: (err) => alert('Error resetting counter')
+      });
+    }
   }
 
   logout() {

@@ -19,14 +19,102 @@ router.post('/register', async (req, res) => {
   }
 });
 
+const SecurityLog = require('../models/SecurityLog');
+const UserLog = require('../models/UserLog');
+
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, portal } = req.body;
+  const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+  const userAgent = req.headers['user-agent'] || 'unknown';
+
   try {
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
+      if (portal === 'admin' || email?.toLowerCase().includes('admin') || user?.role === 'admin') {
+        try {
+          await SecurityLog.create({
+            eventType: 'FAILED_ADMIN_LOGIN',
+            ipAddress: clientIp,
+            userAgent,
+            endpoint: req.originalUrl,
+            method: req.method,
+            attemptedCredentials: { email, role: user?.role || portal || 'unknown' },
+            severity: 'high',
+            details: `Failed login attempt on Admin Portal or admin account. IP: ${clientIp}`
+          });
+        } catch (e) { console.error('Security log error', e); }
+      }
+
+      if (user) {
+        user.loginAttempts = (user.loginAttempts || 0) + 1;
+        await user.save();
+        try {
+          await UserLog.create({
+            userId: user._id,
+            email,
+            action: 'LOGIN_FAILED',
+            ipAddress: clientIp,
+            deviceInfo: userAgent,
+            details: 'Invalid password provided'
+          });
+        } catch (e) { console.error('User log error', e); }
+      } else {
+        try {
+          await UserLog.create({
+            email,
+            action: 'LOGIN_FAILED',
+            ipAddress: clientIp,
+            deviceInfo: userAgent,
+            details: 'Non-existent account email'
+          });
+        } catch (e) { console.error('User log error', e); }
+      }
+
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    if (portal === 'admin' && user.role !== 'admin') {
+      try {
+        await SecurityLog.create({
+          eventType: 'UNAUTHORIZED_ADMIN_ACCESS',
+          ipAddress: clientIp,
+          userAgent,
+          endpoint: req.originalUrl,
+          method: req.method,
+          attemptedCredentials: { email, role: user.role },
+          severity: 'high',
+          details: `User with role '${user.role}' attempted to login to Admin Portal.`
+        });
+      } catch (e) { console.error('Security log error', e); }
+      return res.status(403).json({ error: 'Access denied. Administrator login only.' });
+    }
+
+    // Check if new device / IP
+    const existingDevice = user.loginDevices?.find(d => d.ipAddress === clientIp && d.userAgent === userAgent);
+    let isMultiDevice = false;
+    if (!existingDevice) {
+      if (user.loginDevices?.length > 0) isMultiDevice = true;
+      user.loginDevices.push({ ipAddress: clientIp, userAgent, lastLogin: new Date() });
+    } else {
+      existingDevice.lastLogin = new Date();
+    }
+    
+    user.lastLoginAt = new Date();
+    user.loginAttempts = (user.loginAttempts || 0) + 1;
+    await user.save();
+
+    try {
+      await UserLog.create({
+        userId: user._id,
+        email: user.email,
+        action: isMultiDevice ? 'MULTI_DEVICE_LOGIN' : 'LOGIN_SUCCESS',
+        ipAddress: clientIp,
+        deviceInfo: userAgent,
+        details: isMultiDevice ? 'User logged in from a new IP/Device signature' : 'Successful login'
+      });
+    } catch (e) { console.error('User log error', e); }
+
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret');
     res.json({ 
       token, 

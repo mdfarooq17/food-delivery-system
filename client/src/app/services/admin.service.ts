@@ -125,4 +125,46 @@ export class AdminService {
   deleteSlider(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/sliders/${id}`, { headers: this.getHeaders() });
   }
+
+  // --- Security Logs ---
+  getSecurityLogs(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/security-logs`, { headers: this.getHeaders() });
+  }
+
+  markSecurityLogsAsRead(): Observable<any> {
+    return this.http.put(`${this.apiUrl}/security-logs/mark-read`, {}, { headers: this.getHeaders() });
+  }
+
+  blockSecurityIP(ipAddress: string, email?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/security/block-ip`, { ipAddress, email }, { headers: this.getHeaders() });
+  }
+
+  forceLogoutUser(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/security/force-logout`, { email }, { headers: this.getHeaders() });
+  }
+
+  deleteSecurityLog(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/security-logs/${id}`, { headers: this.getHeaders() });
+  }
+
+  // --- User Activity & Audit Logs ---
+  getUserLogs(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/user-logs`, { headers: this.getHeaders() });
+  }
+
+  getUserAuditSummary(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/user-audit-summary`, { headers: this.getHeaders() });
+  }
+
+  deleteUserLog(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/user-logs/${id}`, { headers: this.getHeaders() });
+  }
+
+  clearUserLogs(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/user-logs/clear`, {}, { headers: this.getHeaders() });
+  }
+
+  resetUserAuditCounter(userId: string, type: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/user-audit/reset-attempts`, { userId, type }, { headers: this.getHeaders() });
+  }
 }

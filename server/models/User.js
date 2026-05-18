@@ -25,6 +25,15 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String },
   isActive: { type: Boolean, default: true },
   isBlocked: { type: Boolean, default: false },
+  forceLogout: { type: Boolean, default: false },
+  apiRequestsCount: { type: Number, default: 0 },
+  loginAttempts: { type: Number, default: 0 },
+  loginDevices: [{
+    ipAddress: String,
+    userAgent: String,
+    lastLogin: { type: Date, default: Date.now }
+  }],
+  lastLoginAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 

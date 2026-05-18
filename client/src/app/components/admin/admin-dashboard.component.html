@@ -29,6 +29,13 @@
       <button [class.active]="activeTab === 'sliders'" (click)="setActiveTab('sliders')">
         <i class="fas fa-images"></i> Sliders
       </button>
+      <button [class.active]="activeTab === 'security'" (click)="setActiveTab('security')">
+        <i class="fas fa-shield-alt"></i> Threat Monitor
+        <span *ngIf="unreadSecurityCount > 0" style="background: #ff4757; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; margin-left: auto;">{{ unreadSecurityCount }}</span>
+      </button>
+      <button [class.active]="activeTab === 'user-logs'" (click)="setActiveTab('user-logs')">
+        <i class="fas fa-user-clock"></i> User Audit
+      </button>
       <button class="logout-btn" (click)="logout()">
         <i class="fas fa-sign-out-alt"></i> Logout
       </button>
@@ -474,6 +481,275 @@
       </table>
     </div>
 
+    <!-- Security & Threats Tab -->
+    <div *ngIf="activeTab === 'security'" class="tab-content">
+      <div class="action-bar" style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px;">
+        <div>
+          <h3 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-shield-alt" style="color: #ff4757;"></i> Security & Threat Monitoring
+          </h3>
+          <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-muted);">Real-time log of unauthorized access, failed admin logins, and unethical API requests.</p>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+          <input type="text" [(ngModel)]="securitySearchQuery" (ngModelChange)="filterSecurityLogs()" placeholder="Search IP, event, email..." style="padding: 10px 15px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white; width: 250px;">
+          <select [(ngModel)]="securityFilterSeverity" (ngModelChange)="filterSecurityLogs()" style="padding: 10px 15px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+            <option value="all">All Severities</option>
+            <option value="high">High Severity</option>
+            <option value="medium">Medium Severity</option>
+            <option value="low">Low Severity</option>
+          </select>
+          <button (click)="loadSecurityLogs()" class="btn-primary" style="background: #3742fa; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="filteredSecurityLogs.length === 0" style="text-align: center; padding: 50px; background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed rgba(255,255,255,0.1);">
+        <i class="fas fa-check-circle" style="font-size: 3rem; color: #2ed573; margin-bottom: 15px;"></i>
+        <h3 style="margin: 0 0 10px; color: white;">No Security Threats Detected</h3>
+        <p style="margin: 0; color: var(--text-muted);">All system access attempts and API requests are operating within normal parameters.</p>
+      </div>
+
+      <table class="modern-table" *ngIf="filteredSecurityLogs.length > 0">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Threat / Event Type</th>
+            <th>IP Address</th>
+            <th>Attempted Credentials</th>
+            <th>Endpoint & Method</th>
+            <th>Severity</th>
+            <th>Details / User Agent</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of filteredSecurityLogs" [ngStyle]="{
+            'background': log.isNewlyUnread ? 'rgba(255, 71, 87, 0.12)' : 'transparent',
+            'border-left': log.isNewlyUnread ? '4px solid #ff4757' : 'none'
+          }">
+            <td style="white-space: nowrap; font-size: 0.85rem; color: var(--text-muted);">
+              <strong>{{ log.timestamp | date:'shortDate' }}</strong><br>
+              {{ log.timestamp | date:'mediumTime' }}
+            </td>
+            <td>
+              <span style="font-weight: 800; font-size: 0.85rem; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                {{ log.eventType.replace('_', ' ') }}
+              </span>
+              <span *ngIf="log.isNewlyUnread" style="background: #ff4757; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: 800; margin-left: 8px; vertical-align: middle;">NEW</span>
+            </td>
+            <td>
+              <span style="font-family: monospace; font-size: 0.9rem; color: #70a1ff; background: rgba(112,161,255,0.1); padding: 2px 6px; border-radius: 4px;">
+                {{ log.ipAddress }}
+              </span>
+            </td>
+            <td>
+              <div style="font-size: 0.85rem;">
+                <span *ngIf="log.attemptedCredentials?.email">Email: <strong style="color: white;">{{ log.attemptedCredentials.email }}</strong><br></span>
+                <span *ngIf="log.attemptedCredentials?.role">Role: <strong style="color: #2ed573; text-transform: uppercase;">{{ log.attemptedCredentials.role }}</strong></span>
+                <span *ngIf="!log.attemptedCredentials?.email && !log.attemptedCredentials?.role" style="color: var(--text-muted)">N/A</span>
+              </div>
+            </td>
+            <td>
+              <span style="font-weight: 700; font-size: 0.75rem; background: #3742fa; color: white; padding: 2px 6px; border-radius: 4px;">{{ log.method }}</span>
+              <p style="margin: 4px 0 0; font-family: monospace; font-size: 0.85rem; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="log.endpoint">
+                {{ log.endpoint }}
+              </p>
+            </td>
+            <td>
+              <span [ngStyle]="{
+                'background': log.severity === 'high' ? 'rgba(255, 71, 87, 0.15)' : (log.severity === 'medium' ? 'rgba(255, 165, 2, 0.15)' : 'rgba(46, 213, 115, 0.15)'),
+                'color': log.severity === 'high' ? '#ff4757' : (log.severity === 'medium' ? '#ffa502' : '#2ed573'),
+                'border': log.severity === 'high' ? '1px solid #ff4757' : (log.severity === 'medium' ? '1px solid #ffa502' : '1px solid #2ed573')
+              }" style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: inline-block;">
+                {{ log.severity }}
+              </span>
+            </td>
+            <td>
+              <p style="margin: 0 0 4px; font-size: 0.85rem; color: white; max-width: 300px; white-space: normal;">{{ log.details }}</p>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace; display: block; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="log.userAgent">
+                UA: {{ log.userAgent }}
+              </span>
+            </td>
+            <td style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button *ngIf="log.ipAddress && log.ipAddress !== 'unknown'" (click)="blockSecurityIP(log.ipAddress, log.attemptedCredentials?.email)" class="btn-small btn-danger" style="background: #ff4757; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer;" title="Permanently block IP and disable user account">
+                <i class="fas fa-ban"></i> Block IP
+              </button>
+              <button *ngIf="log.attemptedCredentials?.email" (click)="forceLogoutUser(log.attemptedCredentials.email)" class="btn-small" style="background: #ffa502; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer;" title="Terminate user session instantly">
+                <i class="fas fa-sign-out-alt"></i> Terminate Session
+              </button>
+              <button (click)="deleteSecurityLog(log._id)" class="btn-small" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;" title="Dismiss log">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- User Activity & Audit Tab -->
+    <div *ngIf="activeTab === 'user-logs'" class="tab-content">
+      <div class="action-bar" style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px;">
+        <div>
+          <h3 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-user-clock" style="color: #70a1ff;"></i> User Activity & Audit Monitoring
+          </h3>
+          <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-muted);">Comprehensive tracking of user API requests, login attempts, multi-device access, and session logs.</p>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+          <button (click)="clearAllUserLogs()" class="btn-danger" style="background: #ff4757; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+            <i class="fas fa-trash-alt"></i> Clear Activity Stream
+          </button>
+          <button (click)="loadUserAuditData()" class="btn-primary" style="background: #3742fa; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+            <i class="fas fa-sync-alt"></i> Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Audit Summary Cards -->
+      <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 2.5rem;">
+        <div class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 15px;">
+          <h4 style="margin: 0 0 10px; color: var(--text-muted); font-size: 0.9rem;">Total API Requests</h4>
+          <p style="margin: 0; font-size: 1.8rem; font-weight: 800; color: white;">{{ totalUserRequestsCount | number }}</p>
+          <span style="font-size: 0.75rem; color: #2ed573;">● Active Platform Traffic</span>
+        </div>
+        <div class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 15px;">
+          <h4 style="margin: 0 0 10px; color: var(--text-muted); font-size: 0.9rem;">Total Login Attempts</h4>
+          <p style="margin: 0; font-size: 1.8rem; font-weight: 800; color: white;">{{ totalUserLoginAttempts | number }}</p>
+          <span style="font-size: 0.75rem; color: #70a1ff;">● Authentications Logged</span>
+        </div>
+        <div class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 15px;">
+          <h4 style="margin: 0 0 10px; color: var(--text-muted); font-size: 0.9rem;">Multi-Device Users</h4>
+          <p style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #ffa502;">{{ multiDeviceUsersCount | number }}</p>
+          <span style="font-size: 0.75rem; color: #ffa502;">● Concurrent Sign-ins</span>
+        </div>
+      </div>
+
+      <!-- User Audit Table -->
+      <h3 style="color: white; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">User Audit Overview</h3>
+      <table class="modern-table" style="margin-bottom: 3rem;">
+        <thead>
+          <tr>
+            <th>User Account</th>
+            <th>Role & Status</th>
+            <th>API Requests</th>
+            <th>Login Attempts</th>
+            <th>Registered Devices</th>
+            <th>Last Login</th>
+            <th>Audit Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of userAuditSummary">
+            <td>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img [src]="u.profileImage || 'https://via.placeholder.com/40/3742fa/ffffff?text=' + u.name.charAt(0)" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);">
+                <div>
+                  <strong style="color: white; font-size: 1rem;">{{ u.name }}</strong>
+                  <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">{{ u.email }}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="role-badge" style="background: #3742fa; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">{{ u.role }}</span>
+              <span *ngIf="u.isBlocked" style="background: #ff4757; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 6px;">BLOCKED</span>
+            </td>
+            <td><strong style="color: #2ed573; font-size: 1.1rem;">{{ u.apiRequestsCount || 0 }}</strong></td>
+            <td><strong style="color: #70a1ff; font-size: 1.1rem;">{{ u.loginAttempts || 0 }}</strong></td>
+            <td>
+              <span [ngStyle]="{
+                'background': (u.loginDevices?.length || 0) > 1 ? 'rgba(255, 165, 2, 0.2)' : 'rgba(255,255,255,0.05)',
+                'color': (u.loginDevices?.length || 0) > 1 ? '#ffa502' : 'white',
+                'border': (u.loginDevices?.length || 0) > 1 ? '1px solid #ffa502' : '1px solid rgba(255,255,255,0.1)'
+              }" style="padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700;">
+                {{ u.loginDevices?.length || 0 }} Device(s)
+              </span>
+            </td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);">
+              {{ u.lastLoginAt ? (u.lastLoginAt | date:'medium') : 'Never' }}
+            </td>
+            <td>
+              <button (click)="openUserAuditDetails(u)" class="btn-small" style="background: #3742fa; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;">
+                <i class="fas fa-file-invoice"></i> Detailed History
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Real-time Global User Activity Stream -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <h3 style="color: white; margin: 0;">Global User Activity Stream</h3>
+        <div style="display: flex; gap: 15px;">
+          <input type="text" [(ngModel)]="userLogSearch" (ngModelChange)="filterUserLogs()" placeholder="Search user, email, action..." style="padding: 8px 15px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white; width: 220px;">
+          <select [(ngModel)]="userLogFilterAction" (ngModelChange)="filterUserLogs()" style="padding: 8px 15px; border-radius: 8px; background: #0f171e; border: 1px solid var(--admin-border); color: white;">
+            <option value="all">All Actions</option>
+            <option value="LOGIN_SUCCESS">Login Success</option>
+            <option value="LOGIN_FAILED">Login Failed</option>
+            <option value="MULTI_DEVICE_LOGIN">Multi-Device Login</option>
+            <option value="LOGOUT">Logout</option>
+            <option value="PROFILE_UPDATE">Profile Update</option>
+          </select>
+        </div>
+      </div>
+
+      <div *ngIf="filteredUserLogs.length === 0" style="text-align: center; padding: 40px; background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed rgba(255,255,255,0.1);">
+        <p style="margin: 0; color: var(--text-muted);">No user activity logs match your filter criteria.</p>
+      </div>
+
+      <table class="modern-table" *ngIf="filteredUserLogs.length > 0">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User / Email</th>
+            <th>Action Event</th>
+            <th>IP Address</th>
+            <th>Device Signature</th>
+            <th>Details</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of filteredUserLogs">
+            <td style="white-space: nowrap; font-size: 0.85rem; color: var(--text-muted);">
+              <strong>{{ log.timestamp | date:'shortDate' }}</strong><br>
+              {{ log.timestamp | date:'mediumTime' }}
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img *ngIf="log.userId" [src]="log.userId.profileImage || 'https://via.placeholder.com/30/3742fa/ffffff?text=' + log.userId.name.charAt(0)" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                <div>
+                  <strong style="color: white; font-size: 0.9rem;">{{ log.userId ? log.userId.name : 'Unknown User' }}</strong>
+                  <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">{{ log.email }}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span [ngStyle]="{
+                'background': log.action === 'LOGIN_SUCCESS' ? 'rgba(46, 213, 115, 0.2)' : (log.action === 'LOGIN_FAILED' ? 'rgba(255, 71, 87, 0.2)' : (log.action === 'MULTI_DEVICE_LOGIN' ? 'rgba(255, 165, 2, 0.2)' : 'rgba(255,255,255,0.05)')),
+                'color': log.action === 'LOGIN_SUCCESS' ? '#2ed573' : (log.action === 'LOGIN_FAILED' ? '#ff4757' : (log.action === 'MULTI_DEVICE_LOGIN' ? '#ffa502' : 'white')),
+                'border': log.action === 'LOGIN_SUCCESS' ? '1px solid #2ed573' : (log.action === 'LOGIN_FAILED' ? '1px solid #ff4757' : (log.action === 'MULTI_DEVICE_LOGIN' ? '1px solid #ffa502' : '1px solid rgba(255,255,255,0.1)'))
+              }" style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">
+                {{ log.action.replace('_', ' ') }}
+              </span>
+            </td>
+            <td><span style="font-family: monospace; font-size: 0.85rem; color: #70a1ff;">{{ log.ipAddress }}</span></td>
+            <td>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace; display: block; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="log.deviceInfo">
+                {{ log.deviceInfo }}
+              </span>
+            </td>
+            <td><p style="margin: 0; font-size: 0.85rem; color: white; max-width: 250px; white-space: normal;">{{ log.details }}</p></td>
+            <td>
+              <button (click)="deleteUserLog(log._id)" class="btn-small" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Modals Overlay Section -->
     <!-- Add User Modal -->
     <div class="modal-overlay" *ngIf="showAddUserModal" (click)="showAddUserModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
@@ -692,6 +968,67 @@
         <div style="display: flex; justify-content: flex-end; gap: 12px;">
           <button (click)="showEditSliderModal=false" style="background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
           <button (click)="saveSliderEdit()" style="background: #3742fa; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Audit Details Modal -->
+    <div class="modal-overlay" *ngIf="showAuditUserModal && selectedAuditUser" (click)="showAuditUserModal=false" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+      <div class="modal-content" (click)="$event.stopPropagation()" style="background: #151f28; border: 1px solid var(--admin-border); border-radius: 16px; padding: 30px; width: 90%; max-width: 700px; color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img [src]="selectedAuditUser.profileImage || 'https://via.placeholder.com/60/3742fa/ffffff?text=' + selectedAuditUser.name.charAt(0)" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #3742fa;">
+            <div>
+              <h3 style="margin: 0 0 5px; font-size: 1.4rem;">{{ selectedAuditUser.name }}</h3>
+              <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">{{ selectedAuditUser.email }} | Role: <strong style="color: #3742fa; text-transform: uppercase;">{{ selectedAuditUser.role }}</strong></p>
+            </div>
+          </div>
+          <button (click)="showAuditUserModal=false" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <!-- Quick Actions & Counters -->
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+          <div style="flex: 1; min-width: 150px;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Total API Requests</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <strong style="font-size: 1.4rem; color: #2ed573;">{{ selectedAuditUser.apiRequestsCount || 0 }}</strong>
+              <button (click)="resetUserAuditCounter(selectedAuditUser._id, 'requests')" class="btn-small" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Reset</button>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 150px;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Total Login Attempts</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <strong style="font-size: 1.4rem; color: #70a1ff;">{{ selectedAuditUser.loginAttempts || 0 }}</strong>
+              <button (click)="resetUserAuditCounter(selectedAuditUser._id, 'logins')" class="btn-small" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Reset</button>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 150px; display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
+            <button (click)="forceLogoutUser(selectedAuditUser.email)" class="btn-small" style="background: #ffa502; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+              <i class="fas fa-sign-out-alt"></i> Force Logout
+            </button>
+          </div>
+        </div>
+
+        <!-- Registered Devices List -->
+        <h4 style="margin: 0 0 15px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Registered Devices & IPs ({{ selectedAuditUser.loginDevices?.length || 0 }})</h4>
+        <div *ngIf="(selectedAuditUser.loginDevices?.length || 0) === 0" style="padding: 20px; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 25px;">
+          No device history recorded for this user.
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;" *ngIf="(selectedAuditUser.loginDevices?.length || 0) > 0">
+          <div *ngFor="let dev of selectedAuditUser.loginDevices" style="background: #0f171e; padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <strong style="color: #70a1ff; font-family: monospace; font-size: 1rem;">IP: {{ dev.ipAddress }}</strong>
+              <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted); font-family: monospace;">{{ dev.userAgent }}</p>
+            </div>
+            <div style="text-align: right; font-size: 0.8rem; color: var(--text-muted);">
+              Last Access:<br>
+              <strong style="color: white;">{{ dev.lastLogin | date:'medium' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button (click)="showAuditUserModal=false" style="background: #3742fa; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Close Window</button>
         </div>
       </div>
     </div>

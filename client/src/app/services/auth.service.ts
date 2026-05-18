@@ -65,8 +65,8 @@ export class AuthService {
     return this.http.get(`${this.apiUrl}/categories`);
   }
 
-  login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
+  login(email: string, password: string, portal: string = ''): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { email, password, portal }).pipe(
       tap(response => {
         if (response && response.token) {
           const role = response.user.role;

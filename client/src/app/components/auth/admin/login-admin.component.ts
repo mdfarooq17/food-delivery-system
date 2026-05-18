@@ -38,7 +38,7 @@ export class LoginAdminComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(this.email, this.password, 'admin').subscribe({
       next: (response: any) => {
         this.isLoading = false;
         if (response.user.role === 'admin') {
