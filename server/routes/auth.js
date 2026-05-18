@@ -36,6 +36,8 @@ router.post('/login', async (req, res) => {
         role: user.role,
         phone: user.phone,
         address: user.address,
+        city: user.city,
+        savedAddresses: user.savedAddresses,
         profileImage: user.profileImage,
         createdAt: user.createdAt
       } 
@@ -59,11 +61,11 @@ router.get('/me', auth, async (req, res) => {
 
 // Update profile
 router.put('/update-profile', auth, async (req, res) => {
-  const { name, phone, address, profileImage } = req.body;
+  const { name, phone, address, city, profileImage, savedAddresses } = req.body;
   try {
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, phone, address, profileImage },
+      { name, phone, address, city, profileImage, savedAddresses },
       { new: true }
     ).select('-password');
     res.json(user);

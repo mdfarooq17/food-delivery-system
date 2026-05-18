@@ -185,6 +185,11 @@
           </div>
           <div class="product-info">
             <h4>{{ item.name }}</h4>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.85rem;">
+              <span style="color: #f59e0b;"><i class="fas fa-star"></i> {{ item.rating || '0.0' }}</span>
+              <span style="color: #888;">({{ item.reviewCount || 0 }} reviews)</span>
+              <button class="text-link-btn" style="padding: 0; background: none; border: none; color: var(--res-orange); font-size: 0.8rem; cursor: pointer; text-decoration: underline;" (click)="viewItemReviews(item)">See reviews</button>
+            </div>
             <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">{{ item.description | slice:0:60 }}...</p>
             <div class="product-meta">
               <span class="product-price">Rs. {{ item.price }}</span>
@@ -227,6 +232,41 @@
           <div class="form-actions">
             <button class="btn-save" (click)="saveMenuItem()">{{ isEditing ? 'Update Product' : 'Add Product' }}</button>
             <button class="btn-cancel" (click)="showAddItemForm = false">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item Reviews Modal -->
+      <div class="modal-overlay" *ngIf="showItemReviewsModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="card-container" style="width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Reviews for {{ selectedReviewItem?.name }}</h2>
+            <button style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888;" (click)="closeItemReviews()">&times;</button>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto; padding-right: 10px;">
+            <div *ngIf="itemReviews.length === 0" style="text-align: center; padding: 40px 20px; color: #888;">
+              <i class="far fa-comment-dots fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+              <p>No reviews yet for this product.</p>
+            </div>
+            
+            <div *ngFor="let rev of itemReviews" style="background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 32px; height: 32px; background: rgba(255, 91, 38, 0.1); color: var(--res-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ rev.customerId?.name?.charAt(0) || 'C' }}
+                  </div>
+                  <div>
+                    <strong style="display: block; font-size: 0.9rem;">{{ rev.customerId?.name || 'Customer' }}</strong>
+                    <span style="font-size: 0.75rem; color: #888;">{{ rev.review.createdAt | date:'medium' }}</span>
+                  </div>
+                </div>
+                <div style="color: #f59e0b; font-size: 0.85rem;">
+                  <i class="fas fa-star" *ngFor="let s of [1,2,3,4,5]" [style.opacity]="rev.review.rating >= s ? 1 : 0.3"></i>
+                </div>
+              </div>
+              <p style="margin: 0; font-size: 0.85rem; color: #555; line-height: 1.5;">{{ rev.review.comment || 'No comment provided.' }}</p>
+            </div>
           </div>
         </div>
       </div>

@@ -7,6 +7,12 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['admin', 'customer', 'restaurant', 'rider'], required: true },
   phone: { type: String },
   address: { type: String },
+  city: { type: String },
+  savedAddresses: [{
+    city: String,
+    fullAddress: String,
+    label: { type: String, default: 'Home' }
+  }],
   profileImage: { type: String },
   createdAt: { type: Date, default: Date.now }
 });

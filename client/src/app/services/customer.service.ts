@@ -11,8 +11,12 @@ export class CustomerService {
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
-  search(query: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/search?query=${query}`);
+  search(query: string, city?: string): Observable<any> {
+    let url = `${this.apiUrl}/search?query=${encodeURIComponent(query)}`;
+    if (city) {
+      url += `&city=${encodeURIComponent(city)}`;
+    }
+    return this.http.get(url);
   }
 
   private getHeaders() {
@@ -22,16 +26,24 @@ export class CustomerService {
     });
   }
 
-  getRestaurants(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/restaurants`);
+  getRestaurants(city?: string): Observable<any> {
+    let url = `${this.apiUrl}/restaurants`;
+    if (city) {
+      url += `?city=${encodeURIComponent(city)}`;
+    }
+    return this.http.get(url);
   }
 
   getRestaurantMenu(restaurantId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/restaurant/${restaurantId}/menu`);
   }
 
-  getRandomMenuItems(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/menu-items/random`);
+  getRandomMenuItems(city?: string): Observable<any> {
+    let url = `${this.apiUrl}/menu-items/random`;
+    if (city) {
+      url += `?city=${encodeURIComponent(city)}`;
+    }
+    return this.http.get(url);
   }
 
   placeOrder(order: any): Observable<any> {
@@ -48,5 +60,13 @@ export class CustomerService {
 
   submitOrderReview(orderId: string, rating: number, comment: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/order/${orderId}/review`, { rating, comment }, { headers: this.getHeaders() });
+  }
+
+  getRestaurantReviews(restaurantId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/restaurant/${restaurantId}/reviews`);
+  }
+
+  getMenuItemReviews(menuItemId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/menu-item/${menuItemId}/reviews`);
   }
 }

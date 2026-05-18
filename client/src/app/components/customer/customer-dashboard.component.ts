@@ -62,11 +62,16 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   trackingOrder: any = null;
   searchQuery = '';
   newAddress = '';
+  selectedCity = '';
+  previousCity = '';
+  availableCities: any[] = [];
   
-  profileForm = {
+  profileForm: any = {
     name: '',
     phone: '',
     address: '',
+    city: '',
+    savedAddresses: [],
     profileImage: ''
   };
   activeFilter = 'All';
@@ -129,6 +134,10 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   reviewRating = 5;
   reviewComment = '';
 
+  restaurantReviews: any[] = [];
+  productReviews: any[] = [];
+  productAverageRating: number = 0;
+
   constructor(
     private customerService: CustomerService,
     private authService: AuthService,
@@ -138,6 +147,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   pollingInterval: any;
 
   ngOnInit() {
+    this.loadCities();
     this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
       this.isLoggedIn = !!user;
@@ -146,10 +156,22 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
           name: user.name || '',
           phone: user.phone || '',
           address: user.address || '',
+          city: user.city || '',
+          savedAddresses: user.savedAddresses || [],
           profileImage: user.profileImage || ''
         };
-        // Also update local selectedAddress if user has one saved
-        if (user.address) this.selectedAddress = user.address;
+        // Set local selectedAddress and selectedCity
+        if (user.city) {
+          this.selectedCity = user.city;
+          this.previousCity = user.city;
+        }
+        if (user.address) this.selectedAddress = `${user.address}, ${user.city || ''}`.replace(/,\s*$/, '');
+        else if (user.savedAddresses && user.savedAddresses.length > 0) {
+          const first = user.savedAddresses[0];
+          this.selectedCity = first.city;
+          this.previousCity = first.city;
+          this.selectedAddress = `${first.fullAddress}, ${first.city}`;
+        }
       }
     });
     this.loadRestaurants();
@@ -158,8 +180,21 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.startPolling();
   }
 
+  loadCities() {
+    this.authService.getCities().subscribe({
+      next: (data: any) => {
+        this.availableCities = data;
+        if (this.availableCities.length > 0 && !this.selectedCity) {
+          this.selectedCity = this.availableCities[0].name;
+          this.previousCity = this.selectedCity;
+        }
+      },
+      error: (err: any) => console.error('Error loading cities', err)
+    });
+  }
+
   loadRandomMenuItems() {
-    this.customerService.getRandomMenuItems().subscribe({
+    this.customerService.getRandomMenuItems(this.selectedCity).subscribe({
       next: (data: any) => { this.randomMenuItems = data; },
       error: (err: any) => console.error('Error loading random items', err)
     });
@@ -263,20 +298,56 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   openAddressModal() {
-    this.newAddress = this.selectedAddress;
+    this.newAddress = '';
     this.showAddressModal = true;
   }
 
   updateAddress() {
+    if (!this.selectedCity) {
+      alert('Please select a city.');
+      return;
+    }
     if (this.newAddress.trim()) {
-      this.selectedAddress = this.newAddress;
+      const cityChanged = this.previousCity && this.previousCity !== this.selectedCity;
+      this.previousCity = this.selectedCity;
+
+      this.selectedAddress = `${this.newAddress}, ${this.selectedCity}`;
       this.showAddressModal = false;
       
-      // If logged in, update profile address too
       if (this.isLoggedIn) {
-        this.profileForm.address = this.selectedAddress;
+        this.profileForm.city = this.selectedCity;
+        this.profileForm.address = this.newAddress;
+        if (!this.profileForm.savedAddresses) this.profileForm.savedAddresses = [];
+        
+        // Add to saved addresses if not already there
+        const exists = this.profileForm.savedAddresses.find((a: any) => a.city === this.selectedCity && a.fullAddress === this.newAddress);
+        if (!exists) {
+          this.profileForm.savedAddresses.push({
+            city: this.selectedCity,
+            fullAddress: this.newAddress,
+            label: 'Saved Address'
+          });
+        }
+        
         this.saveProfile(false); // Silent save
       }
+      
+      if (cityChanged) {
+        this.restaurants = [];
+        this.filteredRestaurants = [];
+        this.menuItems = [];
+        this.randomMenuItems = [];
+        this.searchDishes = [];
+        if (this.activeView === 'restaurants' || this.activeView === 'menu' || this.activeView === 'item-detail') {
+          this.activeView = 'home';
+        }
+      }
+      
+      // Reload restaurants and menu for new city
+      this.loadRestaurants();
+      this.loadRandomMenuItems();
+    } else {
+      alert('Please enter a full delivery address.');
     }
   }
 
@@ -292,6 +363,8 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
         name: this.currentUser.name || '',
         phone: this.currentUser.phone || '',
         address: this.currentUser.address || '',
+        city: this.currentUser.city || '',
+        savedAddresses: this.currentUser.savedAddresses || [],
         profileImage: this.currentUser.profileImage || ''
       };
     }
@@ -312,7 +385,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   // --- Restaurants ---
   loadRestaurants() {
-    this.customerService.getRestaurants().subscribe({
+    this.customerService.getRestaurants(this.selectedCity).subscribe({
       next: (data: any) => {
         this.restaurants = data;
         this.filteredRestaurants = data;
@@ -331,12 +404,20 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.selectedRestaurant = restaurant;
     this.activeView = 'menu';
     this.loadMenuItems(restaurant._id);
+    this.loadRestaurantReviews(restaurant._id);
   }
 
   loadMenuItems(restaurantId: string) {
     this.customerService.getRestaurantMenu(restaurantId).subscribe({
       next: (data: any) => { this.menuItems = data; },
       error: (err: any) => console.error('Error loading menu', err)
+    });
+  }
+
+  loadRestaurantReviews(restaurantId: string) {
+    this.customerService.getRestaurantReviews(restaurantId).subscribe({
+      next: (data: any) => { this.restaurantReviews = data; },
+      error: (err: any) => console.error('Error loading restaurant reviews', err)
     });
   }
 
@@ -349,15 +430,43 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     let restId = item.restaurantId;
     if (typeof restId === 'object' && restId !== null && restId._id) {
       restId = restId._id;
+    }
+    
+    // Find the full restaurant from our pre-loaded list if possible
+    this.selectedRestaurant = this.restaurants.find(r => r._id === restId);
+    if (!this.selectedRestaurant && typeof item.restaurantId === 'object') {
       this.selectedRestaurant = item.restaurantId;
-    } else {
-      // Find the restaurant from our pre-loaded list if possible
-      this.selectedRestaurant = this.restaurants.find(r => r._id === restId);
     }
 
     if (restId) {
       this.loadMenuItems(restId);
     }
+
+    this.loadProductReviews(item._id);
+  }
+
+  loadProductReviews(menuItemId: string) {
+    this.customerService.getMenuItemReviews(menuItemId).subscribe({
+      next: (data: any) => {
+        this.productReviews = data;
+        if (data.length > 0) {
+          const sum = data.reduce((acc: number, curr: any) => acc + curr.review.rating, 0);
+          this.productAverageRating = Number((sum / data.length).toFixed(1));
+        } else {
+          this.productAverageRating = 0;
+        }
+      },
+      error: (err: any) => console.error('Error loading product reviews', err)
+    });
+  }
+
+  scrollToReviews() {
+    setTimeout(() => {
+      const el = document.getElementById('restaurant-reviews-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   }
 
   goBack() {
@@ -394,7 +503,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.customerService.search(this.searchQuery).subscribe({
+    this.customerService.search(this.searchQuery, this.selectedCity).subscribe({
       next: (results) => {
         this.filteredRestaurants = results.restaurants;
         this.searchDishes = results.dishes;
@@ -419,7 +528,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     if (existing) {
       existing.quantity += quantity;
     } else {
-      this.cart.push({ ...item, quantity: quantity });
+      this.cart.push({ ...item, quantity: quantity, cityAddedFrom: this.selectedCity });
     }
     this.updateCartTotal();
     this.showCartPanel = true;
@@ -448,6 +557,15 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.cartTotal = this.cart.reduce((t, i) => t + i.price * i.quantity, 0);
   }
 
+  get hasInvalidCartItems(): boolean {
+    return this.cart.some(item => item.cityAddedFrom && item.cityAddedFrom !== this.selectedCity);
+  }
+
+  get validSavedAddresses(): any[] {
+    if (!this.profileForm?.savedAddresses) return [];
+    return this.profileForm.savedAddresses.filter((addr: any) => addr.city === this.selectedCity);
+  }
+
   clearCart() { this.cart = []; this.cartTotal = 0; }
 
   openCheckout() {
@@ -457,14 +575,20 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       return; 
     }
     if (this.cart.length === 0) { alert('Your cart is empty'); return; }
+    
+    if (!this.phone && this.currentUser?.phone) {
+      this.phone = this.currentUser.phone;
+    }
+    
     this.showCartPanel = false;
     this.activeView = 'checkout';
   }
 
   // --- Orders ---
   placeOrder() {
-    if (!this.deliveryAddress || !this.phone) {
-      alert('Please enter delivery address and phone number');
+    const finalPhone = this.phone || this.currentUser?.phone;
+    if (!this.deliveryAddress || !finalPhone) {
+      alert('Please enter delivery address and a phone number');
       return;
     }
     
@@ -484,7 +608,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       totalAmount: this.grandTotal,
       deliveryFee: this.deliveryFee,
       deliveryAddress: this.deliveryAddress,
-      phone: this.phone,
+      phone: finalPhone,
       notes: this.notes,
       paymentMethod: this.paymentMethod
     };

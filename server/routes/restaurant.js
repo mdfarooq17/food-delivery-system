@@ -205,4 +205,19 @@ router.delete('/menu/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Get reviews for a specific menu item
+router.get('/menu-item/:id/reviews', authMiddleware, async (req, res) => {
+  try {
+    const reviews = await Order.find({
+      'items.menuItemId': req.params.id,
+      'review.rating': { $exists: true }
+    })
+    .populate('customerId', 'name')
+    .select('review customerId createdAt');
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

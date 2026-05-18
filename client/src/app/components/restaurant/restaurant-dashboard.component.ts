@@ -29,6 +29,10 @@ export class RestaurantDashboardComponent implements OnInit, OnDestroy {
   incomingOrderAlert: any = null;
   selectedOrderDetails: any = null;
 
+  showItemReviewsModal = false;
+  selectedReviewItem: any = null;
+  itemReviews: any[] = [];
+
   setActiveTab(tab: string) {
     this.activeTab = tab;
   }
@@ -219,6 +223,23 @@ export class RestaurantDashboardComponent implements OnInit, OnDestroy {
         error: (err) => alert('Error deleting item')
       });
     }
+  }
+
+  viewItemReviews(item: any) {
+    this.selectedReviewItem = item;
+    this.restaurantService.getItemReviews(item._id).subscribe({
+      next: (reviews) => {
+        this.itemReviews = reviews;
+        this.showItemReviewsModal = true;
+      },
+      error: (err) => alert('Error loading reviews')
+    });
+  }
+
+  closeItemReviews() {
+    this.showItemReviewsModal = false;
+    this.selectedReviewItem = null;
+    this.itemReviews = [];
   }
 
   updateProfile() {

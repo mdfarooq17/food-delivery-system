@@ -7,6 +7,8 @@ const menuItemSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   category: String,
   image: String,
+  rating: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
   isAvailable: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });

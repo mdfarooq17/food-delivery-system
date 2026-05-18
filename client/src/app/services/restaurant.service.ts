@@ -52,4 +52,8 @@ export class RestaurantService {
   dispatchRider(orderId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/order/${orderId}/dispatch-rider`, {}, { headers: this.getHeaders() });
   }
+
+  getItemReviews(menuItemId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/menu-item/${menuItemId}/reviews`, { headers: this.getHeaders() });
+  }
 }
