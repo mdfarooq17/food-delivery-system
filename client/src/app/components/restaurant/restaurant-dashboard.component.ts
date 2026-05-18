@@ -25,6 +25,9 @@ export class RestaurantDashboardComponent implements OnInit, OnDestroy {
   isEditing = false;
   editingItemId: string | null = null;
   
+  notifications: any[] = [];
+  unreadNotificationsCount: number = 0;
+  
   alertedOrderIds: Set<string> = new Set();
   incomingOrderAlert: any = null;
   selectedOrderDetails: any = null;
@@ -68,7 +71,29 @@ export class RestaurantDashboardComponent implements OnInit, OnDestroy {
     this.loadOrders();
     this.loadCities();
     this.loadCategories();
+    this.loadNotifications();
     this.startPolling();
+  }
+
+  loadNotifications() {
+    this.authService.getNotifications('restaurant').subscribe({
+      next: (data: any) => {
+        this.notifications = data;
+        this.unreadNotificationsCount = this.notifications.filter((n: any) => !n.isRead).length;
+      },
+      error: (err: any) => console.error('Error loading notifications', err)
+    });
+  }
+
+  markAsRead(notification: any) {
+    if (notification.isRead) return;
+    this.authService.markNotificationAsRead(notification._id, 'restaurant').subscribe({
+      next: (updated: any) => {
+        notification.isRead = true;
+        this.unreadNotificationsCount = this.notifications.filter((n: any) => !n.isRead).length;
+      },
+      error: (err: any) => console.error('Error marking notification as read', err)
+    });
   }
 
   ngOnDestroy() {
@@ -78,6 +103,7 @@ export class RestaurantDashboardComponent implements OnInit, OnDestroy {
   startPolling() {
     this.pollingInterval = setInterval(() => {
       this.loadOrders();
+      this.loadNotifications();
     }, 5000);
   }
 

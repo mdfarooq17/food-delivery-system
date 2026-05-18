@@ -58,13 +58,16 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   isUserDropdownOpen = false;
   isMobileMenuOpen = false;
   isEditingProfile = false;
-  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' | 'tracking' = 'home';
+  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' | 'tracking' | 'notifications' = 'home';
   trackingOrder: any = null;
   searchQuery = '';
   newAddress = '';
   selectedCity = '';
   previousCity = '';
   availableCities: any[] = [];
+  
+  notifications: any[] = [];
+  unreadNotificationsCount: number = 0;
   
   profileForm: any = {
     name: '',
@@ -100,10 +103,10 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     },
     {
       badge: 'NEW',
-      title1: 'Authentic',
+      title1: 'Artisan Woodfired',
       title2: 'Pizzas',
-      description: 'Wood-fired pizzas with imported Italian tomatoes and basil.',
-      price: 'Rs. 2200',
+      description: 'Authentic Italian pizzas baked in a traditional woodfired oven.',
+      price: 'Rs. 2100',
       image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600',
       thumb: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=100'
     }
@@ -172,6 +175,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
           this.previousCity = first.city;
           this.selectedAddress = `${first.fullAddress}, ${first.city}`;
         }
+        this.loadNotifications();
       }
     });
     this.loadRestaurants();
@@ -179,6 +183,39 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.loadSliders();
     this.startAutoSlider();
     this.startPolling();
+  }
+
+  loadNotifications() {
+    if (!this.isLoggedIn) return;
+    this.authService.getNotifications('customer').subscribe({
+      next: (data: any) => {
+        this.notifications = data;
+        this.unreadNotificationsCount = this.notifications.filter((n: any) => !n.isRead).length;
+      },
+      error: (err: any) => console.error('Error loading notifications', err)
+    });
+  }
+
+  markAsRead(notification: any) {
+    if (notification.isRead) return;
+    this.authService.markNotificationAsRead(notification._id, 'customer').subscribe({
+      next: (updated: any) => {
+        notification.isRead = true;
+        this.unreadNotificationsCount = this.notifications.filter((n: any) => !n.isRead).length;
+      },
+      error: (err: any) => console.error('Error marking notification as read', err)
+    });
+  }
+
+  openNotifications() {
+    if (!this.isLoggedIn) {
+      this.router.navigate(['/login/customer']);
+      return;
+    }
+    this.loadNotifications();
+    this.activeView = 'notifications';
+    this.isUserDropdownOpen = false;
+    this.isMobileMenuOpen = false;
   }
 
   loadSliders() {
@@ -220,6 +257,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   startPolling() {
     this.pollingInterval = setInterval(() => {
       if (this.isLoggedIn) {
+        this.loadNotifications();
         if (this.activeView === 'orders') {
           this.loadMyOrders();
         } else if (this.activeView === 'tracking' && this.trackingOrder) {

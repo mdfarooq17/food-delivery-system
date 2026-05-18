@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 const router = express.Router();
 
@@ -111,6 +112,31 @@ router.get('/categories', async (req, res) => {
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Get User Notifications (Targeted & Broadcasts)
+router.get('/notifications', auth, async (req, res) => {
+  try {
+    const notifications = await Notification.find({
+      $or: [
+        { recipientId: req.user.id },
+        { recipientId: null, targetRole: { $in: ['all', req.user.role] } }
+      ]
+    }).sort({ createdAt: -1 });
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark notification as read
+router.put('/notifications/:id/read', auth, async (req, res) => {
+  try {
+    const notification = await Notification.findByIdAndUpdate(req.params.id, { isRead: true }, { new: true });
+    res.json(notification);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

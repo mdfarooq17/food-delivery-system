@@ -133,4 +133,18 @@ export class AuthService {
       })
     );
   }
+
+  getNotifications(role: string): Observable<any> {
+    const token = this.getToken(role);
+    return this.http.get<any>(`${this.apiUrl}/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  markNotificationAsRead(id: string, role: string): Observable<any> {
+    const token = this.getToken(role);
+    return this.http.put<any>(`${this.apiUrl}/notifications/${id}/read`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
 }

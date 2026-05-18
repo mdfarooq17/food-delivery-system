@@ -22,6 +22,9 @@ export class RiderDashboardComponent implements OnInit {
   assignmentTimeLeft = 60;
   assignmentInterval: any;
   activeTab = 'requests';
+  
+  notifications: any[] = [];
+  unreadNotificationsCount: number = 0;
 
   constructor(
     private riderService: RiderService,
@@ -32,7 +35,29 @@ export class RiderDashboardComponent implements OnInit {
   ngOnInit() {
     this.loadProfile();
     this.loadCities();
+    this.loadNotifications();
     this.startAssignmentPolling();
+  }
+
+  loadNotifications() {
+    this.authService.getNotifications('rider').subscribe({
+      next: (data: any) => {
+        this.notifications = data;
+        this.unreadNotificationsCount = this.notifications.filter((n: any) => !n.isRead).length;
+      },
+      error: (err: any) => console.error('Error loading notifications', err)
+    });
+  }
+
+  markAsRead(notification: any) {
+    if (notification.isRead) return;
+    this.authService.markNotificationAsRead(notification._id, 'rider').subscribe({
+      next: (updated: any) => {
+        notification.isRead = true;
+        this.unreadNotificationsCount = this.notifications.filter((n: any) => !n.isRead).length;
+      },
+      error: (err: any) => console.error('Error marking notification as read', err)
+    });
   }
 
   ngOnDestroy() {
@@ -79,6 +104,7 @@ export class RiderDashboardComponent implements OnInit {
     // Check for new assignments every 10 seconds
     this.assignmentInterval = setInterval(() => {
       this.checkAssignment();
+      this.loadNotifications();
     }, 10000);
     this.checkAssignment();
   }

@@ -24,6 +24,9 @@
       <button [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
         <i class="fas fa-cog"></i> Settings
       </button>
+      <button [class.active]="activeTab === 'notifications'" (click)="activeTab = 'notifications'">
+        <i class="fas fa-bell"></i> Notifications <span *ngIf="unreadNotificationsCount > 0" style="background: #ef5350; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; float: right;">{{ unreadNotificationsCount }}</span>
+      </button>
       <button class="logout-btn" (click)="logout()">
         <i class="fas fa-sign-out-alt"></i> Logout
       </button>
@@ -336,6 +339,39 @@
         
         <div style="margin-top: 20px;">
           <button class="btn-primary" (click)="updateProfile()">Update Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div *ngIf="activeTab === 'notifications'" class="card-container" style="max-width: 900px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2>Store Notifications</h2>
+        <span class="status-badge" *ngIf="unreadNotificationsCount > 0" style="background: #ef5350; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700;">{{ unreadNotificationsCount }} Unread</span>
+      </div>
+
+      <div *ngIf="notifications.length === 0" style="padding: 40px; text-align: center; color: #888;">
+        <i class="fas fa-bell-slash" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+        <h3>No notifications yet</h3>
+        <p>You're all caught up! We'll notify you when there's an update.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div *ngFor="let n of notifications" (click)="markAsRead(n)" [style.opacity]="n.isRead ? '0.7' : '1'" [style.border-left]="n.isRead ? '1px solid #eee' : '4px solid #2ecc71'" style="background: white; border: 1px solid #eee; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; display: flex; gap: 20px; align-items: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+          <div [ngSwitch]="n.type" style="font-size: 1.5rem; padding: 12px; background: #f8f9fa; border-radius: 12px;">
+            <i *ngSwitchCase="'success'" class="fas fa-check-circle" style="color: #2ecc71;"></i>
+            <i *ngSwitchCase="'warning'" class="fas fa-exclamation-triangle" style="color: #f1c40f;"></i>
+            <i *ngSwitchCase="'danger'" class="fas fa-times-circle" style="color: #e74c3c;"></i>
+            <i *ngSwitchDefault class="fas fa-info-circle" style="color: #3498db;"></i>
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h3 style="margin: 0; font-size: 1.1rem; color: #2c3e50; font-weight: 700;">{{ n.title }}</h3>
+              <span style="font-size: 0.8rem; color: #888;">{{ n.createdAt | date:'medium' }}</span>
+            </div>
+            <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">{{ n.message }}</p>
+          </div>
+          <div *ngIf="!n.isRead" style="width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; align-self: center;"></div>
         </div>
       </div>
     </div>
