@@ -134,6 +134,26 @@ export class AuthService {
     );
   }
 
+  syncCart(cart: any[], role: string = 'customer'): Observable<any> {
+    const token = this.getToken(role);
+    if (!token) {
+      return new Observable<any>(observer => { observer.next(cart); observer.complete(); });
+    }
+    return this.http.put<any>(`${this.apiUrl}/cart`, { cart }, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).pipe(
+      tap(updatedCart => {
+        const storage = role === 'admin' ? sessionStorage : localStorage;
+        const saved = JSON.parse(storage.getItem(`${role}_session`) || '{}');
+        if (saved.user) {
+          saved.user.cart = updatedCart;
+          storage.setItem(`${role}_session`, JSON.stringify(saved));
+          this.roleSubjects[role].next(saved.user);
+        }
+      })
+    );
+  }
+
   getNotifications(role: string): Observable<any> {
     const token = this.getToken(role);
     return this.http.get<any>(`${this.apiUrl}/notifications`, {

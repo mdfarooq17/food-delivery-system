@@ -175,6 +175,14 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
           this.previousCity = first.city;
           this.selectedAddress = `${first.fullAddress}, ${first.city}`;
         }
+
+        if (this.cart.length > 0) {
+          this.authService.syncCart(this.cart).subscribe();
+        } else if (user.cart && user.cart.length > 0) {
+          this.cart = user.cart;
+          this.cartTotal = this.cart.reduce((t, i) => t + i.price * i.quantity, 0);
+        }
+
         this.loadNotifications();
       }
     });
@@ -605,6 +613,9 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   updateCartTotal() {
     this.cartTotal = this.cart.reduce((t, i) => t + i.price * i.quantity, 0);
+    if (this.isLoggedIn) {
+      this.authService.syncCart(this.cart).subscribe();
+    }
   }
 
   get hasInvalidCartItems(): boolean {
@@ -616,7 +627,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     return this.profileForm.savedAddresses.filter((addr: any) => addr.city === this.selectedCity);
   }
 
-  clearCart() { this.cart = []; this.cartTotal = 0; }
+  clearCart() { this.cart = []; this.updateCartTotal(); }
 
   openCheckout() {
     if (!this.isLoggedIn) { 

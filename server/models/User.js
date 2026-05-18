@@ -13,6 +13,15 @@ const userSchema = new mongoose.Schema({
     fullAddress: String,
     label: { type: String, default: 'Home' }
   }],
+  cart: [{
+    menuItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' },
+    name: String,
+    price: Number,
+    quantity: Number,
+    image: String,
+    restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' },
+    cityAddedFrom: String
+  }],
   profileImage: { type: String },
   isActive: { type: Boolean, default: true },
   isBlocked: { type: Boolean, default: false },

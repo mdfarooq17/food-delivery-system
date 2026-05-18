@@ -39,6 +39,7 @@ router.post('/login', async (req, res) => {
         address: user.address,
         city: user.city,
         savedAddresses: user.savedAddresses,
+        cart: user.cart,
         profileImage: user.profileImage,
         createdAt: user.createdAt
       } 
@@ -62,14 +63,26 @@ router.get('/me', auth, async (req, res) => {
 
 // Update profile
 router.put('/update-profile', auth, async (req, res) => {
-  const { name, phone, address, city, profileImage, savedAddresses } = req.body;
+  const { name, phone, address, city, profileImage, savedAddresses, cart } = req.body;
   try {
+    const updateData = { name, phone, address, city, profileImage, savedAddresses };
+    if (cart) updateData.cart = cart;
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, phone, address, city, profileImage, savedAddresses },
+      updateData,
       { new: true }
     ).select('-password');
     res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Sync user cart
+router.put('/cart', auth, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.user.id, { cart: req.body.cart }, { new: true }).select('-password');
+    res.json(user.cart);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
