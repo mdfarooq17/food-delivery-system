@@ -200,6 +200,8 @@ router.put('/order/:id/status', authMiddleware, async (req, res) => {
         { 
           status: 'idle', 
           currentOrderId: null,
+          isReady: false,
+          queueNumber: 0,
           $inc: { earnings: fee, completedTrips: 1 }
         }
       );

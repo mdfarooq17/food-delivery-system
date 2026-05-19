@@ -80,6 +80,33 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/customer', require('./routes/customer'));
 app.use('/api/restaurant', require('./routes/restaurant'));
 app.use('/api/rider', require('./routes/rider'));
+app.use('/api/subscription', require('./routes/subscription'));
+
+const http = require('http');
+const server = http.createServer(app);
+
+let io;
+try {
+  const socketIo = require('socket.io');
+  io = socketIo(server, {
+    cors: { origin: '*' }
+  });
+  io.on('connection', (socket) => {
+    console.log('New Socket.IO client connected:', socket.id);
+    socket.on('join_room', (room) => {
+      socket.join(room);
+      console.log(`Socket ${socket.id} joined room ${room}`);
+    });
+    socket.on('disconnect', () => console.log('Socket disconnected:', socket.id));
+  });
+} catch (e) {
+  console.log('Socket.io module not found or failed to initialize. Using mock IO emitter.');
+  io = {
+    to: (room) => ({ emit: (event, data) => console.log(`[Mock Socket] emit to ${room}: ${event}`) }),
+    emit: (event, data) => console.log(`[Mock Socket] broadcast: ${event}`)
+  };
+}
+app.set('io', io);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -167,4 +167,8 @@ export class AdminService {
   resetUserAuditCounter(userId: string, type: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/user-audit/reset-attempts`, { userId, type }, { headers: this.getHeaders() });
   }
+
+  getUserDetails(userId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/users/${userId}/details`, { headers: this.getHeaders() });
+  }
 }

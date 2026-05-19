@@ -23,6 +23,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   };
   
   users: any[] = [];
+  filteredUsers: any[] = [];
+  userTabRole = 'all';
+  userSearchQuery = '';
+  userFilterCity = 'all';
+  userSortBy = 'newest';
   restaurants: any[] = [];
   orders: any[] = [];
   categories: any[] = [];
@@ -59,6 +64,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // User Modals
   showAddUserModal = false;
   showEditUserModal = false;
+  showUserDetailsModal = false;
+  inspectionData: any = null;
+  loadingUserDetails = false;
   selectedUser: any = null;
   newUser = { name: '', email: '', password: '', role: 'customer', phone: '', city: '' };
 
@@ -182,9 +190,34 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   loadUsers() {
     this.adminService.getAllUsers().subscribe({
-      next: (data) => this.users = data,
+      next: (data) => {
+        this.users = data;
+        this.filterUsers();
+      },
       error: (err) => console.error('Error loading users', err)
     });
+  }
+
+  filterUsers() {
+    this.filteredUsers = this.users.filter(u => {
+      const matchRole = this.userTabRole === 'all' || u.role === this.userTabRole;
+      const matchCity = this.userFilterCity === 'all' || (u.city && u.city.toLowerCase() === this.userFilterCity.toLowerCase());
+      const matchQuery = !this.userSearchQuery || 
+        u.name?.toLowerCase().includes(this.userSearchQuery.toLowerCase()) ||
+        u.email?.toLowerCase().includes(this.userSearchQuery.toLowerCase()) ||
+        u.phone?.toLowerCase().includes(this.userSearchQuery.toLowerCase());
+      return matchRole && matchCity && matchQuery;
+    });
+
+    if (this.userSortBy === 'newest') {
+      this.filteredUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (this.userSortBy === 'oldest') {
+      this.filteredUsers.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else if (this.userSortBy === 'orders_high') {
+      this.filteredUsers.sort((a, b) => (b.ordersCount || 0) - (a.ordersCount || 0));
+    } else if (this.userSortBy === 'orders_low') {
+      this.filteredUsers.sort((a, b) => (a.ordersCount || 0) - (b.ordersCount || 0));
+    }
   }
 
   loadRestaurants() {
@@ -570,6 +603,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         error: (err) => alert('Error resetting counter')
       });
     }
+  }
+
+  openUserDetailsModal(user: any) {
+    this.loadingUserDetails = true;
+    this.showUserDetailsModal = true;
+    this.inspectionData = null;
+    this.adminService.getUserDetails(user._id).subscribe({
+      next: (data) => {
+        this.inspectionData = data;
+        this.loadingUserDetails = false;
+      },
+      error: (err) => {
+        alert('Error loading user details');
+        this.loadingUserDetails = false;
+        this.showUserDetailsModal = false;
+      }
+    });
   }
 
   logout() {

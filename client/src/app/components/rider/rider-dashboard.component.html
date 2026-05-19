@@ -139,6 +139,63 @@
       </div>
     </div>
 
+    <!-- SUBSCRIPTION BATCH DELIVERIES -->
+    <div class="assignment-card active-delivery" *ngFor="let batch of subscriptionAssignments" style="margin-top:25px; border:1px solid var(--rider-neon);">
+      <div class="status-badge-container">
+        <span class="status-badge" style="background:rgba(16, 185, 129, 0.2); color:var(--rider-neon);">
+          <i class="fas fa-boxes-packing"></i> SUBSCRIPTION BATCH: {{ batch.mealTiming | uppercase }}
+        </span>
+      </div>
+
+      <h2>Subscription Batch Delivery</h2>
+      <p class="text-muted" style="margin-bottom:15px;">Batch Area: <strong>{{ batch.batchArea }}</strong> • Assigned Meals: <strong>{{ batch.deliveryScheduleIds?.length }}</strong></p>
+
+      <div style="background:rgba(16, 185, 129, 0.1); border:1px dashed var(--rider-neon); padding:12px; border-radius:8px; margin-bottom:20px; text-align:center;">
+        <span style="font-size:0.85rem; color:#888;">Batch Earning: <strong>Rs. {{ batch.deliveryScheduleIds?.length * 200 }}</strong> (Rs. 200 per meal)</span>
+      </div>
+
+      <div class="location-details" style="margin-bottom:20px;">
+        <div class="loc-row">
+          <div class="loc-icon"><i class="fas fa-store"></i></div>
+          <div class="loc-info">
+            <h4>Kitchen Pickup Location</h4>
+            <p>{{ batch.restaurantId?.name }}</p>
+            <span class="text-muted"><i class="fas fa-location-dot"></i> {{ batch.restaurantId?.address }}</span>
+            <br>
+            <span class="text-muted"><i class="fas fa-phone"></i> {{ batch.restaurantId?.phone }}</span>
+          </div>
+        </div>
+      </div>
+
+      <h4 style="color:var(--rider-neon); margin-bottom:10px; font-size:1rem; border-bottom:1px solid #334155; padding-bottom:8px;"><i class="fas fa-list-check"></i> Assigned Subscriber Drop-offs</h4>
+      
+      <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
+        <div *ngFor="let meal of batch.deliveryScheduleIds; let i=index" style="background:#1e293b; border:1px solid #334155; padding:15px; border-radius:12px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+            <div>
+              <strong style="color:#fff; font-size:1.1rem;">#{{ i+1 }}. {{ meal.customerId?.name || 'Subscriber' }}</strong>
+              <div style="font-size:0.85rem; color:#cbd5e1;"><i class="fas fa-map-marker-alt" style="color:var(--rider-neon);"></i> {{ meal.deliveryAddress }}</div>
+              <div style="font-size:0.85rem; color:#888;"><i class="fas fa-phone"></i> {{ meal.phone || meal.customerId?.phone }}</div>
+            </div>
+            <div>
+              <span class="status-badge" style="font-size:0.75rem; padding:4px 8px;" [ngClass]="meal.status==='delivered' ? 'success' : 'pending'">{{ meal.status | uppercase }}</span>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; font-size:0.85rem;">
+            <div style="color:var(--rider-neon); font-weight:700;"><i class="fas fa-utensils"></i> {{ meal.menuItemSnapshot?.name }}</div>
+            <div class="text-muted" style="font-size:0.8rem;">{{ meal.menuItemSnapshot?.description }}</div>
+            <div *ngIf="meal.notes" style="color:#f59e0b; font-size:0.8rem; margin-top:4px;"><strong>Instructions:</strong> {{ meal.notes }}</div>
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:5px;">
+            <button class="btn-accept" style="padding:6px 12px; font-size:0.85rem;" *ngIf="meal.status === 'ready' || meal.status === 'preparing'" (click)="updateSubscriptionStatus(meal._id, 'pickedup')"><i class="fas fa-box"></i> Picked Up</button>
+            <button class="btn-accept success" style="padding:6px 12px; font-size:0.85rem;" *ngIf="meal.status === 'pickedup'" (click)="updateSubscriptionStatus(meal._id, 'delivered')"><i class="fas fa-check"></i> Delivered</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- OFFLINE STATE -->
     <div class="queue-state offline" *ngIf="!assignedOrder && !isReady">
       <div class="queue-icon inactive">

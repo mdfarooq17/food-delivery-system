@@ -19,7 +19,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       mermaid.initialize({
         startOnLoad: true,
-        theme: 'default', /* Gorgeous light theme flowchart */
+        theme: 'default',
         securityLevel: 'loose',
         flowchart: { useMaxWidth: true, htmlLabels: true }
       });
@@ -29,27 +29,18 @@
   <style>
     :root {
       --bg-base: #f8f9fa;
-      /* Soft neutral grey background */
       --bg-surface: #ffffff;
-      /* Solid clean white surface */
       --bg-surface-elevated: #eef1f6;
-      /* Modern light surface elevation */
       --primary: #ff5b26;
-      /* Vibrant brand orange */
       --primary-glow: rgba(255, 91, 38, 0.08);
-      /* Soft orange transparent glow */
       --secondary: #ffb800;
       --secondary-glow: rgba(255, 184, 0, 0.08);
       --info: #1e74fd;
-      /* Deep professional blue */
       --info-glow: rgba(30, 116, 253, 0.08);
       --danger: #ff4a5a;
       --text-main: #1e2022;
-      /* High-contrast dark grey main text */
       --text-muted: #5a626a;
-      /* Balanced readable muted text */
       --border-color: #e2e8f0;
-      /* Subtle light gray border styling */
       --font-sans: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --top-nav-height: 75px;
@@ -71,7 +62,6 @@
       overflow-x: hidden;
     }
 
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -90,7 +80,6 @@
       background: var(--primary);
     }
 
-    /* Modern Horizontal Top Navigation Bar */
     header.top-nav {
       position: fixed;
       top: 0;
@@ -98,18 +87,14 @@
       right: 0;
       height: var(--top-nav-height);
       background-color: #ffffff;
-      /* Clean white background for light theme */
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      /* Flow items continuously left to right */
       gap: 4rem;
-      /* Balanced horizontal spacing between logo and menu */
       padding: 0 4rem;
       z-index: 1000;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      /* Soft light shadow */
     }
 
     .brand {
@@ -125,9 +110,7 @@
 
     .brand i {
       color: #ff5b26;
-      /* Orange color matching the design */
       text-shadow: 0 0 10px rgba(255, 91, 38, 0.15);
-      /* Soft orange text-shadow */
       font-size: 1.5rem;
     }
 
@@ -147,16 +130,12 @@
     .top-menu {
       display: flex;
       flex-direction: row !important;
-      /* Explicitly force horizontal flow */
       list-style: none;
       gap: 1.5rem;
-      /* Clean gap to fit icons and text on a single line */
       height: 100%;
       align-items: center;
       margin: 0 !important;
-      /* Reset global ul margin */
       padding: 0 !important;
-      /* Reset global ul padding */
     }
 
     .top-menu-item {
@@ -170,9 +149,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      /* Spacious alignment between icon and text */
       color: #8e8e9f;
-      /* Muted grey matching the image */
       text-decoration: none;
       font-weight: 600;
       font-size: 0.95rem;
@@ -181,7 +158,6 @@
       transition: color 0.2s ease;
       position: relative;
       white-space: nowrap;
-      /* Enforce single horizontal line */
     }
 
     .top-menu-item a i {
@@ -199,18 +175,14 @@
       transform: translateY(-1px);
     }
 
-    /* Minimalist solid orange bottom line indicator */
     .top-menu-item::after {
       content: '';
       position: absolute;
       bottom: 15px;
-      /* Lifted perfectly underneath the text matching the image */
       left: 0.1rem;
       right: 0.1rem;
       height: 3px;
-      /* Slightly thicker orange line */
       background-color: #ff5b26;
-      /* Vibrant orange active line */
       border-radius: 2px;
       transform: scaleX(0);
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -218,20 +190,17 @@
 
     .top-menu-item.active a {
       color: #ff5b26;
-      /* Vibrant orange active text */
     }
 
     .top-menu-item.active a i {
       opacity: 1;
       color: #ff5b26;
-      /* Vibrant orange active icon */
     }
 
     .top-menu-item.active::after {
       transform: scaleX(1);
     }
 
-    /* Scrollable Vertical Sidebar */
     aside.sidebar {
       position: fixed;
       top: var(--top-nav-height);
@@ -261,17 +230,14 @@
       padding-bottom: 0.75rem;
     }
 
-    /* Sidebar Grouping for SPA dynamic rendering */
     .sidebar-group {
       display: none;
-      /* Hidden by default */
       flex-direction: column;
       gap: 0.75rem;
     }
 
     .sidebar-group.active-group {
       display: flex;
-      /* Displayed when matching page is active */
     }
 
     .group-title {
@@ -316,7 +282,6 @@
       padding-left: 0.25rem;
     }
 
-    /* Main Content Wrapper */
     main.content-wrapper {
       margin-top: var(--top-nav-height);
       margin-left: var(--sidebar-width);
@@ -325,30 +290,24 @@
       width: calc(100% - var(--sidebar-width));
     }
 
-    /* Single-Page switching layouts */
     .main-page {
       display: none;
-      /* All pages hidden by default */
     }
 
     .main-page.active-page {
       display: block;
-      /* Shown only when active */
     }
 
-    /* Section & sub-section scroll margins */
     .sub-section {
       scroll-margin-top: calc(var(--top-nav-height) + 30px);
       margin-bottom: 3.5rem;
     }
 
-    /* Typography */
     h1 {
       font-size: 2.75rem;
       font-weight: 800;
       margin-bottom: 0.5rem;
       color: var(--text-main);
-      /* High contrast color for light theme */
     }
 
     .section-subtitle {
@@ -400,7 +359,6 @@
       color: var(--text-main);
     }
 
-    /* Highlight Cards */
     .highlight-card {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -426,7 +384,6 @@
       background-color: var(--primary);
     }
 
-    /* Schema Cards */
     .schema-card {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -437,7 +394,6 @@
 
     .schema-header {
       background-color: var(--bg-surface-elevated);
-      /* Elevated header block */
       border-bottom: 1px solid var(--border-color);
       padding: 1rem 1.5rem;
       display: flex;
@@ -457,17 +413,14 @@
       font-weight: 700;
       padding: 0.25rem 0.5rem;
       background-color: var(--primary-glow);
-      /* High-end orange badge */
       color: var(--primary);
       border-radius: 4px;
       border: 1px solid rgba(255, 91, 38, 0.2);
     }
 
-    /* Dashed Media Cards (Screenshots Placeholder) */
     .media-card {
       background-color: var(--bg-surface);
       border: 2px dashed var(--border-color);
-      /* Light slate dashed border */
       border-radius: 12px;
       padding: 3rem 2rem;
       text-align: center;
@@ -484,7 +437,6 @@
     .media-card:hover {
       border-color: var(--primary);
       background-color: var(--primary-glow);
-      /* Match hover state orange background */
     }
 
     .media-card i {
@@ -510,7 +462,6 @@
       max-width: 420px;
     }
 
-    /* Grid for Group Members Cards */
     .group-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -533,9 +484,7 @@
     .member-card:hover {
       transform: translateY(-5px);
       border-color: rgba(255, 91, 38, 0.35);
-      /* Elegant orange hover border */
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-      /* Soft light-mode shadow */
     }
 
     .member-avatar {
@@ -544,7 +493,6 @@
       border-radius: 50%;
       background: var(--primary-glow);
       border: 1px solid rgba(255, 91, 38, 0.3);
-      /* Premium orange border */
       color: var(--primary);
       display: flex;
       align-items: center;
@@ -572,11 +520,9 @@
       font-size: 0.9rem;
       color: var(--text-muted);
       border-top: 1px solid var(--border-color);
-      /* Clean grey border-top divider */
       padding-top: 0.75rem;
     }
 
-    /* Tables */
     .table-container {
       width: 100%;
       overflow-x: auto;
@@ -651,10 +597,8 @@
       border: 1px solid rgba(255, 74, 90, 0.2);
     }
 
-    /* Code Blocks */
     pre {
       background-color: #111115;
-      /* Professional deep solid charcoal for code block */
       padding: 1.5rem;
       overflow-x: auto;
       font-family: var(--font-mono);
@@ -669,13 +613,11 @@
       font-family: var(--font-mono);
       color: var(--primary);
       background-color: var(--primary-glow);
-      /* Match brand orange glow */
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
       font-size: 0.9rem;
     }
 
-    /* Security Boxes */
     .security-box {
       border-radius: 12px;
       padding: 1.5rem;
@@ -724,7 +666,6 @@
       margin-bottom: 0.5rem;
     }
 
-    /* Responsive Design */
     @media (max-width: 992px) {
       aside.sidebar {
         display: none;
@@ -745,7 +686,6 @@
 
 <body>
 
-  <!-- Fixed Top Navigation Bar acting as Tab Switcher -->
   <header class="top-nav">
     <a href="javascript:void(0)" onclick="switchPage('home')" class="brand">
       <i class="fa-solid fa-burger"></i>
@@ -770,7 +710,6 @@
     </ul>
   </header>
 
-  <!-- Scrollable Vertical Sidebar - Dynamically Displays Active Sub-sections -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <i class="fa-solid fa-list-ul"></i>
@@ -798,8 +737,9 @@
         <li><a href="#sdd-api">2.4 API Endpoint Matrix</a></li>
         <li><a href="#sdd-schemas">2.5 Database Schemas</a></li>
         <li><a href="#sdd-lifecycle">2.6 Order Lifecycle</a></li>
-        <li><a href="#sdd-enhancements">2.7 Recommended Action</a></li>
-        <li><a href="#sdd-media">2.8 Visual Alerts</a></li>
+        <li><a href="#sdd-soc">2.7 SOC & Threat Auditing</a></li>
+        <li><a href="#sdd-enhancements">2.8 Recommended Action</a></li>
+        <li><a href="#sdd-media">2.9 Visual Alerts</a></li>
       </ul>
     </div>
 
@@ -852,109 +792,67 @@
     </div>
   </aside>
 
-  <!-- Main Content Wrapper -->
   <main class="content-wrapper">
 
-    <!-- ==============================================
-         PAGE: HOME (University Intro, Team, Context)
-         ============================================== -->
+    <!-- PAGE: HOME -->
     <div id="page-home" class="main-page active-page">
       <h1>FoodFlow — Systems Specification Suite</h1>
       <div class="section-subtitle">Multi-Portal Food Delivery & Dynamic Ledger Platform</div>
 
-      <!-- Sub-section 1.1: Group Members (At the top!) -->
       <div id="home-members" class="sub-section">
         <h2><i class="fa-solid fa-users"></i> 1.1. Group Members</h2>
-        <p>
-          The academic project was designed and developed by:
-        </p>
+        <p>The academic project was designed and developed by:</p>
         <div class="group-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-          <!-- Member 1 -->
           <div class="member-card" style="padding: 1.5rem; gap: 0.75rem;">
             <div class="member-avatar">MF</div>
             <div class="member-info">
-              <h4 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">Muhammad
-                Farooq</h4>
-              <span
-                style="color: var(--primary); display: block; font-size: 0.9rem; font-weight: 700; margin: 0.15rem 0;">Roll
-                No: 2500017</span>
+              <h4 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">Muhammad Farooq</h4>
+              <span style="color: var(--primary); display: block; font-size: 0.9rem; font-weight: 700; margin: 0.15rem 0;">Roll No: 2500017</span>
               <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Program: ADCS</span>
             </div>
           </div>
-          <!-- Member 2 -->
           <div class="member-card" style="padding: 1.5rem; gap: 0.75rem;">
             <div class="member-avatar">MZ</div>
             <div class="member-info">
-              <h4 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">Maham
-                Zia</h4>
-              <span
-                style="color: var(--primary); display: block; font-size: 0.9rem; font-weight: 700; margin: 0.15rem 0;">Roll
-                No: 2500022</span>
+              <h4 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">Maham Zia</h4>
+              <span style="color: var(--primary); display: block; font-size: 0.9rem; font-weight: 700; margin: 0.15rem 0;">Roll No: 2500022</span>
               <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Program: ADCS</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Sub-section 1.2: Project Submission Details -->
       <div id="home-submission" class="sub-section">
         <h2><i class="fa-solid fa-graduation-cap"></i> 1.2. Project Submission Details</h2>
-        <p>
-          This document serves as the official project specification report submitted in fulfillment of the semester
-          project requirements:
-        </p>
-        <div class="highlight-card"
-          style="border-left-color: var(--info); display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem;">
+        <p>This document serves as the official project specification report submitted in fulfillment of the semester project requirements:</p>
+        <div class="highlight-card" style="border-left-color: var(--info); display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem;">
           <div>
-            <strong
-              style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">University</strong>
-            <p
-              style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">
-              Air University Islamabad</p>
+            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">University</strong>
+            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Air University Islamabad</p>
           </div>
           <div>
-            <strong
-              style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Department</strong>
-            <p
-              style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">
-              Department of Computer Science</p>
+            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Department</strong>
+            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Department of Computer Science</p>
           </div>
           <div>
-            <strong
-              style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Program
-              &amp; Semester</strong>
-            <p
-              style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">
-              ADCS (Associate Degree in CS) - Semester 3rd</p>
+            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Program &amp; Semester</strong>
+            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">ADCS (Associate Degree in CS) - Semester 3rd</p>
           </div>
           <div>
-            <strong
-              style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Course
-              / Subject</strong>
-            <p
-              style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">
-              Information Security Lab</p>
+            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Course / Subject</strong>
+            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Information Security Lab</p>
           </div>
           <div>
-            <strong
-              style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Instructor
-              / Teacher</strong>
-            <p
-              style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">
-              Sir Shakir Hussain</p>
+            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Instructor / Teacher</strong>
+            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Sir Shakir Hussain</p>
           </div>
           <div>
-            <strong
-              style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Project
-              type</strong>
-            <p
-              style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">
-              Semester Project</p>
+            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Project type</strong>
+            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Semester Project</p>
           </div>
         </div>
       </div>
 
-      <!-- Sub-section 1.3: Project Introduction -->
       <div id="home-intro" class="sub-section">
         <h2><i class="fa-solid fa-bookmark"></i> 1.3. Project Introduction</h2>
         <p>
@@ -976,33 +874,23 @@
         </div>
       </div>
 
-      <!-- Sub-section 1.4: Core Objectives -->
       <div id="home-objectives" class="sub-section">
         <h2><i class="fa-solid fa-bullseye"></i> 1.4. Core Objectives</h2>
-        <p>
-          The system was designed and verified against four primary development objectives:
-        </p>
+        <p>The system was designed and verified against four primary development objectives:</p>
         <ol>
-          <li><strong>Architectural Cohesion:</strong> Bridging user interactions via role-based claims decoded
-            immediately from unified cryptographic authorization tokens.</li>
-          <li><strong>Algorithmic Integrity:</strong> Calculating real-time average store feedback (1-decimal place
-            precision) and allocating automated Rs. 150 transaction fees to delivery drivers.</li>
-          <li><strong>Performance Optimization:</strong> Tuning build stylesheet budgets to permit custom dark
-            dashboards rendering without bundle compilation failures.</li>
-          <li><strong>Security Rigor:</strong> Blocking cross-portal injection attacks, database credential theft, and
-            invalid template memory reference bugs.</li>
+          <li><strong>Architectural Cohesion:</strong> Bridging user interactions via role-based claims decoded immediately from unified cryptographic authorization tokens.</li>
+          <li><strong>Algorithmic Integrity:</strong> Calculating real-time average store feedback (1-decimal place precision) and allocating automated Rs. 150 transaction fees to delivery drivers.</li>
+          <li><strong>Performance Optimization:</strong> Tuning build stylesheet budgets to permit custom dark dashboards rendering without bundle compilation failures.</li>
+          <li><strong>Security Rigor:</strong> Blocking cross-portal injection attacks, database credential theft, and invalid template memory reference bugs.</li>
         </ol>
       </div>
     </div>
 
-    <!-- ==============================================
-         PAGE: SDD (System Design Document)
-         ============================================== -->
+    <!-- PAGE: SDD -->
     <div id="page-sdd" class="main-page">
       <h1>2. System Design (SDD) Specifications</h1>
       <div class="section-subtitle">Database, Directory, and Core API Architectures</div>
 
-      <!-- Sub-section 2.1 -->
       <div id="sdd-summary" class="sub-section">
         <h2>2.1. Executive Summary & Problem Statement</h2>
         <div class="highlight-card">
@@ -1018,21 +906,15 @@
           complex manual rider dispatch coordination, and riders lack micro-incentives like dynamic wallet ledgers that
           track real-time delivery counts and earnings.
         </p>
-        <p>
-          <strong>FoodFlow addresses these limits by establishing a clean, unified platform:</strong>
-        </p>
+        <p><strong>FoodFlow addresses these limits by establishing a clean, unified platform:</strong></p>
         <ul>
-          <li><strong>Unified Cryptographic Identities:</strong> Single-sign-on layout where user authentication claims
-            are decoded to securely direct users to their dedicated portals.</li>
-          <li><strong>Real-time Polling Engine:</strong> Dashboards and active tracking templates trigger asynchronous
-            checks (every 5 seconds) to cycle order status, update dispatch queues, and trigger alerts without page
-            reloads.</li>
-          <li><strong>Low Overhead State Lifecycle:</strong> Strict state transition sequences powered by stateless JSON
-            Web Token (JWT) assertions.</li>
+          <li><strong>Unified Cryptographic Identities:</strong> Single-sign-on layout where user authentication claims are decoded to securely direct users to their dedicated portals.</li>
+          <li><strong>Real-time Polling Engine:</strong> Dashboards and active tracking templates trigger asynchronous checks (every 5 seconds) to cycle order status, update dispatch queues, and trigger alerts without page reloads.</li>
+          <li><strong>Low Overhead State Lifecycle:</strong> Strict state transition sequences powered by stateless JSON Web Token (JWT) assertions.</li>
+          <li><strong>Security Operations Center (SOC):</strong> Real-time threat monitoring, automated IP blocking, active session termination, and complete multi-device audit trails.</li>
         </ul>
       </div>
 
-      <!-- Sub-section 2.2 -->
       <div id="sdd-scope" class="sub-section">
         <h2>2.2. Functional Scope & Portals</h2>
 
@@ -1050,64 +932,58 @@
           selecting from a list of active online riders.
         </p>
 
-        <h3>2.2.3. Rider Fleet Ledger</h3>
+        <h3>2.2.3. Rider Fleet Ledger & Dispatch Automation</h3>
         <p>
-          Riders operate a dashboard featuring a toggle to control their online availability. When set to online, riders
-          become eligible for manual restaurant dispatch. Delivering an order increments the rider's successful order
-          count and credits Rs. 150 to their earnings wallet.
+          Riders operate a dashboard featuring an automated city-based queue allocation system. When a rider toggles "Online", the system assigns a dynamic FIFO queue number. Delivering an order increments the rider's successful order count, credits Rs. 150 to their earnings wallet, and mandates an offline state to ensure fair re-queueing for subsequent dispatches.
         </p>
 
-        <h3>2.2.4. Central System Governance</h3>
+        <h3>2.2.4. Central System Governance & SOC Dashboard</h3>
         <p>
-          Root Administrators monitor real-time system metrics (users, active stores, order count, and gross system
-          revenue). Admins verify and approve new restaurants, define system cities, and manage operational categories.
+          Root Administrators monitor real-time system metrics (users, active stores, order count, and gross revenue). Admins verify and approve new restaurants, define system cities, manage operational categories, and utilize the advanced Data Inspection modal and Security Operations Center (SOC) to inspect telemetry and block malicious threats instantly.
         </p>
       </div>
 
-      <!-- Sub-section 2.3 -->
       <div id="sdd-dir" class="sub-section">
         <h2>2.3. Project Directory Architecture</h2>
-        <p>
-          The codebase utilizes a separated Client-Server layout. The backend is configured as a modular Node.js/Express
-          API, while the frontend is an Angular 17 SPA (Single Page Application).
-        </p>
+        <p>The codebase utilizes a separated Client-Server layout. The backend is configured as a modular Node.js/Express API, while the frontend is an Angular 17 SPA (Single Page Application).</p>
         <pre>
 food-delivery-system/
 ├── server/                               # Node.js/Express backend
 │   ├── middleware/
-│   │   └── auth.js                       # JWT decryption & role enrichment
+│   │   ├── auth.js                       # JWT decryption & role enforcement
+│   │   └── audit.js                      # Request auditing & threat logging
 │   ├── models/
 │   │   ├── Category.js                   # Food categories
 │   │   ├── City.js                       # Active operational cities
 │   │   ├── MenuItem.js                   # Menu items linked to restaurants
 │   │   ├── Order.js                      # Transactional order data with embedded reviews
 │   │   ├── Restaurant.js                 # Restaurant metadata & review averages
-│   │   ├── RiderProfile.js               # Online statuses, wallets, & order stats
-│   │   └── User.js                       # User credentials and active roles
+│   │   ├── RiderProfile.js               # Online statuses, queue numbers, & wallets
+│   │   ├── SecurityLog.js                # System threat logs & intrusion detection
+│   │   ├── UserLog.js                    # User activity audit streams
+│   │   ├── BlockedIP.js                  # Blacklisted IP address registry
+│   │   └── User.js                       # User credentials, devices, and active roles
 │   ├── routes/
-│   │   ├── admin.js                      # Admin analytics & taxonomy CRUD
+│   │   ├── admin.js                      # Admin analytics, inspection & SOC CRUD
 │   │   ├── auth.js                       # Registration, hashing & tokens
 │   │   ├── customer.js                   # Checkout, status, & review operations
 │   │   ├── restaurant.js                 # Catalog, profile & manual dispatching
-│   │   └── rider.js                      # Online status & wallet increments
+│   │   └── rider.js                      # Online status, queue assignment & wallet payouts
 │   └── server.js                         # Core express settings
 │
 └── client/                               # Angular 17 SPA client
     ├── src/app/components/
-    │   ├── admin/                        # Admin statistics & management panels
+    │   ├── admin/                        # Admin statistics, SOC & inspection panels
     │   ├── customer/                     # Dark-mode ordering & tracking panels
     │   ├── restaurant/                   # Kitchen CRUD & manual dispatching UI
-    │   └── rider/                        # Online availability & delivery logs
+    │   └── rider/                        # Online availability, queue # & delivery logs
     └── angular.json                      # Style configurations & compilation budgets
         </pre>
       </div>
 
-      <!-- Sub-section 2.4 -->
       <div id="sdd-api" class="sub-section">
         <h2>2.4. API Endpoint Specification</h2>
-        <p>
-          The table below defines the core API routes, access privileges, and operations across the platform:
-        </p>
+        <p>The table below defines the core API routes, access privileges, and operations across the platform:</p>
         <div class="table-container">
           <table>
             <thead>
@@ -1132,7 +1008,7 @@ food-delivery-system/
                 <td><span class="method-badge post">POST</span></td>
                 <td><code>/api/auth/login</code></td>
                 <td>Public</td>
-                <td>Validate credentials and generate JWT</td>
+                <td>Validate credentials, audit device signature, and generate JWT</td>
               </tr>
               <tr>
                 <td><strong>Customer</strong></td>
@@ -1153,7 +1029,7 @@ food-delivery-system/
                 <td><span class="method-badge post">POST</span></td>
                 <td><code>/api/customer/order/:id/review</code></td>
                 <td>Customer</td>
-                <td>Add star ratings and recalculate restaurant average</td>
+                <td>Add star ratings and recalculate restaurant/item averages dynamically</td>
               </tr>
               <tr>
                 <td><strong>Restaurant</strong></td>
@@ -1174,34 +1050,135 @@ food-delivery-system/
                 <td><span class="method-badge put">PUT</span></td>
                 <td><code>/api/rider/status</code></td>
                 <td>Rider</td>
-                <td>Toggle online status for delivery dispatch</td>
+                <td>Toggle online readiness and allocate FIFO queue position</td>
               </tr>
               <tr>
                 <td><strong>Rider</strong></td>
                 <td><span class="method-badge put">PUT</span></td>
                 <td><code>/api/rider/order/:id/status</code></td>
                 <td>Rider</td>
-                <td>Complete delivery and trigger wallet payout</td>
+                <td>Complete delivery, trigger wallet payout, and mandate offline re-queueing</td>
               </tr>
               <tr>
                 <td><strong>Admin</strong></td>
                 <td><span class="method-badge get">GET</span></td>
                 <td><code>/api/admin/stats</code></td>
                 <td>Admin</td>
-                <td>Aggregate total revenue, orders, and active users</td>
+                <td>Aggregate total revenue, orders, active users, and database storage stats</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Users)</strong></td>
+                <td><span class="method-badge get">GET</span></td>
+                <td><code>/api/admin/users</code></td>
+                <td>Admin</td>
+                <td>Retrieve all user accounts with dynamically calculated <code>ordersCount</code></td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Inspection)</strong></td>
+                <td><span class="method-badge get">GET</span></td>
+                <td><code>/api/admin/users/:id/details</code></td>
+                <td>Admin</td>
+                <td>Fetch comprehensive role-specific inspection data (Rider telemetry, Restaurant catalogs, Customer order logs)</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Security)</strong></td>
+                <td><span class="method-badge put">PUT</span></td>
+                <td><code>/api/admin/security-logs/mark-read</code></td>
+                <td>Admin</td>
+                <td>Mark all security threat logs as read ($ne: true matching)</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Security)</strong></td>
+                <td><span class="method-badge post">POST</span></td>
+                <td><code>/api/admin/security/block-ip</code></td>
+                <td>Admin</td>
+                <td>Block malicious IP address and flag associated user account</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Security)</strong></td>
+                <td><span class="method-badge post">POST</span></td>
+                <td><code>/api/admin/security/force-logout</code></td>
+                <td>Admin</td>
+                <td>Immediately revoke active user sessions and force logout across devices</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Audit)</strong></td>
+                <td><span class="method-badge get">GET</span></td>
+                <td><code>/api/admin/user-logs</code></td>
+                <td>Admin</td>
+                <td>Fetch global user activity audit stream (logins, failures, profile edits)</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Audit)</strong></td>
+                <td><span class="method-badge get">GET</span></td>
+                <td><code>/api/admin/user-audit-summary</code></td>
+                <td>Admin</td>
+                <td>Retrieve aggregated user API requests, login attempts, and device signatures</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Audit)</strong></td>
+                <td><span class="method-badge delete">DELETE</span></td>
+                <td><code>/api/admin/user-logs/:id</code></td>
+                <td>Admin</td>
+                <td>Prune specific user activity log entry</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Audit)</strong></td>
+                <td><span class="method-badge post">POST</span></td>
+                <td><code>/api/admin/user-logs/clear</code></td>
+                <td>Admin</td>
+                <td>Wipe entire user activity log history</td>
+              </tr>
+              <tr>
+                <td><strong>Admin (Audit)</strong></td>
+                <td><span class="method-badge post">POST</span></td>
+                <td><code>/api/admin/user-audit/reset-attempts</code></td>
+                <td>Admin</td>
+                <td>Reset specific user request or login attempt counters</td>
+              </tr>
+              <tr>
+                <td><strong>Subscription</strong></td>
+                <td><span class="method-badge post">POST</span></td>
+                <td><code>/api/subscription/restaurant/plans</code></td>
+                <td>Restaurant</td>
+                <td>Create weekly, monthly, or custom recurring meal subscription plans</td>
+              </tr>
+              <tr>
+                <td><strong>Subscription</strong></td>
+                <td><span class="method-badge get">GET</span></td>
+                <td><code>/api/subscription/restaurant/subscribers</code></td>
+                <td>Restaurant</td>
+                <td>Retrieve all active subscription requests, active plans, and daily delivery schedules</td>
+              </tr>
+              <tr>
+                <td><strong>Subscription</strong></td>
+                <td><span class="method-badge post">POST</span></td>
+                <td><code>/api/subscription/restaurant/assign-rider</code></td>
+                <td>Restaurant</td>
+                <td>Batch assign an active online rider to a group of subscription meal deliveries</td>
+              </tr>
+              <tr>
+                <td><strong>Subscription</strong></td>
+                <td><span class="method-badge get">GET</span></td>
+                <td><code>/api/subscription/rider/deliveries</code></td>
+                <td>Rider</td>
+                <td>Fetch assigned subscription meal batches and drop-off subscriber locations</td>
+              </tr>
+              <tr>
+                <td><strong>Subscription</strong></td>
+                <td><span class="method-badge put">PUT</span></td>
+                <td><code>/api/subscription/rider/delivery/:id/status</code></td>
+                <td>Rider</td>
+                <td>Update subscription meal status (pickedup/delivered) and force offline re-queueing upon batch completion</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Sub-section 2.5 -->
       <div id="sdd-schemas" class="sub-section">
         <h2>2.5. Mongoose Data Models</h2>
-        <p>
-          The data layer enforces relational integrity using Mongoose references. Below are key schemas that drive the
-          system:
-        </p>
+        <p>The data layer enforces relational integrity using Mongoose references. Below are key schemas that drive the system:</p>
 
         <div class="schema-card">
           <div class="schema-header">
@@ -1213,6 +1190,7 @@ const OrderSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
   riderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  assignedRiderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   items: [{
     menuItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' },
     name: { type: String, required: true },
@@ -1223,7 +1201,7 @@ const OrderSchema = new mongoose.Schema({
   deliveryFee: { type: Number, default: 150 },
   status: { 
     type: String, 
-    enum: ['pending', 'accepted', 'preparing', 'ready', 'out-for-delivery', 'delivered', 'cancelled'], 
+    enum: ['pending', 'accepted', 'preparing', 'ready', 'pickedup', 'delivered', 'cancelled'], 
     default: 'pending' 
   },
   deliveryAddress: { type: String, required: true },
@@ -1246,93 +1224,256 @@ const OrderSchema = new mongoose.Schema({
           <pre>
 const RiderProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-  isOnline: { type: Boolean, default: false },
+  city: { type: String, required: true },
+  status: { type: String, enum: ['idle', 'assigned', 'delivering'], default: 'idle' },
+  isReady: { type: Boolean, default: false },
+  queueNumber: { type: Number, default: 0 },
   earnings: { type: Number, default: 0 },
-  orderCount: { type: Number, default: 0 },
-  vehicleDetails: { type: String },
+  completedTrips: { type: Number, default: 0 },
+  currentOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
   updatedAt: { type: Date, default: Date.now }
+});
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">MenuItem.js</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+const MenuItemSchema = new mongoose.Schema({
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  description: { type: String },
+  category: { type: String, required: true },
+  image: { type: String },
+  rating: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
+  isAvailable: { type: Boolean, default: true }
+});
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">BlockedIP.js</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+const BlockedIPSchema = new mongoose.Schema({
+  ipAddress: { type: String, required: true, unique: true },
+  reason: { type: String, default: 'Suspicious Activity / Attack' },
+  blockedAt: { type: Date, default: Date.now }
+});
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">SecurityLog.js</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+const SecurityLogSchema = new mongoose.Schema({
+  eventType: { 
+    type: String, 
+    required: true,
+    enum: ['FAILED_ADMIN_LOGIN', 'UNAUTHORIZED_ADMIN_ACCESS', 'API_RATE_LIMIT_EXCEEDED', 'SUSPICIOUS_PAYLOAD', 'UNAUTHENTICATED_REQUEST']
+  },
+  ipAddress: { type: String, default: 'unknown' },
+  userAgent: { type: String, default: 'unknown' },
+  endpoint: { type: String, default: 'unknown' },
+  method: { type: String, default: 'GET' },
+  attemptedCredentials: { email: String, role: String, providedToken: String },
+  severity: { type: String, enum: ['high', 'medium', 'low'], default: 'medium' },
+  details: { type: String },
+  isRead: { type: Boolean, default: false },
+  timestamp: { type: Date, default: Date.now }
+});
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">UserLog.js</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+const UserLogSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  email: { type: String, required: true },
+  action: { 
+    type: String, 
+    required: true, 
+    enum: ['LOGIN_SUCCESS', 'LOGIN_FAILED', 'LOGOUT', 'MULTI_DEVICE_LOGIN', 'PROFILE_UPDATE', 'SECURITY_EVENT']
+  },
+  ipAddress: { type: String, default: 'unknown' },
+  deviceInfo: { type: String, default: 'unknown' },
+  details: { type: String },
+  timestamp: { type: Date, default: Date.now }
+});
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">User.js (Audit & Threat Extension Fields)</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+// Extended User Schema fields for real-time audit and threat tracking
+apiRequestsCount: { type: Number, default: 0 },
+loginAttempts: { type: Number, default: 0 },
+loginDevices: [{
+  ipAddress: String,
+  userAgent: String,
+  lastLogin: { type: Date, default: Date.now }
+}],
+lastLoginAt: { type: Date }
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">SubscriptionPlan.js &amp; SubscriptionOrder.js</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+const SubscriptionPlanSchema = new mongoose.Schema({
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  name: { type: String, required: true },
+  description: { type: String },
+  planType: { type: String, enum: ['weekly', 'monthly', 'custom'], required: true },
+  price: { type: Number, required: true },
+  deliveryTiming: { type: String, default: 'lunch' }, // lunch, dinner, flexible
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const SubscriptionOrderSchema = new mongoose.Schema({
+  customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  subscriptionPlanId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan', required: true },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date, required: true },
+  deliveryAddress: { type: String, required: true },
+  city: { type: String, required: true },
+  phone: { type: String, required: true },
+  status: { type: String, enum: ['pending', 'active', 'paused', 'cancelled', 'completed'], default: 'pending' },
+  totalAmount: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+          </pre>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-header">
+            <span class="schema-title">DeliverySchedule.js &amp; RiderAssignment.js</span>
+            <span class="schema-badge">Document Schema</span>
+          </div>
+          <pre>
+const DeliveryScheduleSchema = new mongoose.Schema({
+  subscriptionOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionOrder', required: true },
+  customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  deliveryDate: { type: Date, required: true },
+  mealTiming: { type: String, default: 'lunch' },
+  menuItemSnapshot: { name: String, description: String, category: String },
+  deliveryAddress: { type: String, required: true },
+  status: { type: String, enum: ['scheduled', 'preparing', 'ready', 'pickedup', 'delivered', 'skipped'], default: 'scheduled' },
+  assignedRiderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  riderAssignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'RiderAssignment', default: null }
+});
+
+const RiderAssignmentSchema = new mongoose.Schema({
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  riderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  deliveryScheduleIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DeliverySchedule' }],
+  batchArea: { type: String, required: true },
+  mealTiming: { type: String, default: 'lunch' },
+  assignedAt: { type: Date, default: Date.now },
+  status: { type: String, enum: ['assigned', 'in_progress', 'completed'], default: 'assigned' }
 });
           </pre>
         </div>
       </div>
 
-      <!-- Sub-section 2.6 -->
       <div id="sdd-lifecycle" class="sub-section">
         <h2>2.6. Order Operational Flow</h2>
-        <p>
-          The system relies on a secure transactional loop from order placement to customer feedback:
-        </p>
+        <p>The system relies on a secure transactional loop from order placement to customer feedback:</p>
         <ol>
-          <li><strong>Order Initiation:</strong> Customer completes checkout. The order is recorded as
-            <code>pending</code> and added to the restaurant's active list.
-          </li>
-          <li><strong>Order Acceptance:</strong> Restaurant receives an alert, accepts the order (changing status to
-            <code>accepted</code>), and advances it to <code>preparing</code> and then <code>ready</code>.
-          </li>
-          <li><strong>Rider Allocation:</strong> Restaurant lists active online riders, chooses an available rider, and
-            executes a manual dispatch.</li>
-          <li><strong>Delivery Phase:</strong> Assigned rider picks up the package (<code>out-for-delivery</code>) and
-            marks it as <code>delivered</code> upon arrival.</li>
-          <li><strong>Wallet & Review Updates:</strong> Delivering the order automatically adds Rs. 150 to the rider's
-            earnings wallet, increments their delivery count, and unlocks the customer feedback star modal to
-            dynamically recalculate the restaurant's average rating in the database.</li>
+          <li><strong>Order Initiation:</strong> Customer completes checkout. The order is recorded as <code>pending</code> and added to the restaurant's active list.</li>
+          <li><strong>Order Acceptance:</strong> Restaurant receives an alert, accepts the order (changing status to <code>accepted</code>), and advances it to <code>preparing</code> and then <code>ready</code>.</li>
+          <li><strong>Rider Allocation:</strong> Restaurant lists active online riders in the matching city, chooses an available rider, and executes a manual dispatch.</li>
+          <li><strong>Delivery Phase:</strong> Assigned rider picks up the package (<code>pickedup</code>) and marks it as <code>delivered</code> upon arrival.</li>
+          <li><strong>Wallet, Payout & Re-queueing:</strong> Delivering the order automatically adds Rs. 150 to the rider's earnings wallet, increments their delivery count, mandates an offline state (<code>isReady: false</code>, <code>queueNumber: 0</code>) to ensure fair re-queueing for subsequent dispatches, and unlocks the customer feedback star modal to dynamically recalculate the restaurant's and individual menu items' average ratings in the database.</li>
         </ol>
       </div>
 
-      <!-- Sub-section 2.7 -->
+      <div id="sdd-soc" class="sub-section">
+        <h2>2.7. Security Operations Center (SOC) & Threat Auditing Flow</h2>
+        <p>The platform implements an advanced intrusion detection and audit logging pipeline:</p>
+        <ol>
+          <li><strong>Request Auditing:</strong> Every incoming API request passes through auditing middleware, incrementing <code>apiRequestsCount</code> for the authenticated user and logging device signatures (IP and User-Agent).</li>
+          <li><strong>Threat Detection:</strong> If an unauthorized access attempt occurs (e.g., non-admin accessing <code>/api/admin</code>), a <code>SecurityLog</code> is generated with <code>high</code> severity.</li>
+          <li><strong>SOC Response:</strong> The Admin SOC dashboard polls security logs in real-time, allowing administrators to click <strong>"Block IP"</strong> or <strong>"Force Logout"</strong>, instantly updating <code>BlockedIP</code> or setting <code>forceLogout: true</code> on the user account to terminate unauthorized sessions instantly across all active devices.</li>
+        </ol>
+      </div>
+
+      <div id="sdd-subscription" class="sub-section">
+        <h2>2.8. Subscription Meal Delivery Service Architecture</h2>
+        <p>The platform supports recurring meal delivery plans (Weekly Lunch, Monthly Diet, Gym Meal Subscriptions) via a dedicated batch orchestration workflow:</p>
+        <ol>
+          <li><strong>Plan &amp; Menu Creation:</strong> Restaurant owners configure recurring subscription plans and build daily menu rotation schedules (e.g., Monday: Grilled Chicken Salad, Tuesday: Quinoa Bowl).</li>
+          <li><strong>Subscriber Approval &amp; Schedule Generation:</strong> Customers request subscription plans. Upon restaurant approval, the system generates discrete <code>DeliverySchedule</code> documents for each delivery day in the subscription date range.</li>
+          <li><strong>Batch Kitchen Dispatch:</strong> Kitchen staff mark daily subscription meals as ready and group them by geographical area into a single <code>RiderAssignment</code> batch, assigning an active online rider.</li>
+          <li><strong>Rider Multi-Dropoff &amp; Offline Re-queueing:</strong> The assigned rider receives the batch card on their dashboard containing all subscriber drop-off locations. <strong>CRITICAL LOGIC:</strong> Upon completing the final delivery in a subscription batch, the system automatically sets the rider's status to <code>offline</code> (<code>isReady: false</code>, <code>queueNumber: 0</code>). This forces the rider to re-initiate their online status and obtain a fresh FIFO queue number, ensuring absolute fairness in driver dispatch allocation.</li>
+        </ol>
+      </div>
+
       <div id="sdd-enhancements" class="sub-section">
-        <h2>2.7. Future Enhancements</h2>
+        <h2>2.9. Future Enhancements</h2>
         <ul>
-          <li><strong>Bidirectional WebSockets:</strong> Replace dynamic polling with a persistent event network built
-            on <code>Socket.io</code> to reduce server overhead.</li>
-          <li><strong>Secure Payment Gateway:</strong> Add credit/debit card support using Stripe Elements with
-            server-side webhook validation.</li>
-          <li><strong>Interactive Map Tracking:</strong> Integrate a map interface showing distances between restaurant
-            locations and customer delivery addresses.</li>
+          <li><strong>Bidirectional WebSockets:</strong> Replace dynamic polling with a persistent event network built on <code>Socket.io</code> to reduce server overhead.</li>
+          <li><strong>Secure Payment Gateway:</strong> Add credit/debit card support using Stripe Elements with server-side webhook validation.</li>
+          <li><strong>Interactive Map Tracking:</strong> Integrate a map interface showing distances between restaurant locations and customer delivery addresses.</li>
         </ul>
       </div>
 
-      <!-- Sub-section 2.8 -->
       <div id="sdd-media" class="sub-section">
-        <h2>2.8. System Operational Screenshots</h2>
+        <h2>2.9. System Operational Screenshots</h2>
         <div class="media-card">
           <i class="fa-regular fa-image"></i>
           <h4>Screenshot: Restaurant Kitchen Alert Overlay Panel</h4>
-          <p>Insert visual screenshot showing the audio-visual pop-up overlay appearing immediately on restaurant
-            dashboard when a customer triggers checkout.</p>
+          <p>Insert visual screenshot showing the audio-visual pop-up overlay appearing immediately on restaurant dashboard when a customer triggers checkout.</p>
         </div>
 
         <div class="media-card">
           <i class="fa-regular fa-image"></i>
           <h4>Screenshot: Customer Interactive 5-Star Reviews Widget</h4>
-          <p>Insert visual screenshot showing the glassmorphic modal with star indicators appearing in customer order
-            history upon delivery completion.</p>
+          <p>Insert visual screenshot showing the glassmorphic modal with star indicators appearing in customer order history upon delivery completion.</p>
         </div>
       </div>
     </div>
 
-    <!-- ==============================================
-         PAGE: UML DIAGRAMS
-         ============================================== -->
+    <!-- PAGE: UML DIAGRAMS -->
     <div id="page-uml" class="main-page">
       <h1>3. Architectural UML Diagrams</h1>
       <div class="section-subtitle">Visualizing Scopes, Flows, and Class Relationships</div>
 
-      <!-- Sub-section 3.1 -->
       <div id="uml-usecase" class="sub-section">
         <h2>3.1. Dynamic User Case Diagram</h2>
-        <p>
-          Illustrates boundary cases and structural actions permitted for each core platform actor:
-        </p>
-        <div
-          style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1rem; display: flex; justify-content: center; overflow-x: auto;">
+        <p>Illustrates boundary cases and structural actions permitted for each core platform actor:</p>
+        <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1rem; display: flex; justify-content: center; overflow-x: auto;">
           <pre class="mermaid" style="background: none; padding: 0; margin: 0; color: inherit; overflow: visible;">
 flowchart TD
     subgraph Actors
         C[Customer]
         R[Restaurant Owner]
         D[Rider]
-        A[Admin]
+        A[Admin / SOC Analyst]
     end
 
     subgraph CustomerUseCases [Customer Actions]
@@ -1340,7 +1481,7 @@ flowchart TD
         UC2[Manage Shopping Cart]
         UC3[Place COD/Online Order]
         UC4[Track Active Order Status]
-        UC5[Rate & Review Orders]
+        UC5[Rate & Review Orders & Items]
     end
 
     subgraph RestaurantUseCases [Restaurant Actions]
@@ -1351,16 +1492,18 @@ flowchart TD
     end
 
     subgraph RiderUseCases [Rider Actions]
-        UD1[Toggle Online Availability]
+        UD1[Toggle Online Readiness & Assign Queue #]
         UD2[Accept Active Assignments]
         UD3[Deliver Package & Earn Payout]
     end
 
-    subgraph AdminUseCases [Admin Actions]
+    subgraph AdminUseCases [Admin & SOC Actions]
         UA1[Monitor Central System Statistics]
         UA2[Approve/Reject New Restaurants]
         UA3[Define City & Category Taxonomies]
-        UA4[Manage Platform Accounts]
+        UA4[Manage Platform Accounts & Role Tabs]
+        UA5[Inspect User/Rider/Restaurant Telemetry]
+        UA6[Monitor SOC Threat Logs & Block IPs]
     end
 
     C --> UC1
@@ -1382,18 +1525,16 @@ flowchart TD
     A --> UA2
     A --> UA3
     A --> UA4
+    A --> UA5
+    A --> UA6
           </pre>
         </div>
       </div>
 
-      <!-- Sub-section 3.2 -->
       <div id="uml-class" class="sub-section">
         <h2>3.2. Master System Class Diagram</h2>
-        <p>
-          Defines backend structural schemas layout and multiplicity connections:
-        </p>
-        <div
-          style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; display: flex; justify-content: center; overflow-x: auto;">
+        <p>Defines backend structural schemas layout and multiplicity connections:</p>
+        <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; display: flex; justify-content: center; overflow-x: auto;">
           <pre class="mermaid" style="background: none; padding: 0; margin: 0; color: inherit; overflow: visible;">
 classDiagram
     class User {
@@ -1402,6 +1543,9 @@ classDiagram
         +String email
         +String password
         +String role
+        +Number apiRequestsCount
+        +Number loginAttempts
+        +Array loginDevices
         +Date createdAt
         +register()
         +login()
@@ -1429,6 +1573,8 @@ classDiagram
         +String description
         +Number price
         +String category
+        +Number rating
+        +Number reviewCount
         +Boolean isAvailable
         +toggleAvailability()
     }
@@ -1454,12 +1600,31 @@ classDiagram
     class RiderProfile {
         +ObjectId _id
         +ObjectId userId
-        +Boolean isOnline
+        +String city
+        +String status
+        +Boolean isReady
+        +Number queueNumber
         +Number earnings
-        +Number orderCount
-        +String vehicleDetails
+        +Number completedTrips
         +toggleOnlineStatus()
         +creditEarnings()
+    }
+
+    class SecurityLog {
+        +ObjectId _id
+        +String eventType
+        +String ipAddress
+        +String userAgent
+        +String severity
+        +Boolean isRead
+        +Date timestamp
+    }
+
+    class BlockedIP {
+        +ObjectId _id
+        +String ipAddress
+        +String reason
+        +Date blockedAt
     }
 
     class City {
@@ -1488,19 +1653,14 @@ classDiagram
       </div>
     </div>
 
-    <!-- ==============================================
-         PAGE: DEVELOPMENT
-         ============================================== -->
+    <!-- PAGE: DEVELOPMENT -->
     <div id="page-development" class="main-page">
       <h1>4. Local Development Specifications</h1>
       <div class="section-subtitle">Local Setup, Variable Constants, and RxJS Patterns</div>
 
-      <!-- Sub-section 4.1 -->
       <div id="dev-env" class="sub-section">
         <h2>4.1. Environment Configuration Setup</h2>
-        <p>
-          Variables required for standard secure database handshakes and API parsing:
-        </p>
+        <p>Variables required for standard secure database handshakes and API parsing:</p>
         <div class="schema-card">
           <div class="schema-header">
             <span class="schema-title">server/.env</span>
@@ -1526,13 +1686,9 @@ export const environment = {
         </div>
       </div>
 
-      <!-- Sub-section 4.2 -->
       <div id="dev-rxjs" class="sub-section">
         <h2>4.2. Asynchronous RxJS State Observables</h2>
-        <p>
-          Dynamic reactive patterns applied to customer tracking and kitchen pop-up alerts. Short-polling updates the UI
-          every 5 seconds securely, with lifecycle garbage collection:
-        </p>
+        <p>Dynamic reactive patterns applied to customer tracking and kitchen pop-up alerts. Short-polling updates the UI every 5 seconds securely, with lifecycle garbage collection:</p>
         <div class="schema-card">
           <div class="schema-header">
             <span class="schema-title">Observer Management with Clean Disposal</span>
@@ -1569,31 +1725,24 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
         </div>
       </div>
 
-      <!-- Sub-section 4.3 -->
       <div id="dev-terminal" class="sub-section">
         <h2>4.3. Terminal Outputs Screenshot</h2>
         <div class="media-card">
           <i class="fa-regular fa-image"></i>
           <h4>Screenshot: Local Development Server logs</h4>
-          <p>Insert screenshot showing backend connection logs ("MongoDB Connected...") and client execution output
-            side-by-side.</p>
+          <p>Insert screenshot showing backend connection logs ("MongoDB Connected...") and client execution output side-by-side.</p>
         </div>
       </div>
     </div>
 
-    <!-- ==============================================
-         PAGE: TEST CASES
-         ============================================== -->
+    <!-- PAGE: TEST CASES -->
     <div id="page-testing" class="main-page">
       <h1>5. System Verification & Test Cases</h1>
       <div class="section-subtitle">QA Scenarios, Actions, and Verification Matrices</div>
 
-      <!-- Sub-section 5.1 -->
       <div id="test-suite" class="sub-section">
         <h2>5.1. Quality Assurance Verification Matrix</h2>
-        <p>
-          Standard scenarios checked to verify functional portals behavior:
-        </p>
+        <p>Standard scenarios checked to verify functional portals behavior:</p>
         <div class="table-container">
           <table>
             <thead>
@@ -1640,7 +1789,6 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
         </div>
       </div>
 
-      <!-- Sub-section 5.2 -->
       <div id="test-postman" class="sub-section">
         <h2>5.2. API Test Run Screenshot</h2>
         <div class="media-card">
@@ -1651,67 +1799,46 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
       </div>
     </div>
 
-    <!-- ==============================================
-         PAGE: SECURITY & BUG FIXES
-         ============================================== -->
+    <!-- PAGE: SECURITY & BUG FIXES -->
     <div id="page-security" class="main-page">
       <h1>6. Security Architecture & Resolved Bug Fixes</h1>
       <div class="section-subtitle">Active Protections, Vulnerabilities mitigation, and compiler bugs fixes</div>
 
-      <!-- Sub-section 6.1 -->
       <div id="sec-safeguards" class="sub-section">
         <h2>6.1. Implemented Architectural Controls</h2>
         <div class="security-box defense">
           <i class="fa-solid fa-lock"></i>
           <div class="security-content">
             <h4>Bcryptjs Hashing (10 Rounds)</h4>
-            <p style="margin-bottom: 0;">
-              Passwords are salted and hashed before database commits, preventing raw credentials visibility from
-              dictionary crack matching database tables.
-            </p>
+            <p style="margin-bottom: 0;">Passwords are salted and hashed before database commits, preventing raw credentials visibility from dictionary crack matching database tables.</p>
           </div>
         </div>
         <div class="security-box defense">
           <i class="fa-solid fa-user-shield"></i>
           <div class="security-content">
             <h4>Token RBAC Interceptor middle-tier</h4>
-            <p style="margin-bottom: 0;">
-              Private endpoints check user role claim variables in decrypted JWT tokens to prevent unauthorized
-              cross-portal API requests.
-            </p>
+            <p style="margin-bottom: 0;">Private endpoints check user role claim variables in decrypted JWT tokens to prevent unauthorized cross-portal API requests.</p>
           </div>
         </div>
         <div class="security-box defense">
           <i class="fa-solid fa-eye-slash"></i>
           <div class="security-content">
             <h4>Query Projection Constraints</h4>
-            <p style="margin-bottom: 0;">
-              Database operations exclude password hashes (e.g. <code>User.find({}, '-password')</code>) to prevent
-              accidental credential leakage in JSON responses.
-            </p>
+            <p style="margin-bottom: 0;">Database operations exclude password hashes (e.g. <code>User.find({}, '-password')</code>) to prevent accidental credential leakage in JSON responses.</p>
           </div>
         </div>
       </div>
 
-      <!-- Sub-section 6.2 -->
       <div id="sec-threat" class="sub-section">
         <h2>6.2. Threat Modeling & Vulnerability Mitigation Plan</h2>
-        <p>
-          We analyzed the current system structure against common vulnerabilities and defined clear mitigation plans:
-        </p>
+        <p>We analyzed the current system structure against common vulnerabilities and defined clear mitigation plans:</p>
 
         <div class="security-box weakness">
           <i class="fa-solid fa-triangle-exclamation"></i>
           <div class="security-content">
             <h4>1. Client-Side JWT Storage (XSS Risk)</h4>
-            <p>
-              <strong>Vulnerability:</strong> Access tokens are currently saved in browser <code>localStorage</code>,
-              making them susceptible to theft via Cross-Site Scripting (XSS) attacks.
-            </p>
-            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;">
-              <strong>Mitigation Plan:</strong> Migrate token storage from <code>localStorage</code> to **HttpOnly,
-              Secure Cookies**, which prevents access via JavaScript and neutralizes script-based session theft.
-            </p>
+            <p><strong>Vulnerability:</strong> Access tokens are currently saved in browser <code>localStorage</code>, making them susceptible to theft via Cross-Site Scripting (XSS) attacks.</p>
+            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Migrate token storage from <code>localStorage</code> to **HttpOnly, Secure Cookies**, which prevents access via JavaScript and neutralizes script-based session theft.</p>
           </div>
         </div>
 
@@ -1719,14 +1846,8 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
           <i class="fa-solid fa-triangle-exclamation"></i>
           <div class="security-content">
             <h4>2. Lack of Authentication Rate Limiting</h4>
-            <p>
-              <strong>Vulnerability:</strong> The login route permits unlimited connection attempts, exposing user
-              accounts to automated dictionary and brute-force cracking tools.
-            </p>
-            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;">
-              <strong>Mitigation Plan:</strong> Integrate an active rate limiter like <code>express-rate-limit</code> to
-              restrict logins to a maximum of 5 attempts within a 15-minute window per IP.
-            </p>
+            <p><strong>Vulnerability:</strong> The login route permits unlimited connection attempts, exposing user accounts to automated dictionary and brute-force cracking tools.</p>
+            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Integrate an active rate limiter like <code>express-rate-limit</code> to restrict logins to a maximum of 5 attempts within a 15-minute window per IP.</p>
           </div>
         </div>
 
@@ -1734,34 +1855,21 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
           <i class="fa-solid fa-triangle-exclamation"></i>
           <div class="security-content">
             <h4>3. Absence of Strict Input Schema Validation</h4>
-            <p>
-              <strong>Vulnerability:</strong> Loose schema definitions allow potential attackers to pass NoSQL operator
-              objects (such as <code>$ne</code>) to query fields.
-            </p>
-            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;">
-              <strong>Mitigation Plan:</strong> Enforce strict request body structures using validators like
-              <code>Joi</code> or <code>express-validator</code> before executing queries.
-            </p>
+            <p><strong>Vulnerability:</strong> Loose schema definitions allow potential attackers to pass NoSQL operator objects (such as <code>$ne</code>) to query fields.</p>
+            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Enforce strict request body structures using validators like <code>Joi</code> or <code>express-validator</code> before executing queries.</p>
           </div>
         </div>
       </div>
 
-      <!-- Sub-section 6.3 -->
       <div id="sec-typescript" class="sub-section">
         <h2>6.3. Strict TypeScript Compiler Bug Fixes</h2>
-        <p>
-          Major bugs resolved to allow strict template checks compilation during rating modals additions:
-        </p>
+        <p>Major bugs resolved to allow strict template checks compilation during rating modals additions:</p>
 
         <div class="security-box bugfix">
           <i class="fa-solid fa-circle-check"></i>
           <div class="security-content">
             <h4>Safe Navigation Operators (?.): TS2532 Resolved</h4>
-            <p style="margin-bottom: 0;">
-              Corrected raw nested sub-document queries (<code>order.review.rating</code>) to optional chaining
-              navigators (<code>order.review?.rating</code>), preventing compilation crashes during loading states when
-              reviews are undefined.
-            </p>
+            <p style="margin-bottom: 0;">Corrected raw nested sub-document queries (<code>order.review.rating</code>) to optional chaining navigigators (<code>order.review?.rating</code>), preventing compilation crashes during loading states when reviews are undefined.</p>
           </div>
         </div>
 
@@ -1769,10 +1877,7 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
           <i class="fa-solid fa-circle-check"></i>
           <div class="security-content">
             <h4>Interface Optional Properties Declarations: TS2339 Resolved</h4>
-            <p style="margin-bottom: 0;">
-              Updated client-side inline <code>Order</code> interface models in typescript components to explicitly
-              declare optional review schemas properties.
-            </p>
+            <p style="margin-bottom: 0;">Updated client-side inline <code>Order</code> interface models in typescript components to explicitly declare optional review schemas properties.</p>
           </div>
         </div>
 
@@ -1780,31 +1885,20 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
           <i class="fa-solid fa-circle-check"></i>
           <div class="security-content">
             <h4>Standard Attribute Style Binding (NG5002 Resolved)</h4>
-            <p style="margin-bottom: 0;">
-              Resolved Angular parser error by updating typo event property binding syntax
-              <code>(style)="cursor:pointer;"</code> to standard HTML style layouts declaration:
-              <code>style="cursor:pointer;"</code>.
-            </p>
+            <p style="margin-bottom: 0;">Resolved Angular parser error by updating typo event property binding syntax <code>(style)="cursor:pointer;"</code> to standard HTML style layouts declaration: <code>style="cursor:pointer;"</code>.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ==============================================
-         PAGE: DEPLOY & BUDGETS
-         ============================================== -->
+    <!-- PAGE: DEPLOY & BUDGETS -->
     <div id="page-deploy" class="main-page">
       <h1>7. Production Deployment & Sizing Budgets</h1>
       <div class="section-subtitle">Bundles parameters, Styles budgets tuning, and compilation actions</div>
 
-      <!-- Sub-section 7.1 -->
       <div id="deploy-budgets" class="sub-section">
         <h2>7.1. Custom Angular Stylesheet Budgets Patch</h2>
-        <p>
-          Sleek custom dark-mode styling blocks exceed default components stylesheets limits (4kb). Sizing
-          configurations inside <code>angular.json</code> were adjusted to support rich UI styling without compiler
-          warnings:
-        </p>
+        <p>Sleek custom dark-mode styling blocks exceed default components stylesheets limits (4kb). Sizing configurations inside <code>angular.json</code> were adjusted to support rich UI styling without compiler warnings:</p>
         <div class="schema-card">
           <div class="schema-header">
             <span class="schema-title">angular.json</span>
@@ -1827,12 +1921,9 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
         </div>
       </div>
 
-      <!-- Sub-section 7.2 -->
       <div id="deploy-commands" class="sub-section">
         <h2>7.2. Production Compilation & Pushing Guides</h2>
-        <p>
-          Steps executed to compile client and push to main production repository branches:
-        </p>
+        <p>Steps executed to compile client and push to main production repository branches:</p>
         <pre>
 # 1. Trigger production assets bundling
 cd client && npm run build
@@ -1848,54 +1939,43 @@ git push origin main
         </pre>
       </div>
 
-      <!-- Sub-section 7.3 -->
       <div id="deploy-console" class="sub-section">
         <h2>7.3. Successful Deploy Output Screenshot</h2>
         <div class="media-card">
           <i class="fa-regular fa-image"></i>
           <h4>Screenshot: Production Bundle & Git logs</h4>
-          <p>Insert visual screenshot showing clean exit code 0 on Angular production builds terminal and remote pushing
-            confirmations logs.</p>
+          <p>Insert visual screenshot showing clean exit code 0 on Angular production builds terminal and remote pushing confirmations logs.</p>
         </div>
       </div>
     </div>
 
-    <!-- Master Footer -->
-    <footer
-      style="margin-top: 5rem; border-top: 1px solid var(--border-color); padding-top: 2rem; color: var(--text-muted); font-size: 0.9rem; text-align: center;">
+    <footer style="margin-top: 5rem; border-top: 1px solid var(--border-color); padding-top: 2rem; color: var(--text-muted); font-size: 0.9rem; text-align: center;">
       FoodFlow Academic Specification Suite &copy; 2026. All rights reserved.
     </footer>
   </main>
 
-  <!-- Single-Page switching & dynamic scroll tracking scripting -->
   <script>
-    // 1. SPA switchPage core trigger
     function switchPage(pageId) {
-      // Switch Active Menu Link in Top Bar
       const menuItems = document.querySelectorAll('.top-menu-item');
       menuItems.forEach(item => {
         item.classList.remove('active');
       });
       document.getElementById(`menu-${pageId}`).classList.add('active');
 
-      // Switch Visible Page block in Main Area
       const pages = document.querySelectorAll('.main-page');
       pages.forEach(page => {
         page.classList.remove('active-page');
       });
       document.getElementById(`page-${pageId}`).classList.add('active-page');
 
-      // Switch Visible Sub-sections links in Sidebar
       const sidebarGroups = document.querySelectorAll('.sidebar-group');
       sidebarGroups.forEach(group => {
         group.classList.remove('active-group');
       });
       document.getElementById(`links-group-${pageId}`).classList.add('active-group');
 
-      // Reset scroll position to top
       window.scrollTo(0, 0);
 
-      // Set first sidebar link of the group as active by default
       const activeGroup = document.getElementById(`links-group-${pageId}`);
       const sidebarLinks = activeGroup.querySelectorAll('.sidebar-links li');
       sidebarLinks.forEach(linkLi => linkLi.classList.remove('active'));
@@ -1903,7 +1983,6 @@ git push origin main
         sidebarLinks[0].classList.add('active');
       }
 
-      // Re-trigger Mermaid parser to ensure diagrams render correctly on tab switch
       if (pageId === 'uml') {
         setTimeout(() => {
           mermaid.contentLoaded();
@@ -1911,9 +1990,7 @@ git push origin main
       }
     }
 
-    // 2. ScrollSpy tracker to highlight active sub-section *within* current active page
     window.addEventListener('scroll', () => {
-      // Find currently visible main page
       const activePage = document.querySelector('.main-page.active-page');
       if (!activePage) return;
 

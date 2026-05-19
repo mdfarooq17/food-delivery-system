@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { RiderService } from '../../services/rider.service';
 import { AuthService } from '../../services/auth.service';
+import { SubscriptionService } from '../../services/subscription.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -25,10 +26,12 @@ export class RiderDashboardComponent implements OnInit {
   
   notifications: any[] = [];
   unreadNotificationsCount: number = 0;
+  subscriptionAssignments: any[] = [];
 
   constructor(
     private riderService: RiderService,
     private authService: AuthService,
+    private subscriptionService: SubscriptionService,
     private router: Router
   ) { }
 
@@ -36,6 +39,7 @@ export class RiderDashboardComponent implements OnInit {
     this.loadProfile();
     this.loadCities();
     this.loadNotifications();
+    this.loadSubscriptionAssignments();
     this.startAssignmentPolling();
   }
 
@@ -105,6 +109,7 @@ export class RiderDashboardComponent implements OnInit {
     this.assignmentInterval = setInterval(() => {
       this.checkAssignment();
       this.loadNotifications();
+      this.loadSubscriptionAssignments();
     }, 10000);
     this.checkAssignment();
   }
@@ -189,5 +194,28 @@ export class RiderDashboardComponent implements OnInit {
   logout() {
     this.authService.logout('rider');
     this.router.navigate(['/login/rider']);
+  }
+
+  // ==========================================
+  // SUBSCRIPTION MEAL BATCH METHODS
+  // ==========================================
+  loadSubscriptionAssignments() {
+    this.subscriptionService.getRiderDeliveries().subscribe({
+      next: (assignments) => {
+        this.subscriptionAssignments = assignments || [];
+      },
+      error: (err) => console.error('Error loading subscription assignments', err)
+    });
+  }
+
+  updateSubscriptionStatus(deliveryId: string, status: string) {
+    this.subscriptionService.updateRiderDeliveryStatus(deliveryId, status).subscribe({
+      next: (res) => {
+        alert(`Subscription delivery status updated to ${status}`);
+        this.loadSubscriptionAssignments();
+        this.loadProfile();
+      },
+      error: (err) => alert('Error updating subscription delivery status')
+    });
   }
 }

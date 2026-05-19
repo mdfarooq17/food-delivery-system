@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CustomerService } from '../../services/customer.service';
 import { AuthService } from '../../services/auth.service';
+import { SubscriptionService } from '../../services/subscription.service';
 import { ImageSliderComponent } from './image-slider.component';
 import { TopBrandsComponent } from './top-brands.component';
 import { CategoriesComponent } from './categories.component';
@@ -58,8 +59,24 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   isUserDropdownOpen = false;
   isMobileMenuOpen = false;
   isEditingProfile = false;
-  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' | 'tracking' | 'notifications' = 'home';
+  activeView: 'home' | 'restaurants' | 'menu' | 'profile' | 'item-detail' | 'checkout' | 'offers' | 'orders' | 'explore' | 'tracking' | 'notifications' | 'subscriptions' = 'home';
   trackingOrder: any = null;
+
+  // Subscription Meal Service State
+  subscriptionRestaurants: any[] = [];
+  selectedSubRestaurant: any = null;
+  selectedSubPlan: any = null;
+  subPlans: any[] = [];
+  subMenus: any[] = [];
+  subExtras: any[] = [];
+  mySubscriptions: any[] = [];
+  subFilter: any = { planType: '', mealType: '', tag: '', search: '' };
+  subCheckout: any = { startDate: '', endDate: '', preferredMealTimings: '12:30 PM - 01:30 PM', deliveryAddress: '', phone: '', deliveryInstructions: '', selectedExtras: [] };
+  subModalOpen = false;
+  subActionModalOpen = false;
+  selectedSubscriptionForAction: any = null;
+  subActionType: string = '';
+  subActionData: any = { vacationDatesStr: '', newTiming: '', newAddress: '', note: '', modificationDate: '' };
   searchQuery = '';
   newAddress = '';
   selectedCity = '';
@@ -144,6 +161,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   constructor(
     private customerService: CustomerService,
     private authService: AuthService,
+    private subscriptionService: SubscriptionService,
     private router: Router
   ) { }
 
@@ -796,6 +814,176 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       cancelled: '#ef4444'
     };
     return map[status] || '#6b7280';
+  }
+
+  // ==========================================
+  // SUBSCRIPTION MEAL SERVICE METHODS
+  // ==========================================
+  openSubscriptionsTab() {
+    this.activeView = 'subscriptions';
+    this.selectedSubRestaurant = null;
+    this.selectedSubPlan = null;
+    this.loadSubscriptionRestaurants();
+    if (this.isLoggedIn) {
+      this.loadMySubscriptions();
+    }
+  }
+
+  loadSubscriptionRestaurants() {
+    this.subscriptionService.getRestaurants({ city: this.selectedCity, ...this.subFilter }).subscribe({
+      next: (res) => {
+        this.subscriptionRestaurants = res.restaurants || [];
+      },
+      error: (err) => console.error('Error loading subscription restaurants', err)
+    });
+  }
+
+  filterSubscriptions() {
+    this.loadSubscriptionRestaurants();
+  }
+
+  selectSubscriptionRestaurant(restaurant: any) {
+    this.selectedSubRestaurant = restaurant;
+    this.subscriptionService.getRestaurantDetails(restaurant._id).subscribe({
+      next: (res) => {
+        this.subPlans = res.plans || [];
+        this.subExtras = res.extras || [];
+      },
+      error: (err) => console.error('Error loading restaurant subscription details', err)
+    });
+  }
+
+  openSubPlanDetails(plan: any) {
+    this.selectedSubPlan = plan;
+    this.subscriptionService.getMenu(plan._id).subscribe({
+      next: (menus) => {
+        this.subMenus = menus || [];
+      },
+      error: (err) => console.error('Error loading subscription menu', err)
+    });
+  }
+
+  openSubCheckoutModal(plan: any) {
+    if (!this.isLoggedIn) {
+      alert('Please login as a customer to subscribe to meal plans.');
+      this.router.navigate(['/login/customer']);
+      return;
+    }
+    this.selectedSubPlan = plan;
+    const start = new Date();
+    start.setDate(start.getDate() + 1); // Start tomorrow
+    const end = new Date(start);
+    end.setDate(end.getDate() + (plan.planType === 'weekly' ? 7 : 30));
+
+    this.subCheckout = {
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+      preferredMealTimings: plan.deliveryTimings || '12:30 PM - 01:30 PM',
+      deliveryAddress: this.selectedAddress || this.currentUser?.address || '',
+      phone: this.currentUser?.phone || '',
+      deliveryInstructions: '',
+      selectedExtras: []
+    };
+    this.subModalOpen = true;
+  }
+
+  toggleSubExtra(extra: any) {
+    const existingIndex = this.subCheckout.selectedExtras.findIndex((e: any) => e.extraItemId === extra._id);
+    if (existingIndex > -1) {
+      this.subCheckout.selectedExtras.splice(existingIndex, 1);
+    } else {
+      this.subCheckout.selectedExtras.push({
+        extraItemId: extra._id,
+        name: extra.name,
+        price: extra.price,
+        quantity: 1,
+        repeatMode: 'daily'
+      });
+    }
+  }
+
+  isSubExtraSelected(extraId: string): boolean {
+    return this.subCheckout.selectedExtras.some((e: any) => e.extraItemId === extraId);
+  }
+
+  calculateSubGrandTotal(): number {
+    if (!this.selectedSubPlan) return 0;
+    const base = this.selectedSubPlan.discountedPrice || this.selectedSubPlan.totalPrice || 0;
+    const days = this.selectedSubPlan.planType === 'weekly' ? 7 : 30;
+    const extrasTotal = this.subCheckout.selectedExtras.reduce((sum: number, e: any) => {
+      const mult = e.repeatMode === 'daily' ? days : (e.repeatMode === 'weekly' ? Math.ceil(days / 7) : 1);
+      return sum + (e.price * e.quantity * mult);
+    }, 0);
+    return base + extrasTotal;
+  }
+
+  submitSubscriptionRequest() {
+    if (!this.subCheckout.deliveryAddress || !this.subCheckout.phone) {
+      alert('Please enter delivery address and phone number.');
+      return;
+    }
+
+    const payload = {
+      restaurantId: this.selectedSubRestaurant._id,
+      planId: this.selectedSubPlan._id,
+      startDate: this.subCheckout.startDate,
+      endDate: this.subCheckout.endDate,
+      preferredMealTimings: this.subCheckout.preferredMealTimings,
+      deliveryAddress: this.subCheckout.deliveryAddress,
+      city: this.selectedCity,
+      phone: this.subCheckout.phone,
+      deliveryInstructions: this.subCheckout.deliveryInstructions,
+      extras: this.subCheckout.selectedExtras,
+      totalAmount: this.calculateSubGrandTotal()
+    };
+
+    this.subscriptionService.subscribe(payload).subscribe({
+      next: (res) => {
+        alert('🎉 Subscription request submitted successfully! Awaiting restaurant approval.');
+        this.subModalOpen = false;
+        this.loadMySubscriptions();
+      },
+      error: (err) => alert('Error submitting subscription: ' + (err.error?.error || err.message))
+    });
+  }
+
+  loadMySubscriptions() {
+    this.subscriptionService.getMySubscriptions().subscribe({
+      next: (subs) => {
+        this.mySubscriptions = subs || [];
+      },
+      error: (err) => console.error('Error loading my subscriptions', err)
+    });
+  }
+
+  openSubActionModal(sub: any, actionType: string) {
+    this.selectedSubscriptionForAction = sub;
+    this.subActionType = actionType;
+    this.subActionData = { vacationDatesStr: '', newTiming: sub.preferredMealTimings, newAddress: sub.deliveryAddress, note: '', modificationDate: new Date().toISOString().split('T')[0] };
+    this.subActionModalOpen = true;
+  }
+
+  confirmSubAction() {
+    let payload: any = { action: this.subActionType };
+    if (this.subActionType === 'vacation') {
+      const dates = this.subActionData.vacationDatesStr.split(',').map((d: string) => d.trim()).filter(Boolean);
+      if (!dates.length) { alert('Please enter valid dates.'); return; }
+      payload.vacationDates = dates;
+    } else if (this.subActionType === 'modify_schedule') {
+      payload.modificationDate = this.subActionData.modificationDate;
+      payload.newTiming = this.subActionData.newTiming;
+      payload.newAddress = this.subActionData.newAddress;
+      payload.note = this.subActionData.note;
+    }
+
+    this.subscriptionService.updateSubscriptionAction(this.selectedSubscriptionForAction._id, payload).subscribe({
+      next: (res) => {
+        alert(`Subscription updated: ${res.message}`);
+        this.subActionModalOpen = false;
+        this.loadMySubscriptions();
+      },
+      error: (err) => alert('Error updating subscription: ' + (err.error?.error || err.message))
+    });
   }
 
   @HostListener('document:click', ['$event'])

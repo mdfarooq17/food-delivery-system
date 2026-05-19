@@ -16,6 +16,7 @@
         <a href="javascript:void(0)" [class.active]="activeView === 'explore'" (click)="activeView = 'explore'; isMobileMenuOpen=false">Explore</a>
         <a href="javascript:void(0)" [class.active]="activeView === 'restaurants'" (click)="browseRestaurants(); isMobileMenuOpen=false">Restaurants</a>
         <a href="javascript:void(0)" [class.active]="activeView === 'offers'" (click)="activeView = 'offers'; isMobileMenuOpen=false">Offers</a>
+        <a href="javascript:void(0)" [class.active]="activeView === 'subscriptions'" (click)="openSubscriptionsTab(); isMobileMenuOpen=false"><i class="fas fa-calendar-check" style="color:#ff5b26;"></i> Meal Subscriptions</a>
         <a *ngIf="isLoggedIn" href="javascript:void(0)" [class.active]="activeView === 'orders'" (click)="loadMyOrders(); activeView = 'orders'; isMobileMenuOpen=false">My Orders</a>
         <a *ngIf="isLoggedIn" href="javascript:void(0)" [class.active]="activeView === 'profile'" (click)="activeView = 'profile'; isMobileMenuOpen=false">Profile</a>
         <div class="mobile-auth-links" *ngIf="!isLoggedIn">
@@ -1236,7 +1237,536 @@
       </div>
     </section>
 
+    <!-- SUBSCRIPTION MEAL SERVICE VIEW -->
+    <section class="subscriptions-view fade-in" *ngIf="activeView === 'subscriptions'">
+      <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+        <div>
+          <h2>Meal Subscription Services</h2>
+          <p class="text-muted">Subscribe to weekly or monthly meal plans delivered daily to your doorstep.</p>
+        </div>
+        <div class="sub-nav-tabs" *ngIf="isLoggedIn" style="display:flex; gap:10px;">
+          <button class="btn btn-outline-green" [class.btn-green]="!selectedSubRestaurant" (click)="selectedSubRestaurant=null; loadSubscriptionRestaurants()">Browse Plans</button>
+          <button class="btn btn-outline-green" (click)="selectedSubRestaurant='my_subs'; loadMySubscriptions()">My Subscriptions ({{ mySubscriptions.length }})</button>
+        </div>
+      </div>
+
+      <!-- BROWSE SUBSCRIPTION RESTAURANTS -->
+      <div *ngIf="selectedSubRestaurant !== 'my_subs'">
+        <!-- Filter Bar -->
+        <div class="sub-filters-card" style="background:var(--bg-surface); padding:20px; border-radius:14px; border:1px solid var(--border-color); margin-bottom:25px; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
+          <div class="filter-group" style="flex:1; min-width:200px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Plan Duration</label>
+            <select [(ngModel)]="subFilter.planType" (change)="filterSubscriptions()" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-elevated); color:var(--text-main); outline:none;">
+              <option value="">All Durations</option>
+              <option value="weekly">Weekly Plans</option>
+              <option value="monthly">Monthly Plans</option>
+            </select>
+          </div>
+          <div class="filter-group" style="flex:1; min-width:200px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Meal Category</label>
+            <select [(ngModel)]="subFilter.mealType" (change)="filterSubscriptions()" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-elevated); color:var(--text-main); outline:none;">
+              <option value="">All Meals</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="breakfast">Breakfast</option>
+              <option value="all-day">All-Day</option>
+            </select>
+          </div>
+          <div class="filter-group" style="flex:1; min-width:200px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Dietary Tag</label>
+            <select [(ngModel)]="subFilter.tag" (change)="filterSubscriptions()" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-elevated); color:var(--text-main); outline:none;">
+              <option value="">All Tags</option>
+              <option value="Keto">Keto</option>
+              <option value="Vegan">Vegan</option>
+              <option value="High-Protein">High-Protein</option>
+              <option value="Low-Carb">Low-Carb</option>
+              <option value="Weight Loss">Weight Loss</option>
+            </select>
+          </div>
+          <div class="filter-group" style="flex:2; min-width:250px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Search Kitchens</label>
+            <div style="display:flex; gap:10px;">
+              <input type="text" [(ngModel)]="subFilter.search" placeholder="Search restaurant name..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface-elevated); color:var(--text-main); outline:none;" (keyup.enter)="filterSubscriptions()">
+              <button class="btn btn-green" (click)="filterSubscriptions()">Search</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESTAURANTS GRID -->
+        <div *ngIf="!selectedSubRestaurant" class="restaurants-grid mt-2">
+          <div class="restaurant-card" *ngFor="let r of subscriptionRestaurants" (click)="selectSubscriptionRestaurant(r)">
+            <div class="restaurant-img">
+              <img [src]="r.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" [alt]="r.name" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'">
+              <div class="img-overlay" style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="status-badge open">Active Subscriptions</span>
+                <span class="delivery-time" style="background:var(--primary); color:white;">From Rs. {{ r.startingPrice || 2500 }}</span>
+              </div>
+            </div>
+            <div class="restaurant-info">
+              <div class="res-header">
+                <h3>{{ r.name }}</h3>
+                <span class="rating-badge"><i class="fas fa-star"></i> {{ r.rating || '4.5' }}</span>
+              </div>
+              <p class="restaurant-desc">{{ r.description || 'Premium meal plans tailored to your lifestyle.' }}</p>
+              <div style="margin:10px 0; display:flex; gap:6px; flex-wrap:wrap;">
+                <span class="meta-tag" *ngFor="let planType of r.subscriptionTypes" style="background:rgba(255,91,38,0.15); color:var(--primary);">{{ planType | uppercase }}</span>
+                <span class="meta-tag" *ngFor="let mealType of r.mealTypesAvailable">{{ mealType | titlecase }}</span>
+              </div>
+              <div class="restaurant-meta-tags" style="border-top:1px solid var(--border-color); padding-top:10px; margin-top:10px;">
+                <span class="meta-tag" *ngFor="let tag of (r.tags || ['Healthy', 'Fresh'])" style="background:var(--bg-surface-elevated);">#{{ tag }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!selectedSubRestaurant && subscriptionRestaurants.length === 0" class="empty-state">
+          <i class="fas fa-calendar-times fa-3x mb-2"></i>
+          <h3>No subscription plans found</h3>
+          <p>We couldn't find any restaurants offering subscription meal services matching your criteria.</p>
+          <button class="btn btn-outline-green mt-2" (click)="subFilter={planType:'',mealType:'',tag:'',search:''}; filterSubscriptions()">Reset Filters</button>
+        </div>
+
+        <!-- RESTAURANT SUBSCRIPTION PLANS & EXTRAS -->
+        <div *ngIf="selectedSubRestaurant && selectedSubRestaurant !== 'my_subs'" class="restaurant-sub-details fade-in">
+          <button class="back-btn mb-3" (click)="selectedSubRestaurant=null">← Back to Kitchens</button>
+          
+          <div class="restaurant-sub-header" style="background:var(--bg-surface); padding:25px; border-radius:16px; border:1px solid var(--border-color); margin-bottom:30px; display:flex; gap:25px; align-items:center; flex-wrap:wrap;">
+            <img [src]="selectedSubRestaurant.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" style="width:120px; height:120px; border-radius:16px; object-fit:cover;">
+            <div>
+              <h2 style="font-size:2rem; margin-bottom:8px;">{{ selectedSubRestaurant.name }}</h2>
+              <p class="text-muted" style="margin-bottom:12px;"><i class="fas fa-map-marker-alt"></i> {{ selectedSubRestaurant.address }}, {{ selectedSubRestaurant.city }}</p>
+              <div style="display:flex; gap:15px; font-size:0.95rem; color:var(--text-main);">
+                <span><i class="fas fa-calendar-alt text-orange"></i> {{ subPlans.length }} Active Plans</span>
+                <span><i class="fas fa-star text-orange"></i> {{ selectedSubRestaurant.rating || '4.5' }} Rating</span>
+                <span><i class="fas fa-phone text-orange"></i> {{ selectedSubRestaurant.phone }}</span>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="section-subtitle mb-3"><i class="fas fa-box-open text-orange"></i> Available Subscription Plans</h3>
+          <div class="plans-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(350px, 1fr)); gap:25px; margin-bottom:40px;">
+            <div class="plan-card" *ngFor="let plan of subPlans" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; position:relative; transition:transform 0.25s, border-color 0.25s, box-shadow 0.25s;"
+                 onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='rgba(255,91,38,0.3)'; this.style.boxShadow='0 12px 40px rgba(255,91,38,0.08)'"
+                 onmouseout="this.style.transform=''; this.style.borderColor=''; this.style.boxShadow=''">
+
+              <!-- Plan Header Gradient Bar -->
+              <div style="padding:20px 25px; background:linear-gradient(135deg, rgba(255,91,38,0.12), rgba(255,91,38,0.03)); border-bottom:1px solid var(--border-color);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                  <div>
+                    <span style="display:inline-block; padding:4px 12px; border-radius:8px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;"
+                          [style.background]="plan.planType === 'weekly' ? 'rgba(59,130,246,0.15)' : 'rgba(168,85,247,0.15)'"
+                          [style.color]="plan.planType === 'weekly' ? '#3b82f6' : '#a855f7'">
+                      <i class="fas fa-calendar-alt"></i> {{ plan.planType }}
+                    </span>
+                    <span style="display:inline-block; padding:4px 12px; border-radius:8px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-left:6px;"
+                          [style.background]="plan.mealType === 'breakfast' ? 'rgba(251,191,36,0.15)' : plan.mealType === 'lunch' ? 'rgba(59,130,246,0.15)' : plan.mealType === 'dinner' ? 'rgba(168,85,247,0.15)' : 'rgba(0,224,143,0.15)'"
+                          [style.color]="plan.mealType === 'breakfast' ? '#fbbf24' : plan.mealType === 'lunch' ? '#3b82f6' : plan.mealType === 'dinner' ? '#a855f7' : '#00e08f'">
+                      {{ plan.mealType }}
+                    </span>
+                  </div>
+                  <span *ngIf="plan.maxSubscribers - plan.currentSubscribers <= 10" style="font-size:0.75rem; color:#ef4444; font-weight:700; background:rgba(239,68,68,0.1); padding:4px 10px; border-radius:8px;">
+                    <i class="fas fa-fire"></i> {{ plan.maxSubscribers - plan.currentSubscribers }} left
+                  </span>
+                </div>
+                <h4 style="font-size:1.35rem; margin-bottom:6px; color:var(--text-main); font-weight:800; line-height:1.3;">{{ plan.title }}</h4>
+                <p class="text-muted" style="font-size:0.9rem; line-height:1.5; margin:0;">{{ plan.description }}</p>
+              </div>
+
+              <!-- Plan Details Body -->
+              <div style="padding:20px 25px; flex:1;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;">
+                  <div style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-main);">
+                    <i class="fas fa-utensils" style="color:var(--primary); width:16px; text-align:center;"></i>
+                    <span><strong>{{ plan.numberOfMeals }}</strong> Meals</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-main);">
+                    <i class="far fa-clock" style="color:var(--primary); width:16px; text-align:center;"></i>
+                    <span>{{ plan.deliveryTimings }}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-main);">
+                    <i class="fas fa-users" style="color:var(--primary); width:16px; text-align:center;"></i>
+                    <span>{{ plan.maxSubscribers - plan.currentSubscribers }} Slots</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:0.9rem; color:var(--text-main);">
+                    <i class="fas fa-truck" style="color:var(--primary); width:16px; text-align:center;"></i>
+                    <span>Daily Delivery</span>
+                  </div>
+                </div>
+
+                <!-- Tags -->
+                <div *ngIf="plan.tags?.length > 0" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:15px;">
+                  <span class="meta-tag" *ngFor="let tag of plan.tags" style="background:var(--bg-surface-elevated); font-size:0.75rem; padding:3px 10px; border-radius:6px; color:var(--text-muted);">#{{ tag }}</span>
+                </div>
+
+                <!-- Included Services -->
+                <div *ngIf="plan.includedServices?.length > 0" style="margin-bottom:15px;">
+                  <div *ngFor="let svc of plan.includedServices" style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-muted); margin-bottom:6px;">
+                    <i class="fas fa-check-circle" style="color:#00e08f; font-size:0.75rem;"></i>
+                    <span>{{ svc }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price & Actions Footer -->
+              <div style="border-top:1px solid var(--border-color); padding:20px 25px; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.01);">
+                <div>
+                  <div style="font-size:1.6rem; font-weight:800; color:var(--text-main);">Rs. {{ plan.discountedPrice || plan.totalPrice }}</div>
+                  <div *ngIf="plan.discountedPrice && plan.discountedPrice < plan.totalPrice" style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:0.85rem; color:var(--text-muted); text-decoration:line-through;">Rs. {{ plan.totalPrice }}</span>
+                    <span style="font-size:0.75rem; color:#00e08f; font-weight:700; background:rgba(0,224,143,0.1); padding:2px 8px; border-radius:6px;">Save Rs. {{ plan.totalPrice - plan.discountedPrice }}</span>
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                  <button class="btn btn-outline-green btn-small" style="padding:8px 14px;" (click)="openSubPlanDetails(plan)"><i class="fas fa-eye"></i> Menu</button>
+                  <button class="btn btn-green btn-small" style="padding:8px 18px; font-weight:700;" (click)="openSubCheckoutModal(plan)"><i class="fas fa-check"></i> Subscribe</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="subExtras.length > 0">
+            <h3 class="section-subtitle mb-3"><i class="fas fa-plus-circle text-orange"></i> Optional Daily/Weekly Add-ons</h3>
+            <div class="extras-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px; margin-bottom:40px;">
+              <div class="extra-card" *ngFor="let extra of subExtras" style="background:var(--bg-surface); border:1px solid var(--border-color); padding:20px; border-radius:14px; display:flex; align-items:center; gap:15px;">
+                <img [src]="extra.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'" style="width:70px; height:70px; border-radius:10px; object-fit:cover;">
+                <div style="flex:1;">
+                  <h5 style="font-size:1.1rem; margin-bottom:4px;">{{ extra.name }}</h5>
+                  <p class="text-muted" style="font-size:0.85rem; margin-bottom:8px;">{{ extra.description }}</p>
+                  <div style="font-weight:700; color:var(--primary);">Rs. {{ extra.price }} / {{ extra.recurrenceRule }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY SUBSCRIPTIONS DASHBOARD -->
+      <div *ngIf="selectedSubRestaurant === 'my_subs'" class="my-subscriptions-dashboard fade-in">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+          <button class="back-btn" style="margin:0;" (click)="selectedSubRestaurant=null">← Browse More Plans</button>
+          <button class="btn btn-outline-green btn-small" (click)="loadMySubscriptions()"><i class="fas fa-arrows-rotate"></i> Refresh</button>
+        </div>
+
+        <div *ngIf="mySubscriptions.length > 0" class="my-subs-list" style="display:flex; flex-direction:column; gap:25px;">
+          <div class="my-sub-card" *ngFor="let sub of mySubscriptions" style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:16px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:15px; border-bottom:1px solid var(--border-color); padding-bottom:20px; margin-bottom:20px;">
+              <div>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                  <span class="status-badge" [ngClass]="{'open': sub.status==='active', 'closed': sub.status==='cancelled', 'pending': sub.status==='pending'}" style="padding:6px 12px; font-size:0.85rem; text-transform:uppercase;">{{ sub.status }}</span>
+                  <span style="font-size:0.9rem; color:var(--text-muted);"><i class="fas fa-calendar-alt"></i> {{ sub.startDate | date:'mediumDate' }} - {{ sub.endDate | date:'mediumDate' }}</span>
+                </div>
+                <h3 style="font-size:1.6rem; color:var(--text-main); margin-bottom:4px;">{{ sub.planId?.title || 'Subscription Plan' }}</h3>
+                <p class="text-muted" style="font-size:1rem;"><i class="fas fa-store"></i> {{ sub.restaurantId?.name }} ({{ sub.restaurantId?.city }})</p>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:1.8rem; font-weight:800; color:var(--text-main);">Rs. {{ sub.totalAmount | number:'1.2-2' }}</div>
+                <div style="font-size:0.9rem; color:var(--text-muted);">{{ sub.planId?.planType | uppercase }} • {{ sub.planId?.mealType | titlecase }}</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-bottom:25px; font-size:0.95rem;">
+              <div>
+                <strong style="color:var(--text-muted); display:block; margin-bottom:4px;"><i class="fas fa-map-marker-alt text-orange"></i> Delivery Address</strong>
+                <span>{{ sub.deliveryAddress }}</span>
+              </div>
+              <div>
+                <strong style="color:var(--text-muted); display:block; margin-bottom:4px;"><i class="far fa-clock text-orange"></i> Meal Timing</strong>
+                <span>{{ sub.preferredMealTimings }}</span>
+              </div>
+              <div>
+                <strong style="color:var(--text-muted); display:block; margin-bottom:4px;"><i class="fas fa-phone text-orange"></i> Contact Phone</strong>
+                <span>{{ sub.phone }}</span>
+              </div>
+              <div *ngIf="sub.extras?.length > 0">
+                <strong style="color:var(--text-muted); display:block; margin-bottom:4px;"><i class="fas fa-plus-circle text-orange"></i> Included Add-ons</strong>
+                <span *ngFor="let extra of sub.extras" style="display:block; font-size:0.85rem;">• {{ extra.name }} ({{ extra.quantity }}x) - Rs. {{ extra.price }}</span>
+              </div>
+            </div>
+
+            <!-- Vacation & Modification Status Alerts -->
+            <div *ngIf="sub.vacationDates?.length > 0" style="background:rgba(255,184,0,0.1); border:1px solid rgba(255,184,0,0.3); padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; color:#ffb800;">
+              <i class="fas fa-umbrella-beach"></i> <strong>Vacation Mode Active:</strong> Meals will be skipped on: 
+              <span *ngFor="let d of sub.vacationDates; let last=last">{{ d | date:'mediumDate' }}{{ !last ? ', ' : '' }}</span>
+            </div>
+
+            <div *ngIf="sub.scheduleModifications?.length > 0" style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; color:#3b82f6;">
+              <i class="fas fa-info-circle"></i> <strong>Pending Schedule Modification:</strong> Requested change for {{ sub.scheduleModifications[sub.scheduleModifications.length-1].date | date:'mediumDate' }} ({{ sub.scheduleModifications[sub.scheduleModifications.length-1].isAcknowledged ? 'Acknowledged by Kitchen' : 'Awaiting Kitchen Review' }}).
+            </div>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap; border-top:1px solid var(--border-color); padding-top:20px;">
+              <button *ngIf="sub.status === 'active'" class="btn btn-outline-white btn-small" (click)="openSubActionModal(sub, 'pause')"><i class="fas fa-pause"></i> Pause Subscription</button>
+              <button *ngIf="sub.status === 'paused'" class="btn btn-green btn-small" (click)="openSubActionModal(sub, 'resume')"><i class="fas fa-play"></i> Resume Subscription</button>
+              <button *ngIf="sub.status === 'active'" class="btn btn-outline-white btn-small" (click)="openSubActionModal(sub, 'vacation')"><i class="fas fa-umbrella-beach"></i> Vacation Mode</button>
+              <button *ngIf="sub.status === 'active'" class="btn btn-outline-white btn-small" (click)="openSubActionModal(sub, 'modify_schedule')"><i class="fas fa-edit"></i> Modify Schedule</button>
+              <button *ngIf="sub.status !== 'cancelled'" class="btn btn-outline-white btn-small" style="color:#ef4444; border-color:rgba(239,68,68,0.3);" (click)="openSubActionModal(sub, 'cancel')"><i class="fas fa-times"></i> Cancel Subscription</button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="mySubscriptions.length === 0" class="empty-state">
+          <i class="fas fa-box-open fa-3x mb-2"></i>
+          <h3>No active subscriptions</h3>
+          <p>You haven't subscribed to any meal plans yet. Explore our kitchen offerings to get started!</p>
+          <button class="btn btn-green mt-2" (click)="selectedSubRestaurant=null; loadSubscriptionRestaurants()">Browse Meal Plans</button>
+        </div>
+      </div>
+    </section>
+
   </main>
+
+  <!-- SUBSCRIPTION PLAN MENU MODAL — Professional Weekly/Monthly Table Design -->
+  <div class="overlay" *ngIf="selectedSubPlan && !subModalOpen" style="display:flex; align-items:center; justify-content:center; z-index:3000; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div style="background:#141414; border:1px solid rgba(255,255,255,0.08); border-radius:24px; width:95%; max-width:1000px; max-height:90vh; overflow-y:auto; padding:35px; box-shadow:0 20px 50px rgba(0,0,0,0.8); position:relative; animation:slideUp 0.3s ease-out;">
+      <button style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:#888; cursor:pointer; font-size:1.2rem; z-index:10;" (click)="selectedSubPlan=null">✕</button>
+
+      <!-- Header -->
+      <div style="text-align:center; margin-bottom:30px;">
+        <span style="background:rgba(255,91,38,0.15); color:var(--primary); padding:8px 16px; border-radius:20px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;">{{ selectedSubPlan.planType }} Menu Schedule</span>
+        <h3 style="margin-top:15px; font-size:1.8rem; color:#ffffff; font-weight:800;">{{ selectedSubPlan.title }}</h3>
+        <p style="color:#888; font-size:0.95rem; margin-top:5px;">Complete daily meal schedule with timings, dishes, and nutritional details.</p>
+        
+        <!-- Plan Quick Stats -->
+        <div style="display:flex; justify-content:center; gap:25px; margin-top:20px; flex-wrap:wrap;">
+          <div style="background:rgba(255,91,38,0.08); border:1px solid rgba(255,91,38,0.2); padding:10px 20px; border-radius:12px; text-align:center;">
+            <div style="font-size:1.4rem; font-weight:800; color:var(--primary);">{{ selectedSubPlan.numberOfMeals }}</div>
+            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px;">Total Meals</div>
+          </div>
+          <div style="background:rgba(0,224,143,0.08); border:1px solid rgba(0,224,143,0.2); padding:10px 20px; border-radius:12px; text-align:center;">
+            <div style="font-size:1.4rem; font-weight:800; color:#00e08f;">Rs. {{ selectedSubPlan.discountedPrice || selectedSubPlan.totalPrice }}</div>
+            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px;">{{ selectedSubPlan.planType }} Price</div>
+          </div>
+          <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); padding:10px 20px; border-radius:12px; text-align:center;">
+            <div style="font-size:1.4rem; font-weight:800; color:#3b82f6;">{{ selectedSubPlan.deliveryTimings }}</div>
+            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:0.5px;">Delivery Window</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Menu Table -->
+      <div *ngIf="subMenus.length > 0" style="margin-bottom:30px;">
+        <!-- Table Header -->
+        <div style="display:grid; grid-template-columns:120px 1fr 100px 100px; background:rgba(255,91,38,0.1); border:1px solid rgba(255,91,38,0.2); border-radius:14px 14px 0 0; padding:14px 20px; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--primary);">
+          <span>Day</span>
+          <span>Meal Details</span>
+          <span style="text-align:center;">Calories</span>
+          <span style="text-align:center;">Timing</span>
+        </div>
+        
+        <!-- Table Rows — Grouped by Day -->
+        <div *ngFor="let menu of subMenus; let i = index" 
+             style="display:grid; grid-template-columns:120px 1fr 100px 100px; border:1px solid rgba(255,255,255,0.06); border-top:none; padding:18px 20px; align-items:center; gap:10px; transition:background 0.2s;"
+             [style.background]="i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'"
+             [style.borderRadius]="i === subMenus.length - 1 ? '0 0 14px 14px' : '0'">
+          
+          <!-- Day Column -->
+          <div>
+            <div style="font-weight:700; color:var(--primary); font-size:0.95rem;">{{ menu.dayName }}</div>
+            <span style="display:inline-block; margin-top:4px; padding:3px 8px; border-radius:6px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;"
+                  [style.background]="menu.mealTiming === 'breakfast' ? 'rgba(251,191,36,0.15)' : menu.mealTiming === 'lunch' ? 'rgba(59,130,246,0.15)' : 'rgba(168,85,247,0.15)'"
+                  [style.color]="menu.mealTiming === 'breakfast' ? '#fbbf24' : menu.mealTiming === 'lunch' ? '#3b82f6' : '#a855f7'">
+              <i class="fas" [ngClass]="{'fa-sun': menu.mealTiming==='breakfast', 'fa-cloud-sun': menu.mealTiming==='lunch', 'fa-moon': menu.mealTiming==='dinner'}"></i>
+              {{ menu.mealTiming }}
+            </span>
+          </div>
+
+          <!-- Meal Details Column -->
+          <div style="display:flex; gap:15px; align-items:center;">
+            <img [src]="menu.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'" 
+                 style="width:60px; height:60px; border-radius:10px; object-fit:cover; border:2px solid rgba(255,255,255,0.06); flex-shrink:0;">
+            <div style="min-width:0;">
+              <h5 style="font-size:1.05rem; color:#fff; margin-bottom:4px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ menu.name }}</h5>
+              <p style="color:#888; font-size:0.85rem; margin:0 0 6px 0; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">{{ menu.description || 'Chef\'s special preparation with fresh ingredients.' }}</p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <span *ngIf="menu.allergens?.length > 0" style="font-size:0.7rem; padding:2px 8px; background:rgba(239,68,68,0.12); color:#ef4444; border-radius:6px; font-weight:600;">
+                  <i class="fas fa-exclamation-triangle"></i> {{ menu.allergens.join(', ') }}
+                </span>
+                <span style="font-size:0.7rem; padding:2px 8px; background:rgba(255,255,255,0.06); color:#aaa; border-radius:6px;">
+                  {{ menu.quantity || '1 portion' }}
+                </span>
+                <span *ngIf="menu.isVegetarian" style="font-size:0.7rem; padding:2px 8px; background:rgba(34,197,94,0.12); color:#22c55e; border-radius:6px; font-weight:600;">
+                  <i class="fas fa-leaf"></i> Veg
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calories Column -->
+          <div style="text-align:center;">
+            <span style="font-size:1.1rem; font-weight:800; color:#ffb800;">{{ menu.calories || '—' }}</span>
+            <div style="font-size:0.7rem; color:#888;">kcal</div>
+          </div>
+
+          <!-- Timing Column -->
+          <div style="text-align:center;">
+            <span style="font-size:0.85rem; color:#ccc; font-weight:600;">{{ menu.servingTime || selectedSubPlan.deliveryTimings }}</span>
+          </div>
+        </div>
+
+        <!-- Dietary Tags Footer -->
+        <div *ngIf="selectedSubPlan.tags?.length > 0" style="margin-top:20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <span style="font-size:0.8rem; color:#888; font-weight:600;"><i class="fas fa-tags"></i> Dietary Tags:</span>
+          <span *ngFor="let tag of selectedSubPlan.tags" style="padding:4px 12px; background:rgba(255,91,38,0.1); color:var(--primary); border-radius:8px; font-size:0.8rem; font-weight:600;">#{{ tag }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="subMenus.length === 0" style="text-align:center; padding:50px 20px; color:var(--text-muted); background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.1); border-radius:16px; margin-bottom:30px;">
+        <i class="fas fa-utensils fa-3x" style="margin-bottom:15px; opacity:0.4;"></i>
+        <h4 style="color:#fff; font-weight:700; margin-bottom:8px;">Menu Being Prepared</h4>
+        <p style="font-size:0.9rem;">The kitchen is currently finalizing the meal schedule. Check back soon!</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex; gap:15px; justify-content:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:25px;">
+        <button class="btn btn-outline-white" (click)="selectedSubPlan=null">Close Preview</button>
+        <button class="btn btn-green" style="padding:12px 28px; font-weight:700;" (click)="openSubCheckoutModal(selectedSubPlan)"><i class="fas fa-check"></i> Subscribe to Plan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBSCRIPTION CHECKOUT MODAL -->
+  <div class="overlay" *ngIf="subModalOpen" style="display:flex; align-items:center; justify-content:center; z-index:3000; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div style="background:#141414; border:1px solid rgba(255,255,255,0.08); border-radius:24px; width:90%; max-width:850px; max-height:90vh; overflow-y:auto; padding:35px; box-shadow:0 20px 50px rgba(0,0,0,0.8); position:relative; animation:slideUp 0.3s ease-out;">
+      <button style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:#888; cursor:pointer; font-size:1.2rem;" (click)="subModalOpen=false">✕</button>
+
+      <div style="text-align:center; margin-bottom:25px;">
+        <span style="background:rgba(0,224,143,0.15); color:#00e08f; padding:8px 16px; border-radius:20px; font-size:0.75rem; font-weight:700; text-transform:uppercase;">Subscription Checkout</span>
+        <h3 style="margin-top:15px; font-size:1.8rem; color:#ffffff; font-weight:800;">Complete Your Meal Subscription</h3>
+        <p style="color:#888; font-size:0.95rem; margin-top:5px;">{{ selectedSubPlan?.title }} • {{ selectedSubRestaurant?.name }}</p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px; margin-bottom:30px;">
+        <!-- Left: Form -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <h4 style="font-size:1.2rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;"><i class="fas fa-calendar-check text-orange"></i> Schedule & Delivery</h4>
+          
+          <div style="display:flex; gap:15px;">
+            <div style="flex:1;">
+              <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Start Date</label>
+              <input type="date" [(ngModel)]="subCheckout.startDate" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">End Date</label>
+              <input type="date" [(ngModel)]="subCheckout.endDate" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Preferred Meal Timing</label>
+            <input type="text" [(ngModel)]="subCheckout.preferredMealTimings" placeholder="e.g. 12:30 PM - 01:30 PM" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+          </div>
+
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Full Delivery Address</label>
+            <input type="text" [(ngModel)]="subCheckout.deliveryAddress" placeholder="Enter full address..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+          </div>
+
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Contact Phone Number</label>
+            <input type="tel" [(ngModel)]="subCheckout.phone" placeholder="Enter phone number..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+          </div>
+
+          <div>
+            <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Special Dietary / Delivery Instructions (Optional)</label>
+            <textarea [(ngModel)]="subCheckout.deliveryInstructions" rows="2" placeholder="e.g. Low salt, leave with security..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;"></textarea>
+          </div>
+        </div>
+
+        <!-- Right: Extras & Summary -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <h4 style="font-size:1.2rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;"><i class="fas fa-plus-circle text-orange"></i> Optional Add-ons</h4>
+          
+          <div *ngIf="subExtras.length > 0" style="display:flex; flex-direction:column; gap:12px; max-height:220px; overflow-y:auto; padding-right:10px;">
+            <div *ngFor="let extra of subExtras" style="background:var(--bg-surface-elevated); border:1px solid var(--border-color); padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; gap:12px; align-items:center;">
+                <img [src]="extra.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
+                <div>
+                  <h5 style="font-size:1rem; margin-bottom:2px;">{{ extra.name }}</h5>
+                  <span style="font-size:0.85rem; color:var(--primary); font-weight:700;">Rs. {{ extra.price }} / {{ extra.recurrenceRule }}</span>
+                </div>
+              </div>
+              <button class="btn btn-small" [ngClass]="isSubExtraSelected(extra._id) ? 'btn-green' : 'btn-outline-white'" (click)="toggleSubExtra(extra)">
+                {{ isSubExtraSelected(extra._id) ? 'Added ✓' : 'Add' }}
+              </button>
+            </div>
+          </div>
+          <div *ngIf="subExtras.length === 0" style="color:var(--text-muted); font-size:0.9rem;">No add-ons available for this kitchen.</div>
+
+          <div style="background:var(--bg-surface-elevated); border:1px solid var(--border-color); padding:25px; border-radius:16px; margin-top:auto;">
+            <h4 style="font-size:1.2rem; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Subscription Summary</h4>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.95rem;">
+              <span>Base Plan ({{ selectedSubPlan?.planType }})</span>
+              <span>Rs. {{ selectedSubPlan?.discountedPrice || selectedSubPlan?.totalPrice }}</span>
+            </div>
+            <div *ngFor="let extra of subCheckout.selectedExtras" style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.9rem; color:var(--text-muted);">
+              <span>Add-on: {{ extra.name }} ({{ extra.repeatMode }})</span>
+              <span>Rs. {{ extra.price }}</span>
+            </div>
+            <div style="border-top:1px solid var(--border-color); padding-top:15px; margin-top:15px; display:flex; justify-content:space-between; align-items:center; font-size:1.3rem; font-weight:800; color:var(--text-main);">
+              <span>Grand Total</span>
+              <span style="color:var(--primary);">Rs. {{ calculateSubGrandTotal() | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <button class="btn btn-green btn-large full-width mt-2" (click)="submitSubscriptionRequest()"><i class="fas fa-check-circle"></i> Confirm Subscription Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBSCRIPTION ACTION MODAL -->
+  <div class="overlay" *ngIf="subActionModalOpen" style="display:flex; align-items:center; justify-content:center; z-index:3000; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px);">
+    <div style="background:#141414; border:1px solid rgba(255,255,255,0.08); border-radius:24px; width:90%; max-width:550px; padding:35px; box-shadow:0 20px 50px rgba(0,0,0,0.8); position:relative; animation:slideUp 0.3s ease-out;">
+      <button style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:#888; cursor:pointer; font-size:1.2rem;" (click)="subActionModalOpen=false">✕</button>
+
+      <div style="text-align:center; margin-bottom:25px;">
+        <span style="background:rgba(59,130,246,0.15); color:#3b82f6; padding:8px 16px; border-radius:20px; font-size:0.75rem; font-weight:700; text-transform:uppercase;">Subscription Management</span>
+        <h3 style="margin-top:15px; font-size:1.6rem; color:#ffffff; font-weight:800;">{{ subActionType | uppercase }} SUBSCRIPTION</h3>
+      </div>
+
+      <div *ngIf="subActionType === 'pause'" style="margin-bottom:25px; color:var(--text-muted); font-size:0.95rem; text-align:center;">
+        Are you sure you want to pause your meal subscription? You can resume it anytime from your dashboard.
+      </div>
+      <div *ngIf="subActionType === 'resume'" style="margin-bottom:25px; color:var(--text-muted); font-size:0.95rem; text-align:center;">
+        Are you sure you want to resume your meal subscription? Daily deliveries will restart immediately.
+      </div>
+      <div *ngIf="subActionType === 'cancel'" style="margin-bottom:25px; color:#ef4444; font-size:0.95rem; text-align:center;">
+        Are you sure you want to permanently cancel this meal subscription? This action cannot be undone.
+      </div>
+
+      <div *ngIf="subActionType === 'vacation'" style="display:flex; flex-direction:column; gap:15px; margin-bottom:25px;">
+        <p style="color:var(--text-muted); font-size:0.95rem;">Enter the dates you will be away. Daily meal deliveries will be skipped on these dates.</p>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Vacation Dates (Comma separated YYYY-MM-DD)</label>
+          <input type="text" [(ngModel)]="subActionData.vacationDatesStr" placeholder="e.g. 2026-06-01, 2026-06-02" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+        </div>
+      </div>
+
+      <div *ngIf="subActionType === 'modify_schedule'" style="display:flex; flex-direction:column; gap:15px; margin-bottom:25px;">
+        <p style="color:var(--text-muted); font-size:0.95rem;">Request a schedule modification (timing or address change) for a specific date.</p>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Modification Date</label>
+          <input type="date" [(ngModel)]="subActionData.modificationDate" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+        </div>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">New Meal Timing</label>
+          <input type="text" [(ngModel)]="subActionData.newTiming" placeholder="e.g. 01:00 PM - 02:00 PM" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+        </div>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">New Delivery Address</label>
+          <input type="text" [(ngModel)]="subActionData.newAddress" placeholder="Enter new address..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;">
+        </div>
+        <div>
+          <label style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; display:block;">Note to Kitchen (Optional)</label>
+          <textarea [(ngModel)]="subActionData.note" rows="2" placeholder="e.g. Will be at the office building..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-surface); color:var(--text-main); outline:none;"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:15px; justify-content:flex-end;">
+        <button class="btn btn-outline-white" (click)="subActionModalOpen=false">Cancel</button>
+        <button class="btn btn-green" [ngClass]="{'btn-green': subActionType!=='cancel', 'btn-outline-white': subActionType==='cancel'}" [style.borderColor]="subActionType==='cancel' ? '#ef4444' : ''" [style.color]="subActionType==='cancel' ? '#ef4444' : ''" (click)="confirmSubAction()">Confirm Action</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CART SIDE PANEL -->
   <div class="overlay cart-overlay" *ngIf="showCartPanel" (click)="showCartPanel=false"></div>

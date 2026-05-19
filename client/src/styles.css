@@ -116,3 +116,39 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Fix Dropdown / Select Option Visibility across all portals and browsers */
+select {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: auto;
+}
+
+select:focus {
+  border-color: var(--primary-color, #ff6b35) !important;
+}
+
+/* Force dark background and white text on dropdown options in all browsers */
+select option {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  padding: 10px;
+}
+
+/* Fallback for browsers/OS that override option background to white */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  select {
+    color: #ffffff !important;
+    background-color: #1a1a1a !important;
+  }
+  select option {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+  }
+}

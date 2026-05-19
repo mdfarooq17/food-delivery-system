@@ -12,6 +12,8 @@ const authMiddleware = require('../middleware/auth');
 const SecurityLog = require('../models/SecurityLog');
 const BlockedIP = require('../models/BlockedIP');
 const UserLog = require('../models/UserLog');
+const RiderProfile = require('../models/RiderProfile');
+const MenuItem = require('../models/MenuItem');
 
 const router = express.Router();
 
@@ -159,8 +161,73 @@ router.post('/user-audit/reset-attempts', authMiddleware, isAdmin, async (req, r
 // Get all users
 router.get('/users', authMiddleware, isAdmin, async (req, res) => {
   try {
-    const users = await User.find({}, '-password');
+    const users = await User.find({}, '-password').lean();
+    
+    const restaurants = await Restaurant.find().lean();
+    const userToRestaurantMap = {};
+    restaurants.forEach(r => {
+      userToRestaurantMap[r.userId.toString()] = r._id;
+    });
+
+    for (let user of users) {
+      let count = 0;
+      if (user.role === 'customer' || user.role === 'admin') {
+        count = await Order.countDocuments({ customerId: user._id });
+      } else if (user.role === 'rider') {
+        count = await Order.countDocuments({ riderId: user._id });
+      } else if (user.role === 'restaurant') {
+        const restId = userToRestaurantMap[user._id.toString()];
+        if (restId) {
+          count = await Order.countDocuments({ restaurantId: restId });
+        }
+      }
+      user.ordersCount = count;
+    }
+
     res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get comprehensive user details (for Admin inspection of Rider/Restaurant/Customer data)
+router.get('/users/:id/details', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id, '-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    let details = { user };
+
+    if (user.role === 'rider') {
+      const riderProfile = await RiderProfile.findOne({ userId: user._id }).populate('currentOrderId');
+      const riderOrders = await Order.find({ riderId: user._id })
+        .populate('restaurantId', 'name address')
+        .populate('customerId', 'name email phone')
+        .sort({ createdAt: -1 });
+      details.riderProfile = riderProfile;
+      details.riderOrders = riderOrders;
+    } else if (user.role === 'restaurant') {
+      const restaurant = await Restaurant.findOne({ userId: user._id });
+      if (restaurant) {
+        const menuItems = await MenuItem.find({ restaurantId: restaurant._id });
+        const restaurantOrders = await Order.find({ restaurantId: restaurant._id })
+          .populate('customerId', 'name email phone')
+          .populate('riderId', 'name phone')
+          .sort({ createdAt: -1 });
+        details.restaurant = restaurant;
+        details.menuItems = menuItems;
+        details.restaurantOrders = restaurantOrders;
+      }
+    } else {
+      // customer or admin
+      const customerOrders = await Order.find({ customerId: user._id })
+        .populate('restaurantId', 'name address')
+        .populate('riderId', 'name phone')
+        .sort({ createdAt: -1 });
+      details.customerOrders = customerOrders;
+    }
+
+    res.json(details);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
