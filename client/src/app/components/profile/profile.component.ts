@@ -1,15 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { Component, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
-  selector: 'app-profile',
+  selector: "app-profile",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
+  templateUrl: "./profile.component.html",
+  styleUrls: ["./profile.component.css"],
 })
 export class ProfileComponent implements OnInit {
   user: any = null;
@@ -18,23 +18,23 @@ export class ProfileComponent implements OnInit {
   showPasswordChange = false;
 
   profileData: any = {
-    name: '',
-    address: '',
-    phone: '',
-    city: '',
-    savedAddresses: []
+    name: "",
+    address: "",
+    phone: "",
+    city: "",
+    savedAddresses: [],
   };
 
   passwordData = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   };
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) { }
+    private router: Router,
+  ) {}
 
   ngOnInit() {
     this.loadProfile();
@@ -46,18 +46,18 @@ export class ProfileComponent implements OnInit {
       next: (user: any) => {
         this.user = user;
         this.profileData = {
-          name: user.name || '',
-          address: user.address || '',
-          phone: user.phone || '',
-          city: user.city || '',
-          savedAddresses: user.savedAddresses || []
+          name: user.name || "",
+          address: user.address || "",
+          phone: user.phone || "",
+          city: user.city || "",
+          savedAddresses: user.savedAddresses || [],
         };
         this.isLoading = false;
       },
       error: (err: any) => {
-        console.error('Error loading profile', err);
+        console.error("Error loading profile", err);
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -66,18 +66,18 @@ export class ProfileComponent implements OnInit {
     if (!this.isEditing) {
       // Reset form data
       this.profileData = {
-        name: this.user.name || '',
-        address: this.user.address || '',
-        phone: this.user.phone || '',
-        city: this.user.city || '',
-        savedAddresses: this.user.savedAddresses || []
+        name: this.user.name || "",
+        address: this.user.address || "",
+        phone: this.user.phone || "",
+        city: this.user.city || "",
+        savedAddresses: this.user.savedAddresses || [],
       };
     }
   }
 
   updateProfile() {
     if (!this.profileData.name.trim()) {
-      alert('Name is required');
+      alert("Name is required");
       return;
     }
 
@@ -87,12 +87,14 @@ export class ProfileComponent implements OnInit {
         this.user = updatedUser;
         this.isEditing = false;
         this.isLoading = false;
-        alert('Profile updated successfully!');
+        alert("Profile updated successfully!");
       },
       error: (err: any) => {
         this.isLoading = false;
-        alert('Error updating profile: ' + (err.error?.error || 'Unknown error'));
-      }
+        alert(
+          "Error updating profile: " + (err.error?.error || "Unknown error"),
+        );
+      },
     });
   }
 
@@ -100,68 +102,80 @@ export class ProfileComponent implements OnInit {
     this.showPasswordChange = !this.showPasswordChange;
     if (!this.showPasswordChange) {
       this.passwordData = {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       };
     }
   }
 
   removeSavedAddress(index: number) {
-    if (!this.profileData.savedAddresses || !Array.isArray(this.profileData.savedAddresses)) return;
+    if (
+      !this.profileData.savedAddresses ||
+      !Array.isArray(this.profileData.savedAddresses)
+    )
+      return;
     this.profileData.savedAddresses.splice(index, 1);
     this.updateProfile();
   }
 
   changePassword() {
-    if (!this.passwordData.currentPassword || !this.passwordData.newPassword || !this.passwordData.confirmPassword) {
-      alert('All password fields are required');
+    if (
+      !this.passwordData.currentPassword ||
+      !this.passwordData.newPassword ||
+      !this.passwordData.confirmPassword
+    ) {
+      alert("All password fields are required");
       return;
     }
 
     if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
-      alert('New passwords do not match');
+      alert("New passwords do not match");
       return;
     }
 
     if (this.passwordData.newPassword.length < 6) {
-      alert('New password must be at least 6 characters long');
+      alert("New password must be at least 6 characters long");
       return;
     }
 
     this.isLoading = true;
-    this.authService.changePassword({
-      currentPassword: this.passwordData.currentPassword,
-      newPassword: this.passwordData.newPassword
-    }).subscribe({
-      next: (response: any) => {
-        this.isLoading = false;
-        this.showPasswordChange = false;
-        this.passwordData = {
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        };
-        alert('Password changed successfully!');
-      },
-      error: (err: any) => {
-        this.isLoading = false;
-        alert('Error changing password: ' + (err.error?.error || 'Unknown error'));
-      }
-    });
+    this.authService
+      .changePassword({
+        currentPassword: this.passwordData.currentPassword,
+        newPassword: this.passwordData.newPassword,
+      })
+      .subscribe({
+        next: (response: any) => {
+          this.isLoading = false;
+          this.showPasswordChange = false;
+          this.passwordData = {
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          };
+          alert("Password changed successfully!");
+        },
+        error: (err: any) => {
+          this.isLoading = false;
+          alert(
+            "Error changing password: " + (err.error?.error || "Unknown error"),
+          );
+        },
+      });
   }
 
   goBack() {
     // Navigate back to the appropriate dashboard based on role
     const role = this.user?.role;
-    if (role === 'admin') {
-      this.router.navigate(['/admin']);
-    } else if (role === 'restaurant') {
-      this.router.navigate(['/restaurant']);
-    } else if (role === 'rider') {
-      this.router.navigate(['/rider']);
+    if (role === "admin") {
+      this.router.navigate(["/admin"]);
+    } else if (role === "restaurant") {
+      this.router.navigate(["/restaurant"]);
+    } else if (role === "rider") {
+      this.router.navigate(["/rider"]);
     } else {
-      this.router.navigate(['/customer']);
+      this.router.navigate(["/customer"]);
     }
   }
 }

@@ -1,952 +1,1232 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FoodFlow — Unified System Design Specification</title>
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-    rel="stylesheet">
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Mermaid Diagram Renderer -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: 'default',
-        securityLevel: 'loose',
-        flowchart: { useMaxWidth: true, htmlLabels: true }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoodFlow — Unified System Design Specification</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Mermaid Diagram Renderer -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: "default",
+          securityLevel: "loose",
+          flowchart: { useMaxWidth: true, htmlLabels: true },
+        });
       });
-    });
-  </script>
-
-  <style>
-    :root {
-      --bg-base: #f8f9fa;
-      --bg-surface: #ffffff;
-      --bg-surface-elevated: #eef1f6;
-      --primary: #ff5b26;
-      --primary-glow: rgba(255, 91, 38, 0.08);
-      --secondary: #ffb800;
-      --secondary-glow: rgba(255, 184, 0, 0.08);
-      --info: #1e74fd;
-      --info-glow: rgba(30, 116, 253, 0.08);
-      --danger: #ff4a5a;
-      --text-main: #1e2022;
-      --text-muted: #5a626a;
-      --border-color: #e2e8f0;
-      --font-sans: 'Outfit', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      --top-nav-height: 75px;
-      --sidebar-width: 300px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      scroll-behavior: smooth;
-    }
-
-    body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg-base);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary);
-    }
-
-    header.top-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: var(--top-nav-height);
-      background-color: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 4rem;
-      padding: 0 4rem;
-      z-index: 1000;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: var(--text-main);
-      text-decoration: none;
-      letter-spacing: -0.5px;
-    }
-
-    .brand i {
-      color: #ff5b26;
-      text-shadow: 0 0 10px rgba(255, 91, 38, 0.15);
-      font-size: 1.5rem;
-    }
-
-    .academic-badge {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: #ff5b26;
-      border: 1px solid rgba(255, 91, 38, 0.3);
-      background: rgba(255, 91, 38, 0.1);
-      padding: 0.15rem 0.5rem;
-      border-radius: 20px;
-      margin-left: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .top-menu {
-      display: flex;
-      flex-direction: row !important;
-      list-style: none;
-      gap: 1.5rem;
-      height: 100%;
-      align-items: center;
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-
-    .top-menu-item {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
-
-    .top-menu-item a {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: #8e8e9f;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-      height: 100%;
-      padding: 0 0.1rem;
-      transition: color 0.2s ease;
-      position: relative;
-      white-space: nowrap;
-    }
-
-    .top-menu-item a i {
-      font-size: 0.9rem;
-      opacity: 0.6;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-    .top-menu-item a:hover {
-      color: var(--text-main);
-    }
-
-    .top-menu-item a:hover i {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .top-menu-item::after {
-      content: '';
-      position: absolute;
-      bottom: 15px;
-      left: 0.1rem;
-      right: 0.1rem;
-      height: 3px;
-      background-color: #ff5b26;
-      border-radius: 2px;
-      transform: scaleX(0);
-      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .top-menu-item.active a {
-      color: #ff5b26;
-    }
-
-    .top-menu-item.active a i {
-      opacity: 1;
-      color: #ff5b26;
-    }
-
-    .top-menu-item.active::after {
-      transform: scaleX(1);
-    }
-
-    aside.sidebar {
-      position: fixed;
-      top: var(--top-nav-height);
-      left: 0;
-      bottom: 0;
-      width: var(--sidebar-width);
-      background-color: var(--bg-surface);
-      border-right: 1px solid var(--border-color);
-      padding: 2rem 1.5rem;
-      overflow-y: auto;
-      z-index: 900;
-      display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
-    }
-
-    .sidebar-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 0.75rem;
-    }
-
-    .sidebar-group {
-      display: none;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .sidebar-group.active-group {
-      display: flex;
-    }
-
-    .group-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .group-title i {
-      color: var(--primary);
-      font-size: 0.95rem;
-    }
-
-    .sidebar-links {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      padding-left: 1.5rem;
-      border-left: 1px solid var(--border-color);
-    }
-
-    .sidebar-links li a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      display: block;
-      padding: 0.25rem 0;
-      transition: all 0.25s ease;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sidebar-links li a:hover,
-    .sidebar-links li.active a {
-      color: var(--primary);
-      padding-left: 0.25rem;
-    }
-
-    main.content-wrapper {
-      margin-top: var(--top-nav-height);
-      margin-left: var(--sidebar-width);
-      padding: 4rem 5rem;
-      max-width: 1200px;
-      width: calc(100% - var(--sidebar-width));
-    }
-
-    .main-page {
-      display: none;
-    }
-
-    .main-page.active-page {
-      display: block;
-    }
-
-    .sub-section {
-      scroll-margin-top: calc(var(--top-nav-height) + 30px);
-      margin-bottom: 3.5rem;
-    }
-
-    h1 {
-      font-size: 2.75rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      color: var(--text-main);
-    }
-
-    .section-subtitle {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-      margin-bottom: 2.5rem;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 1.5rem;
-    }
-
-    h2 {
-      font-size: 1.85rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    h3 {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    p {
-      color: var(--text-muted);
-      font-size: 1.05rem;
-      margin-bottom: 1.5rem;
-      text-align: justify;
-    }
-
-    ul,
-    ol {
-      margin-left: 1.5rem;
-      margin-bottom: 1.5rem;
-      color: var(--text-muted);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    li strong {
-      color: var(--text-main);
-    }
-
-    .highlight-card {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.3s ease;
-    }
-
-    .highlight-card:hover {
-      border-color: rgba(0, 224, 143, 0.3);
-    }
-
-    .highlight-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background-color: var(--primary);
-    }
-
-    .schema-card {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-    }
-
-    .schema-header {
-      background-color: var(--bg-surface-elevated);
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .schema-title {
-      font-weight: 600;
-      color: var(--primary);
-      font-family: var(--font-mono);
-      font-size: 1.1rem;
-    }
-
-    .schema-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.25rem 0.5rem;
-      background-color: var(--primary-glow);
-      color: var(--primary);
-      border-radius: 4px;
-      border: 1px solid rgba(255, 91, 38, 0.2);
-    }
-
-    .media-card {
-      background-color: var(--bg-surface);
-      border: 2px dashed var(--border-color);
-      border-radius: 12px;
-      padding: 3rem 2rem;
-      text-align: center;
-      margin: 1.5rem 0;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-    }
-
-    .media-card:hover {
-      border-color: var(--primary);
-      background-color: var(--primary-glow);
-    }
-
-    .media-card i {
-      font-size: 2.25rem;
-      color: var(--text-muted);
-      transition: color 0.3s ease;
-    }
-
-    .media-card:hover i {
-      color: var(--primary);
-    }
-
-    .media-card h4 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .media-card p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0;
-      max-width: 420px;
-    }
-
-    .group-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    .member-card {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .member-card:hover {
-      transform: translateY(-5px);
-      border-color: rgba(255, 91, 38, 0.35);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-    }
-
-    .member-avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: var(--primary-glow);
-      border: 1px solid rgba(255, 91, 38, 0.3);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-
-    .member-info h4 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 0.25rem;
-    }
-
-    .member-info span {
-      font-size: 0.85rem;
-      color: var(--primary);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .member-contrib {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border-color);
-      padding-top: 0.75rem;
-    }
-
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      margin: 1.5rem 0;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th {
-      background-color: var(--bg-surface);
-      color: var(--text-main);
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    td {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border-color);
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      vertical-align: middle;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      color: var(--text-main);
-      background-color: rgba(255, 255, 255, 0.01);
-    }
-
-    .method-badge {
-      font-family: var(--font-mono);
-      font-weight: 700;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-      display: inline-block;
-    }
-
-    .method-badge.get {
-      background-color: rgba(0, 224, 143, 0.1);
-      color: var(--primary);
-      border: 1px solid rgba(0, 224, 143, 0.2);
-    }
-
-    .method-badge.post {
-      background-color: rgba(255, 184, 0, 0.1);
-      color: var(--secondary);
-      border: 1px solid rgba(255, 184, 0, 0.2);
-    }
-
-    .method-badge.put {
-      background-color: rgba(58, 140, 255, 0.1);
-      color: var(--info);
-      border: 1px solid rgba(58, 140, 255, 0.2);
-    }
-
-    .method-badge.delete {
-      background-color: rgba(255, 74, 90, 0.1);
-      color: var(--danger);
-      border: 1px solid rgba(255, 74, 90, 0.2);
-    }
-
-    pre {
-      background-color: #111115;
-      padding: 1.5rem;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      color: #a9b7c6;
-      border-radius: 0 0 12px 12px;
-      border: 1px solid var(--border-color);
-      border-top: none;
-    }
-
-    code {
-      font-family: var(--font-mono);
-      color: var(--primary);
-      background-color: var(--primary-glow);
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-
-    .security-box {
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid var(--border-color);
-      display: flex;
-      gap: 1.25rem;
-    }
-
-    .security-box i {
-      font-size: 1.75rem;
-      margin-top: 0.25rem;
-    }
-
-    .security-box.defense {
-      background-color: rgba(0, 224, 143, 0.02);
-      border-left: 4px solid var(--primary);
-    }
-
-    .security-box.defense i {
-      color: var(--primary);
-    }
-
-    .security-box.weakness {
-      background-color: rgba(255, 184, 0, 0.02);
-      border-left: 4px solid var(--secondary);
-    }
-
-    .security-box.weakness i {
-      color: var(--secondary);
-    }
-
-    .security-box.bugfix {
-      background-color: rgba(58, 140, 255, 0.02);
-      border-left: 4px solid var(--info);
-    }
-
-    .security-box.bugfix i {
-      color: var(--info);
-    }
-
-    .security-content h4 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 0.5rem;
-    }
-
-    @media (max-width: 992px) {
-      aside.sidebar {
-        display: none;
+    </script>
+
+    <style>
+      :root {
+        --bg-base: #f8f9fa;
+        --bg-surface: #ffffff;
+        --bg-surface-elevated: #eef1f6;
+        --primary: #ff5b26;
+        --primary-glow: rgba(255, 91, 38, 0.08);
+        --secondary: #ffb800;
+        --secondary-glow: rgba(255, 184, 0, 0.08);
+        --info: #1e74fd;
+        --info-glow: rgba(30, 116, 253, 0.08);
+        --danger: #ff4a5a;
+        --text-main: #1e2022;
+        --text-muted: #5a626a;
+        --border-color: #e2e8f0;
+        --font-sans: "Outfit", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+        --top-nav-height: 75px;
+        --sidebar-width: 300px;
       }
 
-      main.content-wrapper {
-        margin-left: 0;
-        width: 100%;
-        padding: 2rem;
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-base);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      header.top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--top-nav-height);
+        background-color: #ffffff;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 4rem;
+        padding: 0 4rem;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text-main);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+      }
+
+      .brand i {
+        color: #ff5b26;
+        text-shadow: 0 0 10px rgba(255, 91, 38, 0.15);
+        font-size: 1.5rem;
+      }
+
+      .academic-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #ff5b26;
+        border: 1px solid rgba(255, 91, 38, 0.3);
+        background: rgba(255, 91, 38, 0.1);
+        padding: 0.15rem 0.5rem;
+        border-radius: 20px;
+        margin-left: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
       }
 
       .top-menu {
+        display: flex;
+        flex-direction: row !important;
+        list-style: none;
+        gap: 1.5rem;
+        height: 100%;
+        align-items: center;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .top-menu-item {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        position: relative;
+      }
+
+      .top-menu-item a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #8e8e9f;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        height: 100%;
+        padding: 0 0.1rem;
+        transition: color 0.2s ease;
+        position: relative;
+        white-space: nowrap;
+      }
+
+      .top-menu-item a i {
+        font-size: 0.9rem;
+        opacity: 0.6;
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .top-menu-item a:hover {
+        color: var(--text-main);
+      }
+
+      .top-menu-item a:hover i {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .top-menu-item::after {
+        content: "";
+        position: absolute;
+        bottom: 15px;
+        left: 0.1rem;
+        right: 0.1rem;
+        height: 3px;
+        background-color: #ff5b26;
+        border-radius: 2px;
+        transform: scaleX(0);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .top-menu-item.active a {
+        color: #ff5b26;
+      }
+
+      .top-menu-item.active a i {
+        opacity: 1;
+        color: #ff5b26;
+      }
+
+      .top-menu-item.active::after {
+        transform: scaleX(1);
+      }
+
+      aside.sidebar {
+        position: fixed;
+        top: var(--top-nav-height);
+        left: 0;
+        bottom: 0;
+        width: var(--sidebar-width);
+        background-color: var(--bg-surface);
+        border-right: 1px solid var(--border-color);
+        padding: 2rem 1.5rem;
+        overflow-y: auto;
+        z-index: 900;
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+      }
+
+      .sidebar-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.75rem;
+      }
+
+      .sidebar-group {
+        display: none;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .sidebar-group.active-group {
+        display: flex;
+      }
+
+      .group-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .group-title i {
+        color: var(--primary);
+        font-size: 0.95rem;
+      }
+
+      .sidebar-links {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding-left: 1.5rem;
+        border-left: 1px solid var(--border-color);
+      }
+
+      .sidebar-links li a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: block;
+        padding: 0.25rem 0;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sidebar-links li a:hover,
+      .sidebar-links li.active a {
+        color: var(--primary);
+        padding-left: 0.25rem;
+      }
+
+      main.content-wrapper {
+        margin-top: var(--top-nav-height);
+        margin-left: var(--sidebar-width);
+        padding: 4rem 5rem;
+        max-width: 1200px;
+        width: calc(100% - var(--sidebar-width));
+      }
+
+      .main-page {
         display: none;
       }
-    }
-  </style>
-</head>
 
-<body>
+      .main-page.active-page {
+        display: block;
+      }
 
-  <header class="top-nav">
-    <a href="javascript:void(0)" onclick="switchPage('home')" class="brand">
-      <i class="fa-solid fa-burger"></i>
-      <span>FoodFlow Suite</span>
-      <span class="academic-badge">Academic Project</span>
-    </a>
-    <ul class="top-menu">
-      <li class="top-menu-item active" id="menu-home"><a href="javascript:void(0)" onclick="switchPage('home')"><i
-            class="fa-solid fa-house"></i> Home</a></li>
-      <li class="top-menu-item" id="menu-sdd"><a href="javascript:void(0)" onclick="switchPage('sdd')"><i
-            class="fa-solid fa-file-contract"></i> SDD</a></li>
-      <li class="top-menu-item" id="menu-uml"><a href="javascript:void(0)" onclick="switchPage('uml')"><i
-            class="fa-solid fa-network-wired"></i> UML Diagrams</a></li>
-      <li class="top-menu-item" id="menu-development"><a href="javascript:void(0)"
-          onclick="switchPage('development')"><i class="fa-solid fa-laptop-code"></i> Development</a></li>
-      <li class="top-menu-item" id="menu-testing"><a href="javascript:void(0)" onclick="switchPage('testing')"><i
-            class="fa-solid fa-vial-circle-check"></i> Test Cases</a></li>
-      <li class="top-menu-item" id="menu-security"><a href="javascript:void(0)" onclick="switchPage('security')"><i
-            class="fa-solid fa-shield-halved"></i> Security & Bugs</a></li>
-      <li class="top-menu-item" id="menu-deploy"><a href="javascript:void(0)" onclick="switchPage('deploy')"><i
-            class="fa-solid fa-rocket"></i> Deploy</a></li>
-    </ul>
-  </header>
+      .sub-section {
+        scroll-margin-top: calc(var(--top-nav-height) + 30px);
+        margin-bottom: 3.5rem;
+      }
 
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <i class="fa-solid fa-list-ul"></i>
-      <span>Document Index</span>
-    </div>
+      h1 {
+        font-size: 2.75rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+      }
 
-    <!-- Home Sidebar Group -->
-    <div class="sidebar-group active-group" id="links-group-home">
-      <div class="group-title"><i class="fa-solid fa-house"></i> 1. Home Dashboard</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#home-members">1.1 Group Members</a></li>
-        <li><a href="#home-submission">1.2 Submission Details</a></li>
-        <li><a href="#home-intro">1.3 Project Introduction</a></li>
-        <li><a href="#home-objectives">1.4 Core Objectives</a></li>
+      .section-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      p {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        margin-bottom: 1.5rem;
+        text-align: justify;
+      }
+
+      ul,
+      ol {
+        margin-left: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      li strong {
+        color: var(--text-main);
+      }
+
+      .highlight-card {
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.3s ease;
+      }
+
+      .highlight-card:hover {
+        border-color: rgba(0, 224, 143, 0.3);
+      }
+
+      .highlight-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background-color: var(--primary);
+      }
+
+      .schema-card {
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+      }
+
+      .schema-header {
+        background-color: var(--bg-surface-elevated);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .schema-title {
+        font-weight: 600;
+        color: var(--primary);
+        font-family: var(--font-mono);
+        font-size: 1.1rem;
+      }
+
+      .schema-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 0.5rem;
+        background-color: var(--primary-glow);
+        color: var(--primary);
+        border-radius: 4px;
+        border: 1px solid rgba(255, 91, 38, 0.2);
+      }
+
+      .media-card {
+        background-color: var(--bg-surface);
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 1.5rem 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+
+      .media-card:hover {
+        border-color: var(--primary);
+        background-color: var(--primary-glow);
+      }
+
+      .media-card i {
+        font-size: 2.25rem;
+        color: var(--text-muted);
+        transition: color 0.3s ease;
+      }
+
+      .media-card:hover i {
+        color: var(--primary);
+      }
+
+      .media-card h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .media-card p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0;
+        max-width: 420px;
+      }
+
+      .group-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .member-card {
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .member-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255, 91, 38, 0.35);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .member-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-glow);
+        border: 1px solid rgba(255, 91, 38, 0.3);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+
+      .member-info h4 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+      }
+
+      .member-info span {
+        font-size: 0.85rem;
+        color: var(--primary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .member-contrib {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        border-top: 1px solid var(--border-color);
+        padding-top: 0.75rem;
+      }
+
+      .table-container {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin: 1.5rem 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      th {
+        background-color: var(--bg-surface);
+        color: var(--text-main);
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        vertical-align: middle;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tr:hover td {
+        color: var(--text-main);
+        background-color: rgba(255, 255, 255, 0.01);
+      }
+
+      .method-badge {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        display: inline-block;
+      }
+
+      .method-badge.get {
+        background-color: rgba(0, 224, 143, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(0, 224, 143, 0.2);
+      }
+
+      .method-badge.post {
+        background-color: rgba(255, 184, 0, 0.1);
+        color: var(--secondary);
+        border: 1px solid rgba(255, 184, 0, 0.2);
+      }
+
+      .method-badge.put {
+        background-color: rgba(58, 140, 255, 0.1);
+        color: var(--info);
+        border: 1px solid rgba(58, 140, 255, 0.2);
+      }
+
+      .method-badge.delete {
+        background-color: rgba(255, 74, 90, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(255, 74, 90, 0.2);
+      }
+
+      pre {
+        background-color: #111115;
+        padding: 1.5rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        color: #a9b7c6;
+        border-radius: 0 0 12px 12px;
+        border: 1px solid var(--border-color);
+        border-top: none;
+      }
+
+      code {
+        font-family: var(--font-mono);
+        color: var(--primary);
+        background-color: var(--primary-glow);
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      .security-box {
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        display: flex;
+        gap: 1.25rem;
+      }
+
+      .security-box i {
+        font-size: 1.75rem;
+        margin-top: 0.25rem;
+      }
+
+      .security-box.defense {
+        background-color: rgba(0, 224, 143, 0.02);
+        border-left: 4px solid var(--primary);
+      }
+
+      .security-box.defense i {
+        color: var(--primary);
+      }
+
+      .security-box.weakness {
+        background-color: rgba(255, 184, 0, 0.02);
+        border-left: 4px solid var(--secondary);
+      }
+
+      .security-box.weakness i {
+        color: var(--secondary);
+      }
+
+      .security-box.bugfix {
+        background-color: rgba(58, 140, 255, 0.02);
+        border-left: 4px solid var(--info);
+      }
+
+      .security-box.bugfix i {
+        color: var(--info);
+      }
+
+      .security-content h4 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+      }
+
+      @media (max-width: 992px) {
+        aside.sidebar {
+          display: none;
+        }
+
+        main.content-wrapper {
+          margin-left: 0;
+          width: 100%;
+          padding: 2rem;
+        }
+
+        .top-menu {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="top-nav">
+      <a href="javascript:void(0)" onclick="switchPage('home')" class="brand">
+        <i class="fa-solid fa-burger"></i>
+        <span>FoodFlow Suite</span>
+        <span class="academic-badge">Academic Project</span>
+      </a>
+      <ul class="top-menu">
+        <li class="top-menu-item active" id="menu-home">
+          <a href="javascript:void(0)" onclick="switchPage('home')"
+            ><i class="fa-solid fa-house"></i> Home</a
+          >
+        </li>
+        <li class="top-menu-item" id="menu-sdd">
+          <a href="javascript:void(0)" onclick="switchPage('sdd')"
+            ><i class="fa-solid fa-file-contract"></i> SDD</a
+          >
+        </li>
+        <li class="top-menu-item" id="menu-uml">
+          <a href="javascript:void(0)" onclick="switchPage('uml')"
+            ><i class="fa-solid fa-network-wired"></i> UML Diagrams</a
+          >
+        </li>
+        <li class="top-menu-item" id="menu-development">
+          <a href="javascript:void(0)" onclick="switchPage('development')"
+            ><i class="fa-solid fa-laptop-code"></i> Development</a
+          >
+        </li>
+        <li class="top-menu-item" id="menu-testing">
+          <a href="javascript:void(0)" onclick="switchPage('testing')"
+            ><i class="fa-solid fa-vial-circle-check"></i> Test Cases</a
+          >
+        </li>
+        <li class="top-menu-item" id="menu-security">
+          <a href="javascript:void(0)" onclick="switchPage('security')"
+            ><i class="fa-solid fa-shield-halved"></i> Security & Bugs</a
+          >
+        </li>
+        <li class="top-menu-item" id="menu-deploy">
+          <a href="javascript:void(0)" onclick="switchPage('deploy')"
+            ><i class="fa-solid fa-rocket"></i> Deploy</a
+          >
+        </li>
       </ul>
-    </div>
+    </header>
 
-    <!-- SDD Sidebar Group -->
-    <div class="sidebar-group" id="links-group-sdd">
-      <div class="group-title"><i class="fa-solid fa-file-invoice"></i> 2. System Design</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#sdd-summary">2.1 Executive Summary</a></li>
-        <li><a href="#sdd-scope">2.2 Portal Scope</a></li>
-        <li><a href="#sdd-dir">2.3 Directory Map</a></li>
-        <li><a href="#sdd-api">2.4 API Endpoint Matrix</a></li>
-        <li><a href="#sdd-schemas">2.5 Database Schemas</a></li>
-        <li><a href="#sdd-lifecycle">2.6 Order Lifecycle</a></li>
-        <li><a href="#sdd-soc">2.7 SOC & Threat Auditing</a></li>
-        <li><a href="#sdd-enhancements">2.8 Recommended Action</a></li>
-        <li><a href="#sdd-media">2.9 Visual Alerts</a></li>
-      </ul>
-    </div>
-
-    <!-- UML Sidebar Group -->
-    <div class="sidebar-group" id="links-group-uml">
-      <div class="group-title"><i class="fa-solid fa-diagram-project"></i> 3. UML Diagrams</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#uml-usecase">3.1 Use Case Diagram</a></li>
-        <li><a href="#uml-class">3.2 Class Diagram</a></li>
-      </ul>
-    </div>
-
-    <!-- Development Sidebar Group -->
-    <div class="sidebar-group" id="links-group-development">
-      <div class="group-title"><i class="fa-solid fa-code"></i> 4. Development</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#dev-env">4.1 Environment Keys</a></li>
-        <li><a href="#dev-rxjs">4.2 RxJS Observables</a></li>
-        <li><a href="#dev-terminal">4.3 Server Screenshots</a></li>
-      </ul>
-    </div>
-
-    <!-- Testing Cases Sidebar Group -->
-    <div class="sidebar-group" id="links-group-testing">
-      <div class="group-title"><i class="fa-solid fa-vial-circle-check"></i> 5. Test Cases</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#test-suite">5.1 Verification Matrix</a></li>
-        <li><a href="#test-postman">5.2 Run Logs Screenshot</a></li>
-      </ul>
-    </div>
-
-    <!-- Security & Bug Fixes Sidebar Group -->
-    <div class="sidebar-group" id="links-group-security">
-      <div class="group-title"><i class="fa-solid fa-shield-halved"></i> 6. Security & Bugs</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#sec-safeguards">6.1 Implemented Controls</a></li>
-        <li><a href="#sec-threat">6.2 Threat Mitigation</a></li>
-        <li><a href="#sec-typescript">6.3 Ivy Compiler Fixes</a></li>
-      </ul>
-    </div>
-
-    <!-- Production Deployment Sidebar Group -->
-    <div class="sidebar-group" id="links-group-deploy">
-      <div class="group-title"><i class="fa-solid fa-cloud-arrow-up"></i> 7. Deploy & Budgets</div>
-      <ul class="sidebar-links">
-        <li class="active"><a href="#deploy-budgets">7.1 Styles Sizing Patches</a></li>
-        <li><a href="#deploy-commands">7.2 Build & Git Commands</a></li>
-        <li><a href="#deploy-console">7.3 Deploy Screenshot</a></li>
-      </ul>
-    </div>
-  </aside>
-
-  <main class="content-wrapper">
-
-    <!-- PAGE: HOME -->
-    <div id="page-home" class="main-page active-page">
-      <h1>FoodFlow — Systems Specification Suite</h1>
-      <div class="section-subtitle">Multi-Portal Food Delivery & Dynamic Ledger Platform</div>
-
-      <div id="home-members" class="sub-section">
-        <h2><i class="fa-solid fa-users"></i> 1.1. Group Members</h2>
-        <p>The academic project was designed and developed by:</p>
-        <div class="group-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-          <div class="member-card" style="padding: 1.5rem; gap: 0.75rem;">
-            <div class="member-avatar">MF</div>
-            <div class="member-info">
-              <h4 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">Muhammad Farooq</h4>
-              <span style="color: var(--primary); display: block; font-size: 0.9rem; font-weight: 700; margin: 0.15rem 0;">Roll No: 2500017</span>
-              <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Program: ADCS</span>
-            </div>
-          </div>
-          <div class="member-card" style="padding: 1.5rem; gap: 0.75rem;">
-            <div class="member-avatar">MZ</div>
-            <div class="member-info">
-              <h4 style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem;">Maham Zia</h4>
-              <span style="color: var(--primary); display: block; font-size: 0.9rem; font-weight: 700; margin: 0.15rem 0;">Roll No: 2500022</span>
-              <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Program: ADCS</span>
-            </div>
-          </div>
-        </div>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>Document Index</span>
       </div>
 
-      <div id="home-submission" class="sub-section">
-        <h2><i class="fa-solid fa-graduation-cap"></i> 1.2. Project Submission Details</h2>
-        <p>This document serves as the official project specification report submitted in fulfillment of the semester project requirements:</p>
-        <div class="highlight-card" style="border-left-color: var(--info); display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem;">
-          <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">University</strong>
-            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Air University Islamabad</p>
-          </div>
-          <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Department</strong>
-            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Department of Computer Science</p>
-          </div>
-          <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Program &amp; Semester</strong>
-            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">ADCS (Associate Degree in CS) - Semester 3rd</p>
-          </div>
-          <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Course / Subject</strong>
-            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Information Security Lab</p>
-          </div>
-          <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Instructor / Teacher</strong>
-            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Sir Shakir Hussain</p>
-          </div>
-          <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Project type</strong>
-            <p style="margin-top: 0.25rem; margin-bottom: 0; font-size: 1rem; color: var(--text-main); font-weight: 500;">Semester Project</p>
-          </div>
+      <!-- Home Sidebar Group -->
+      <div class="sidebar-group active-group" id="links-group-home">
+        <div class="group-title">
+          <i class="fa-solid fa-house"></i> 1. Home Dashboard
         </div>
-      </div>
-
-      <div id="home-intro" class="sub-section">
-        <h2><i class="fa-solid fa-bookmark"></i> 1.3. Project Introduction</h2>
-        <p>
-          <strong>FoodFlow</strong> is a modern, responsive, full-stack food delivery and earnings management system
-          built on stateless REST interfaces. The application solves critical real-time operational coordination
-          friction between multiple roles: Customers, Restaurant Owners, Riders, and Central Administrators.
-        </p>
-        <p>
-          Unlike conventional delivery setups plagued by high network latency and un-reactive components, FoodFlow
-          implements an asynchronous state polling architecture that pushes updates dynamically across portals,
-          eliminating manual browser refreshes.
-        </p>
-        <div class="highlight-card">
-          <p style="margin-bottom: 0; font-weight: 500; color: var(--text-main);">
-            Key Innovations: Stateless JWT role-based claims verification, dynamic driver dispatch pipelines, live
-            dashboard kitchen notifications with audio-visual triggers, star review aggregation models, and premium
-            glassmorphic visual presentation.
-          </p>
-        </div>
-      </div>
-
-      <div id="home-objectives" class="sub-section">
-        <h2><i class="fa-solid fa-bullseye"></i> 1.4. Core Objectives</h2>
-        <p>The system was designed and verified against four primary development objectives:</p>
-        <ol>
-          <li><strong>Architectural Cohesion:</strong> Bridging user interactions via role-based claims decoded immediately from unified cryptographic authorization tokens.</li>
-          <li><strong>Algorithmic Integrity:</strong> Calculating real-time average store feedback (1-decimal place precision) and allocating automated Rs. 150 transaction fees to delivery drivers.</li>
-          <li><strong>Performance Optimization:</strong> Tuning build stylesheet budgets to permit custom dark dashboards rendering without bundle compilation failures.</li>
-          <li><strong>Security Rigor:</strong> Blocking cross-portal injection attacks, database credential theft, and invalid template memory reference bugs.</li>
-        </ol>
-      </div>
-    </div>
-
-    <!-- PAGE: SDD -->
-    <div id="page-sdd" class="main-page">
-      <h1>2. System Design (SDD) Specifications</h1>
-      <div class="section-subtitle">Database, Directory, and Core API Architectures</div>
-
-      <div id="sdd-summary" class="sub-section">
-        <h2>2.1. Executive Summary & Problem Statement</h2>
-        <div class="highlight-card">
-          <p style="margin-bottom: 0; font-weight: 500; color: var(--text-main);">
-            FoodFlow solves modern food delivery friction by providing a highly synchronized, multi-portal application
-            built on stateless rest interfaces. The architecture bridges the real-time operational gap between
-            Customers, Restaurants, Riders, and Admins.
-          </p>
-        </div>
-        <p>
-          Traditional food platforms experience high latency and severe coordination overhead caused by siloed
-          operational frameworks. Customers suffer from static, un-reactive delivery trackers, restaurants struggle with
-          complex manual rider dispatch coordination, and riders lack micro-incentives like dynamic wallet ledgers that
-          track real-time delivery counts and earnings.
-        </p>
-        <p><strong>FoodFlow addresses these limits by establishing a clean, unified platform:</strong></p>
-        <ul>
-          <li><strong>Unified Cryptographic Identities:</strong> Single-sign-on layout where user authentication claims are decoded to securely direct users to their dedicated portals.</li>
-          <li><strong>Real-time Polling Engine:</strong> Dashboards and active tracking templates trigger asynchronous checks (every 5 seconds) to cycle order status, update dispatch queues, and trigger alerts without page reloads.</li>
-          <li><strong>Low Overhead State Lifecycle:</strong> Strict state transition sequences powered by stateless JSON Web Token (JWT) assertions.</li>
-          <li><strong>Security Operations Center (SOC):</strong> Real-time threat monitoring, automated IP blocking, active session termination, and complete multi-device audit trails.</li>
+        <ul class="sidebar-links">
+          <li class="active"><a href="#home-members">1.1 Group Members</a></li>
+          <li><a href="#home-submission">1.2 Submission Details</a></li>
+          <li><a href="#home-intro">1.3 Project Introduction</a></li>
+          <li><a href="#home-objectives">1.4 Core Objectives</a></li>
         </ul>
       </div>
 
-      <div id="sdd-scope" class="sub-section">
-        <h2>2.2. Functional Scope & Portals</h2>
-
-        <h3>2.2.1. Customer Portal Workspace</h3>
-        <p>
-          Customers access a premium, dark-themed responsive discovery panel. Features include restaurant filtering by
-          active municipal boundaries, interactive cart checkouts featuring auto-calculated grand totals (adding a fixed
-          Rs. 150 delivery fee), a persistent graphical order-status bar, and a star feedback system.
-        </p>
-
-        <h3>2.2.2. Restaurant Kitchen Dashboard</h3>
-        <p>
-          Kitchen operators can configure restaurant details, manage menu items within food categories, and process
-          incoming orders. When an order arrives, a prominent visual alert appears. Ready orders can be dispatched by
-          selecting from a list of active online riders.
-        </p>
-
-        <h3>2.2.3. Rider Fleet Ledger & Dispatch Automation</h3>
-        <p>
-          Riders operate a dashboard featuring an automated city-based queue allocation system. When a rider toggles "Online", the system assigns a dynamic FIFO queue number. Delivering an order increments the rider's successful order count, credits Rs. 150 to their earnings wallet, and mandates an offline state to ensure fair re-queueing for subsequent dispatches.
-        </p>
-
-        <h3>2.2.4. Central System Governance & SOC Dashboard</h3>
-        <p>
-          Root Administrators monitor real-time system metrics (users, active stores, order count, and gross revenue). Admins verify and approve new restaurants, define system cities, manage operational categories, and utilize the advanced Data Inspection modal and Security Operations Center (SOC) to inspect telemetry and block malicious threats instantly.
-        </p>
+      <!-- SDD Sidebar Group -->
+      <div class="sidebar-group" id="links-group-sdd">
+        <div class="group-title">
+          <i class="fa-solid fa-file-invoice"></i> 2. System Design
+        </div>
+        <ul class="sidebar-links">
+          <li class="active">
+            <a href="#sdd-summary">2.1 Executive Summary</a>
+          </li>
+          <li><a href="#sdd-scope">2.2 Portal Scope</a></li>
+          <li><a href="#sdd-dir">2.3 Directory Map</a></li>
+          <li><a href="#sdd-api">2.4 API Endpoint Matrix</a></li>
+          <li><a href="#sdd-schemas">2.5 Database Schemas</a></li>
+          <li><a href="#sdd-lifecycle">2.6 Order Lifecycle</a></li>
+          <li><a href="#sdd-soc">2.7 Security Center & Threat Auditing</a></li>
+          <li><a href="#sdd-enhancements">2.8 Recommended Action</a></li>
+          <li><a href="#sdd-media">2.9 Visual Alerts</a></li>
+        </ul>
       </div>
 
-      <div id="sdd-dir" class="sub-section">
-        <h2>2.3. Project Directory Architecture</h2>
-        <p>The codebase utilizes a separated Client-Server layout. The backend is configured as a modular Node.js/Express API, while the frontend is an Angular 17 SPA (Single Page Application).</p>
-        <pre>
+      <!-- UML Sidebar Group -->
+      <div class="sidebar-group" id="links-group-uml">
+        <div class="group-title">
+          <i class="fa-solid fa-diagram-project"></i> 3. UML Diagrams
+        </div>
+        <ul class="sidebar-links">
+          <li class="active">
+            <a href="#uml-usecase">3.1 Use Case Diagram</a>
+          </li>
+          <li><a href="#uml-class">3.2 Class Diagram</a></li>
+        </ul>
+      </div>
+
+      <!-- Development Sidebar Group -->
+      <div class="sidebar-group" id="links-group-development">
+        <div class="group-title">
+          <i class="fa-solid fa-code"></i> 4. Development
+        </div>
+        <ul class="sidebar-links">
+          <li class="active"><a href="#dev-env">4.1 Environment Keys</a></li>
+          <li><a href="#dev-rxjs">4.2 RxJS Observables</a></li>
+          <li><a href="#dev-terminal">4.3 Server Screenshots</a></li>
+        </ul>
+      </div>
+
+      <!-- Testing Cases Sidebar Group -->
+      <div class="sidebar-group" id="links-group-testing">
+        <div class="group-title">
+          <i class="fa-solid fa-vial-circle-check"></i> 5. Test Cases
+        </div>
+        <ul class="sidebar-links">
+          <li class="active">
+            <a href="#test-suite">5.1 Verification Matrix</a>
+          </li>
+          <li><a href="#test-postman">5.2 Run Logs Screenshot</a></li>
+        </ul>
+      </div>
+
+      <!-- Security & Bug Fixes Sidebar Group -->
+      <div class="sidebar-group" id="links-group-security">
+        <div class="group-title">
+          <i class="fa-solid fa-shield-halved"></i> 6. Security & Bugs
+        </div>
+        <ul class="sidebar-links">
+          <li class="active">
+            <a href="#sec-safeguards">6.1 Implemented Controls</a>
+          </li>
+          <li><a href="#sec-threat">6.2 Threat Mitigation</a></li>
+          <li><a href="#sec-typescript">6.3 Ivy Compiler Fixes</a></li>
+        </ul>
+      </div>
+
+      <!-- Production Deployment Sidebar Group -->
+      <div class="sidebar-group" id="links-group-deploy">
+        <div class="group-title">
+          <i class="fa-solid fa-cloud-arrow-up"></i> 7. Deploy & Budgets
+        </div>
+        <ul class="sidebar-links">
+          <li class="active">
+            <a href="#deploy-budgets">7.1 Styles Sizing Patches</a>
+          </li>
+          <li><a href="#deploy-commands">7.2 Build & Git Commands</a></li>
+          <li><a href="#deploy-console">7.3 Deploy Screenshot</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="content-wrapper">
+      <!-- PAGE: HOME -->
+      <div id="page-home" class="main-page active-page">
+        <h1>FoodFlow — Systems Specification Suite</h1>
+        <div class="section-subtitle">
+          Multi-Portal Food Delivery & Dynamic Ledger Platform
+        </div>
+
+        <div id="home-members" class="sub-section">
+          <h2><i class="fa-solid fa-users"></i> 1.1. Group Members</h2>
+          <p>The academic project was designed and developed by:</p>
+          <div
+            class="group-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))"
+          >
+            <div class="member-card" style="padding: 1.5rem; gap: 0.75rem">
+              <div class="member-avatar">MF</div>
+              <div class="member-info">
+                <h4
+                  style="
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: var(--text-main);
+                    margin-bottom: 0.15rem;
+                  "
+                >
+                  Muhammad Farooq
+                </h4>
+                <span
+                  style="
+                    color: var(--primary);
+                    display: block;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    margin: 0.15rem 0;
+                  "
+                  >Roll No: 2500017</span
+                >
+                <span
+                  style="
+                    color: var(--text-muted);
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                  "
+                  >Program: ADCS</span
+                >
+              </div>
+            </div>
+            <div class="member-card" style="padding: 1.5rem; gap: 0.75rem">
+              <div class="member-avatar">MZ</div>
+              <div class="member-info">
+                <h4
+                  style="
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: var(--text-main);
+                    margin-bottom: 0.15rem;
+                  "
+                >
+                  Maham Zia
+                </h4>
+                <span
+                  style="
+                    color: var(--primary);
+                    display: block;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    margin: 0.15rem 0;
+                  "
+                  >Roll No: 2500022</span
+                >
+                <span
+                  style="
+                    color: var(--text-muted);
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                  "
+                  >Program: ADCS</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="home-submission" class="sub-section">
+          <h2>
+            <i class="fa-solid fa-graduation-cap"></i> 1.2. Project Submission
+            Details
+          </h2>
+          <p>
+            This document serves as the official project specification report
+            submitted in fulfillment of the semester project requirements:
+          </p>
+          <div
+            class="highlight-card"
+            style="
+              border-left-color: var(--info);
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+              gap: 2rem;
+            "
+          >
+            <div>
+              <strong
+                style="
+                  color: var(--primary);
+                  font-size: 0.85rem;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                "
+                >University</strong
+              >
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  margin-bottom: 0;
+                  font-size: 1rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Air University Islamabad
+              </p>
+            </div>
+            <div>
+              <strong
+                style="
+                  color: var(--primary);
+                  font-size: 0.85rem;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                "
+                >Department</strong
+              >
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  margin-bottom: 0;
+                  font-size: 1rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Department of Computer Science
+              </p>
+            </div>
+            <div>
+              <strong
+                style="
+                  color: var(--primary);
+                  font-size: 0.85rem;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                "
+                >Program &amp; Semester</strong
+              >
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  margin-bottom: 0;
+                  font-size: 1rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                ADCS (Associate Degree in CS) - Semester 3rd
+              </p>
+            </div>
+            <div>
+              <strong
+                style="
+                  color: var(--primary);
+                  font-size: 0.85rem;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                "
+                >Course / Subject</strong
+              >
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  margin-bottom: 0;
+                  font-size: 1rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Information Security Lab
+              </p>
+            </div>
+            <div>
+              <strong
+                style="
+                  color: var(--primary);
+                  font-size: 0.85rem;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                "
+                >Instructor / Teacher</strong
+              >
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  margin-bottom: 0;
+                  font-size: 1rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Sir Shakir Hussain
+              </p>
+            </div>
+            <div>
+              <strong
+                style="
+                  color: var(--primary);
+                  font-size: 0.85rem;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                "
+                >Project type</strong
+              >
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  margin-bottom: 0;
+                  font-size: 1rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Semester Project
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="home-intro" class="sub-section">
+          <h2>
+            <i class="fa-solid fa-bookmark"></i> 1.3. Project Introduction
+          </h2>
+          <p>
+            <strong>FoodFlow</strong> is a complete food delivery system that
+            works for customers, restaurants, riders, and admins. It uses simple
+            server calls and keeps the user interface fast and easy.
+          </p>
+          <p>
+            Instead of forcing users to refresh the page, FoodFlow checks for
+            new updates in the background and shows fresh information to each
+            portal automatically.
+          </p>
+          <div class="highlight-card">
+            <p
+              style="
+                margin-bottom: 0;
+                font-weight: 500;
+                color: var(--text-main);
+              "
+            >
+              Key Innovations: Easy login tokens for each role, fast rider
+              assignment, live kitchen alerts, star rating updates, and a clean
+              modern dashboard look.
+            </p>
+          </div>
+        </div>
+
+        <div id="home-objectives" class="sub-section">
+          <h2><i class="fa-solid fa-bullseye"></i> 1.4. Core Objectives</h2>
+          <p>
+            The system was designed and verified against four primary
+            development objectives:
+          </p>
+          <ol>
+            <li>
+              <strong>Architectural Cohesion:</strong> Connect all users with one
+              reliable system so each role works in the right place.
+            </li>
+            <li>
+              <strong>Algorithmic Integrity:</strong> Keep ratings and rider
+              fees updated automatically and correctly.
+            </li>
+            <li>
+              <strong>Performance Optimization:</strong> Make pages load fast and
+              work well in the dashboard without errors.
+            </li>
+            <li>
+              <strong>Security Rigor:</strong> Keep users in their correct role
+              and stop bad input or wrong access from breaking the app.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- PAGE: SDD -->
+      <div id="page-sdd" class="main-page">
+        <h1>2. System Design (SDD) Specifications</h1>
+        <div class="section-subtitle">
+          Core data structure, folder layout, and API routes
+        </div>
+
+        <div id="sdd-summary" class="sub-section">
+          <h2>2.1. Executive Summary & Problem Statement</h2>
+          <div class="highlight-card">
+            <p
+              style="
+                margin-bottom: 0;
+                font-weight: 500;
+                color: var(--text-main);
+              "
+            >
+              FoodFlow solves common delivery problems by giving each user
+              portal a clear and connected experience. Customers, restaurants,
+              riders, and admins can work together smoothly.
+            </p>
+          </div>
+          <p>
+            Normal delivery systems are slow and hard to manage. Customers often
+            wait for updates, restaurants have to coordinate riders by hand,
+            and riders do not see their earnings clearly.
+          </p>
+          <p>
+            <strong>FoodFlow fixes these problems with one simple shared app:</strong>
+          </p>
+          <ul>
+            <li>
+              <strong>Unified Login Tokens:</strong> One login system sends each
+              user to the right portal and keeps them signed in safely.
+            </li>
+            <li>
+              <strong>Live Update System:</strong> Dashboards check for new
+              updates every few seconds, so users see fresh order and delivery
+              information without reloading.
+            </li>
+            <li>
+              <strong>Simple Login State Tracking:</strong> The app uses tokens
+              to track login state without storing extra session data on the
+              server.
+            </li>
+            <li>
+              <strong>Security Center:</strong> The admin panel watches for bad
+              activity and can block IPs or force logout when needed.
+            </li>
+          </ul>
+        </div>
+
+        <div id="sdd-scope" class="sub-section">
+          <h2>2.2. Functional Scope & Portals</h2>
+          <h3>2.2.1. Customer Portal Workspace</h3>
+          <p>
+            Customers see a clean ordering page with a dark theme. They can
+            choose restaurants, add food to the cart, see the total with the
+            Rs. 150 delivery fee, and track their order status with star
+            ratings.
+          </p>
+
+          <h3>2.2.2. Restaurant Kitchen Dashboard</h3>
+          <p>
+            Restaurants can update their profile, manage menu items, and handle
+            incoming orders. When a new order arrives, the app shows a clear
+            alert. Ready orders can be sent to online riders from a list.
+          </p>
+
+          <h3>2.2.3. Rider Fleet Ledger & Dispatch Automation</h3>
+          <p>
+            Riders use a dashboard that gives them a queue number when they go
+            online. After delivering an order, the rider earns Rs. 150, their
+            delivery count goes up, and the app puts them offline so the next
+            rider gets a fair turn.
+          </p>
+
+          <h3>2.2.4. Central System Governance & Security Dashboard</h3>
+          <p>
+            Admins watch users, stores, orders, and revenue in real time.
+            They can approve new restaurants, set cities, manage categories,
+            and use the security view to see suspicious activity and block threats.
+          </p>
+        </div>
+
+        <div id="sdd-dir" class="sub-section">
+          <h2>2.3. Project Directory Architecture</h2>
+          <p>
+            The project has two parts: a server using Node.js/Express and a
+            client using Angular. The server handles data and the client shows
+            the app in the browser.
+          </p>
+          <pre>
 food-delivery-system/
 ├── server/                               # Node.js/Express backend
 │   ├── middleware/
@@ -964,7 +1244,7 @@ food-delivery-system/
 │   │   ├── BlockedIP.js                  # Blacklisted IP address registry
 │   │   └── User.js                       # User credentials, devices, and active roles
 │   ├── routes/
-│   │   ├── admin.js                      # Admin analytics, inspection & SOC CRUD
+│   │   ├── admin.js                      # Admin analytics, inspection & security CRUD
 │   │   ├── auth.js                       # Registration, hashing & tokens
 │   │   ├── customer.js                   # Checkout, status, & review operations
 │   │   ├── restaurant.js                 # Catalog, profile & manual dispatching
@@ -973,219 +1253,278 @@ food-delivery-system/
 │
 └── client/                               # Angular 17 SPA client
     ├── src/app/components/
-    │   ├── admin/                        # Admin statistics, SOC & inspection panels
+    │   ├── admin/                        # Admin statistics, security & inspection panels
     │   ├── customer/                     # Dark-mode ordering & tracking panels
     │   ├── restaurant/                   # Kitchen CRUD & manual dispatching UI
     │   └── rider/                        # Online availability, queue # & delivery logs
     └── angular.json                      # Style configurations & compilation budgets
-        </pre>
-      </div>
-
-      <div id="sdd-api" class="sub-section">
-        <h2>2.4. API Endpoint Specification</h2>
-        <p>The table below defines the core API routes, access privileges, and operations across the platform:</p>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Domain</th>
-                <th>Method</th>
-                <th>Endpoint Path</th>
-                <th>Access Role</th>
-                <th>Operational Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Authentication</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/auth/register</code></td>
-                <td>Public</td>
-                <td>Create new credentials and set system role</td>
-              </tr>
-              <tr>
-                <td><strong>Authentication</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/auth/login</code></td>
-                <td>Public</td>
-                <td>Validate credentials, audit device signature, and generate JWT</td>
-              </tr>
-              <tr>
-                <td><strong>Customer</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/customer/restaurants</code></td>
-                <td>Customer</td>
-                <td>List active approved stores in customer's city</td>
-              </tr>
-              <tr>
-                <td><strong>Customer</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/customer/order</code></td>
-                <td>Customer</td>
-                <td>Submit card checkout/COD request</td>
-              </tr>
-              <tr>
-                <td><strong>Customer</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/customer/order/:id/review</code></td>
-                <td>Customer</td>
-                <td>Add star ratings and recalculate restaurant/item averages dynamically</td>
-              </tr>
-              <tr>
-                <td><strong>Restaurant</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/restaurant/menu</code></td>
-                <td>Restaurant</td>
-                <td>Create new menu entry within catalog category</td>
-              </tr>
-              <tr>
-                <td><strong>Restaurant</strong></td>
-                <td><span class="method-badge put">PUT</span></td>
-                <td><code>/api/restaurant/order/:id/dispatch</code></td>
-                <td>Restaurant</td>
-                <td>Assign an active online rider to standard delivery</td>
-              </tr>
-              <tr>
-                <td><strong>Rider</strong></td>
-                <td><span class="method-badge put">PUT</span></td>
-                <td><code>/api/rider/status</code></td>
-                <td>Rider</td>
-                <td>Toggle online readiness and allocate FIFO queue position</td>
-              </tr>
-              <tr>
-                <td><strong>Rider</strong></td>
-                <td><span class="method-badge put">PUT</span></td>
-                <td><code>/api/rider/order/:id/status</code></td>
-                <td>Rider</td>
-                <td>Complete delivery, trigger wallet payout, and mandate offline re-queueing</td>
-              </tr>
-              <tr>
-                <td><strong>Admin</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/admin/stats</code></td>
-                <td>Admin</td>
-                <td>Aggregate total revenue, orders, active users, and database storage stats</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Users)</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/admin/users</code></td>
-                <td>Admin</td>
-                <td>Retrieve all user accounts with dynamically calculated <code>ordersCount</code></td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Inspection)</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/admin/users/:id/details</code></td>
-                <td>Admin</td>
-                <td>Fetch comprehensive role-specific inspection data (Rider telemetry, Restaurant catalogs, Customer order logs)</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Security)</strong></td>
-                <td><span class="method-badge put">PUT</span></td>
-                <td><code>/api/admin/security-logs/mark-read</code></td>
-                <td>Admin</td>
-                <td>Mark all security threat logs as read ($ne: true matching)</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Security)</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/admin/security/block-ip</code></td>
-                <td>Admin</td>
-                <td>Block malicious IP address and flag associated user account</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Security)</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/admin/security/force-logout</code></td>
-                <td>Admin</td>
-                <td>Immediately revoke active user sessions and force logout across devices</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Audit)</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/admin/user-logs</code></td>
-                <td>Admin</td>
-                <td>Fetch global user activity audit stream (logins, failures, profile edits)</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Audit)</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/admin/user-audit-summary</code></td>
-                <td>Admin</td>
-                <td>Retrieve aggregated user API requests, login attempts, and device signatures</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Audit)</strong></td>
-                <td><span class="method-badge delete">DELETE</span></td>
-                <td><code>/api/admin/user-logs/:id</code></td>
-                <td>Admin</td>
-                <td>Prune specific user activity log entry</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Audit)</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/admin/user-logs/clear</code></td>
-                <td>Admin</td>
-                <td>Wipe entire user activity log history</td>
-              </tr>
-              <tr>
-                <td><strong>Admin (Audit)</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/admin/user-audit/reset-attempts</code></td>
-                <td>Admin</td>
-                <td>Reset specific user request or login attempt counters</td>
-              </tr>
-              <tr>
-                <td><strong>Subscription</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/subscription/restaurant/plans</code></td>
-                <td>Restaurant</td>
-                <td>Create weekly, monthly, or custom recurring meal subscription plans</td>
-              </tr>
-              <tr>
-                <td><strong>Subscription</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/subscription/restaurant/subscribers</code></td>
-                <td>Restaurant</td>
-                <td>Retrieve all active subscription requests, active plans, and daily delivery schedules</td>
-              </tr>
-              <tr>
-                <td><strong>Subscription</strong></td>
-                <td><span class="method-badge post">POST</span></td>
-                <td><code>/api/subscription/restaurant/assign-rider</code></td>
-                <td>Restaurant</td>
-                <td>Batch assign an active online rider to a group of subscription meal deliveries</td>
-              </tr>
-              <tr>
-                <td><strong>Subscription</strong></td>
-                <td><span class="method-badge get">GET</span></td>
-                <td><code>/api/subscription/rider/deliveries</code></td>
-                <td>Rider</td>
-                <td>Fetch assigned subscription meal batches and drop-off subscriber locations</td>
-              </tr>
-              <tr>
-                <td><strong>Subscription</strong></td>
-                <td><span class="method-badge put">PUT</span></td>
-                <td><code>/api/subscription/rider/delivery/:id/status</code></td>
-                <td>Rider</td>
-                <td>Update subscription meal status (pickedup/delivered) and force offline re-queueing upon batch completion</td>
-              </tr>
-            </tbody>
-          </table>
+        </pre
+          >
         </div>
-      </div>
 
-      <div id="sdd-schemas" class="sub-section">
-        <h2>2.5. Mongoose Data Models</h2>
-        <p>The data layer enforces relational integrity using Mongoose references. Below are key schemas that drive the system:</p>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">Order.js</span>
-            <span class="schema-badge">Document Schema</span>
+        <div id="sdd-api" class="sub-section">
+          <h2>2.4. API Endpoint Specification</h2>
+          <p>
+            The table below defines the core API routes, access privileges, and
+            operations across the platform:
+          </p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Method</th>
+                  <th>Endpoint Path</th>
+                  <th>Access Role</th>
+                  <th>Operational Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Authentication</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/auth/register</code></td>
+                  <td>Public</td>
+                  <td>Create new credentials and set system role</td>
+                </tr>
+                <tr>
+                  <td><strong>Authentication</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/auth/login</code></td>
+                  <td>Public</td>
+                  <td>
+                    Validate credentials, audit device signature, and generate
+                    JWT
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Customer</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/customer/restaurants</code></td>
+                  <td>Customer</td>
+                  <td>List active approved stores in customer's city</td>
+                </tr>
+                <tr>
+                  <td><strong>Customer</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/customer/order</code></td>
+                  <td>Customer</td>
+                  <td>Submit card checkout/COD request</td>
+                </tr>
+                <tr>
+                  <td><strong>Customer</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/customer/order/:id/review</code></td>
+                  <td>Customer</td>
+                  <td>
+                    Add star ratings and recalculate restaurant/item averages
+                    dynamically
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Restaurant</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/restaurant/menu</code></td>
+                  <td>Restaurant</td>
+                  <td>Create new menu entry within catalog category</td>
+                </tr>
+                <tr>
+                  <td><strong>Restaurant</strong></td>
+                  <td><span class="method-badge put">PUT</span></td>
+                  <td><code>/api/restaurant/order/:id/dispatch</code></td>
+                  <td>Restaurant</td>
+                  <td>Assign an active online rider to standard delivery</td>
+                </tr>
+                <tr>
+                  <td><strong>Rider</strong></td>
+                  <td><span class="method-badge put">PUT</span></td>
+                  <td><code>/api/rider/status</code></td>
+                  <td>Rider</td>
+                  <td>
+                    Toggle online readiness and allocate FIFO queue position
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Rider</strong></td>
+                  <td><span class="method-badge put">PUT</span></td>
+                  <td><code>/api/rider/order/:id/status</code></td>
+                  <td>Rider</td>
+                  <td>
+                    Complete delivery, trigger wallet payout, and mandate
+                    offline re-queueing
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/admin/stats</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Aggregate total revenue, orders, active users, and database
+                    storage stats
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Users)</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/admin/users</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Retrieve all user accounts with dynamically calculated
+                    <code>ordersCount</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Inspection)</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/admin/users/:id/details</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Fetch comprehensive role-specific inspection data (Rider
+                    telemetry, Restaurant catalogs, Customer order logs)
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Security)</strong></td>
+                  <td><span class="method-badge put">PUT</span></td>
+                  <td><code>/api/admin/security-logs/mark-read</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Mark all security threat logs as read ($ne: true matching)
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Security)</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/admin/security/block-ip</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Block malicious IP address and flag associated user account
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Security)</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/admin/security/force-logout</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Immediately revoke active user sessions and force logout
+                    across devices
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Audit)</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/admin/user-logs</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Fetch global user activity audit stream (logins, failures,
+                    profile edits)
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Audit)</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/admin/user-audit-summary</code></td>
+                  <td>Admin</td>
+                  <td>
+                    Retrieve aggregated user API requests, login attempts, and
+                    device signatures
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Audit)</strong></td>
+                  <td><span class="method-badge delete">DELETE</span></td>
+                  <td><code>/api/admin/user-logs/:id</code></td>
+                  <td>Admin</td>
+                  <td>Prune specific user activity log entry</td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Audit)</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/admin/user-logs/clear</code></td>
+                  <td>Admin</td>
+                  <td>Wipe entire user activity log history</td>
+                </tr>
+                <tr>
+                  <td><strong>Admin (Audit)</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/admin/user-audit/reset-attempts</code></td>
+                  <td>Admin</td>
+                  <td>Reset specific user request or login attempt counters</td>
+                </tr>
+                <tr>
+                  <td><strong>Subscription</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td><code>/api/subscription/restaurant/plans</code></td>
+                  <td>Restaurant</td>
+                  <td>
+                    Create weekly, monthly, or custom recurring meal
+                    subscription plans
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Subscription</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/subscription/restaurant/subscribers</code></td>
+                  <td>Restaurant</td>
+                  <td>
+                    Retrieve all active subscription requests, active plans, and
+                    daily delivery schedules
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Subscription</strong></td>
+                  <td><span class="method-badge post">POST</span></td>
+                  <td>
+                    <code>/api/subscription/restaurant/assign-rider</code>
+                  </td>
+                  <td>Restaurant</td>
+                  <td>
+                    Batch assign an active online rider to a group of
+                    subscription meal deliveries
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Subscription</strong></td>
+                  <td><span class="method-badge get">GET</span></td>
+                  <td><code>/api/subscription/rider/deliveries</code></td>
+                  <td>Rider</td>
+                  <td>
+                    Fetch assigned subscription meal batches and drop-off
+                    subscriber locations
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Subscription</strong></td>
+                  <td><span class="method-badge put">PUT</span></td>
+                  <td>
+                    <code>/api/subscription/rider/delivery/:id/status</code>
+                  </td>
+                  <td>Rider</td>
+                  <td>
+                    Update subscription meal status (pickedup/delivered) and
+                    force offline re-queueing upon batch completion
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <pre>
+        </div>
+
+        <div id="sdd-schemas" class="sub-section">
+          <h2>2.5. Mongoose Data Models</h2>
+          <p>
+            The data layer enforces relational integrity using Mongoose
+            references. Below are key schemas that drive the system:
+          </p>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">Order.js</span>
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const OrderSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
@@ -1213,15 +1552,16 @@ const OrderSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">RiderProfile.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">RiderProfile.js</span>
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const RiderProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   city: { type: String, required: true },
@@ -1233,15 +1573,16 @@ const RiderProfileSchema = new mongoose.Schema({
   currentOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
   updatedAt: { type: Date, default: Date.now }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">MenuItem.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">MenuItem.js</span>
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const MenuItemSchema = new mongoose.Schema({
   restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
   name: { type: String, required: true },
@@ -1253,29 +1594,31 @@ const MenuItemSchema = new mongoose.Schema({
   reviewCount: { type: Number, default: 0 },
   isAvailable: { type: Boolean, default: true }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">BlockedIP.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">BlockedIP.js</span>
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const BlockedIPSchema = new mongoose.Schema({
   ipAddress: { type: String, required: true, unique: true },
   reason: { type: String, default: 'Suspicious Activity / Attack' },
   blockedAt: { type: Date, default: Date.now }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">SecurityLog.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">SecurityLog.js</span>
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const SecurityLogSchema = new mongoose.Schema({
   eventType: { 
     type: String, 
@@ -1292,15 +1635,16 @@ const SecurityLogSchema = new mongoose.Schema({
   isRead: { type: Boolean, default: false },
   timestamp: { type: Date, default: Date.now }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">UserLog.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">UserLog.js</span>
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const UserLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   email: { type: String, required: true },
@@ -1314,15 +1658,18 @@ const UserLogSchema = new mongoose.Schema({
   details: { type: String },
   timestamp: { type: Date, default: Date.now }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">User.js (Audit & Threat Extension Fields)</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title"
+                >User.js (Audit & Threat Extension Fields)</span
+              >
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 // Extended User Schema fields for real-time audit and threat tracking
 apiRequestsCount: { type: Number, default: 0 },
 loginAttempts: { type: Number, default: 0 },
@@ -1332,15 +1679,18 @@ loginDevices: [{
   lastLogin: { type: Date, default: Date.now }
 }],
 lastLoginAt: { type: Date }
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">SubscriptionPlan.js &amp; SubscriptionOrder.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title"
+                >SubscriptionPlan.js &amp; SubscriptionOrder.js</span
+              >
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const SubscriptionPlanSchema = new mongoose.Schema({
   restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
   name: { type: String, required: true },
@@ -1365,15 +1715,18 @@ const SubscriptionOrderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now }
 });
-          </pre>
-        </div>
-
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">DeliverySchedule.js &amp; RiderAssignment.js</span>
-            <span class="schema-badge">Document Schema</span>
+          </pre
+            >
           </div>
-          <pre>
+
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title"
+                >DeliverySchedule.js &amp; RiderAssignment.js</span
+              >
+              <span class="schema-badge">Document Schema</span>
+            </div>
+            <pre>
 const DeliveryScheduleSchema = new mongoose.Schema({
   subscriptionOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionOrder', required: true },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -1396,84 +1749,179 @@ const RiderAssignmentSchema = new mongoose.Schema({
   assignedAt: { type: Date, default: Date.now },
   status: { type: String, enum: ['assigned', 'in_progress', 'completed'], default: 'assigned' }
 });
-          </pre>
+          </pre
+            >
+          </div>
+        </div>
+
+        <div id="sdd-lifecycle" class="sub-section">
+          <h2>2.6. Order Operational Flow</h2>
+          <p>
+            The system follows a clear flow from order placement to customer
+            feedback:
+          </p>
+          <ol>
+            <li>
+              <strong>Order Initiation:</strong> Customer completes checkout.
+              The order is marked as <code>pending</code> and shown to the
+              restaurant.
+            </li>
+            <li>
+              <strong>Order Acceptance:</strong> Restaurant gets an alert,
+              accepts the order, and updates it to <code>preparing</code> and
+              then <code>ready</code>.
+            </li>
+            <li>
+              <strong>Rider Allocation:</strong> Restaurant picks an online
+              rider in the same city and sends the order to them.
+            </li>
+            <li>
+              <strong>Delivery Phase:</strong> The rider picks up the order and
+              marks it as <code>delivered</code> when it reaches the customer.
+            </li>
+            <li>
+              <strong>Wallet, Payout & Re-queueing:</strong> After delivery,
+              the rider earns Rs. 150, gets credit for the order, and is set
+              offline so the next rider gets a fair turn.
+            </li>
+          </ol>
+        </div>
+
+        <div id="sdd-soc" class="sub-section">
+          <h2>2.7. Security Center & Threat Auditing Flow</h2>
+          <p>
+            The platform tracks suspicious activity and logs important events:
+          </p>
+          <ol>
+            <li>
+              <strong>Request Auditing:</strong> Every API request is logged and
+              counted so the system knows who is making requests.
+            </li>
+            <li>
+              <strong>Threat Detection:</strong> If someone tries to use an admin
+              route without permission, the system records it as a security
+              event.
+            </li>
+            <li>
+              <strong>Security Response:</strong> The admin view shows these issues
+              right away and lets admins block the IP or force logout to stop
+              the bad activity.
+            </li>
+          </ol>
+        </div>
+
+        <div id="sdd-subscription" class="sub-section">
+          <h2>2.8. Subscription Meal Delivery Service Architecture</h2>
+          <p>
+            The platform supports recurring meal plans, such as weekly lunch or
+            monthly diet subscriptions, with a clear delivery workflow:
+          </p>
+          <ol>
+            <li>
+              <strong>Plan &amp; Menu Creation:</strong> Restaurants set up
+              recurring meal plans and daily menus, like Monday salad or Tuesday
+              bowl.
+            </li>
+            <li>
+              <strong>Subscriber Approval &amp; Schedule Generation:</strong>
+              Customers request a plan. After approval, the system creates every
+              delivery schedule automatically.
+            </li>
+            <li>
+              <strong>Batch Kitchen Dispatch:</strong> The kitchen marks meals as
+              ready, groups them by area, and assigns them to one rider.
+            </li>
+            <li>
+              <strong>Rider Multi-Dropoff &amp; Offline Re-queueing:</strong>
+              The rider gets one batch with all delivery stops. After finishing
+              the batch, the rider goes offline and must come online again to
+              get a fair new queue number.
+            </li>
+          </ol>
+        </div>
+
+        <div id="sdd-enhancements" class="sub-section">
+          <h2>2.9. Future Enhancements</h2>
+          <ul>
+            <li>
+              <strong>Bidirectional WebSockets:</strong> Use live socket updates
+              instead of checking for changes every few seconds.
+            </li>
+            <li>
+              <strong>Secure Payment Gateway:</strong> Add credit or debit card
+              payments with secure server checks.
+            </li>
+            <li>
+              <strong>Interactive Map Tracking:</strong> Add a map that shows
+              restaurant and delivery locations.
+            </li>
+          </ul>
+        </div>
+
+        <div id="sdd-media" class="sub-section">
+          <h2>2.9. System Operational Screenshots</h2>
+          <div class="media-card">
+            <i class="fa-regular fa-image"></i>
+            <h4>Screenshot: Restaurant Kitchen Alert Overlay Panel</h4>
+            <p>
+              Insert visual screenshot showing the audio-visual pop-up overlay
+              appearing immediately on restaurant dashboard when a customer
+              triggers checkout.
+            </p>
+          </div>
+
+          <div class="media-card">
+            <i class="fa-regular fa-image"></i>
+            <h4>Screenshot: Customer Interactive 5-Star Reviews Widget</h4>
+            <p>
+              Insert visual screenshot showing the glassmorphic modal with star
+              indicators appearing in customer order history upon delivery
+              completion.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div id="sdd-lifecycle" class="sub-section">
-        <h2>2.6. Order Operational Flow</h2>
-        <p>The system relies on a secure transactional loop from order placement to customer feedback:</p>
-        <ol>
-          <li><strong>Order Initiation:</strong> Customer completes checkout. The order is recorded as <code>pending</code> and added to the restaurant's active list.</li>
-          <li><strong>Order Acceptance:</strong> Restaurant receives an alert, accepts the order (changing status to <code>accepted</code>), and advances it to <code>preparing</code> and then <code>ready</code>.</li>
-          <li><strong>Rider Allocation:</strong> Restaurant lists active online riders in the matching city, chooses an available rider, and executes a manual dispatch.</li>
-          <li><strong>Delivery Phase:</strong> Assigned rider picks up the package (<code>pickedup</code>) and marks it as <code>delivered</code> upon arrival.</li>
-          <li><strong>Wallet, Payout & Re-queueing:</strong> Delivering the order automatically adds Rs. 150 to the rider's earnings wallet, increments their delivery count, mandates an offline state (<code>isReady: false</code>, <code>queueNumber: 0</code>) to ensure fair re-queueing for subsequent dispatches, and unlocks the customer feedback star modal to dynamically recalculate the restaurant's and individual menu items' average ratings in the database.</li>
-        </ol>
-      </div>
-
-      <div id="sdd-soc" class="sub-section">
-        <h2>2.7. Security Operations Center (SOC) & Threat Auditing Flow</h2>
-        <p>The platform implements an advanced intrusion detection and audit logging pipeline:</p>
-        <ol>
-          <li><strong>Request Auditing:</strong> Every incoming API request passes through auditing middleware, incrementing <code>apiRequestsCount</code> for the authenticated user and logging device signatures (IP and User-Agent).</li>
-          <li><strong>Threat Detection:</strong> If an unauthorized access attempt occurs (e.g., non-admin accessing <code>/api/admin</code>), a <code>SecurityLog</code> is generated with <code>high</code> severity.</li>
-          <li><strong>SOC Response:</strong> The Admin SOC dashboard polls security logs in real-time, allowing administrators to click <strong>"Block IP"</strong> or <strong>"Force Logout"</strong>, instantly updating <code>BlockedIP</code> or setting <code>forceLogout: true</code> on the user account to terminate unauthorized sessions instantly across all active devices.</li>
-        </ol>
-      </div>
-
-      <div id="sdd-subscription" class="sub-section">
-        <h2>2.8. Subscription Meal Delivery Service Architecture</h2>
-        <p>The platform supports recurring meal delivery plans (Weekly Lunch, Monthly Diet, Gym Meal Subscriptions) via a dedicated batch orchestration workflow:</p>
-        <ol>
-          <li><strong>Plan &amp; Menu Creation:</strong> Restaurant owners configure recurring subscription plans and build daily menu rotation schedules (e.g., Monday: Grilled Chicken Salad, Tuesday: Quinoa Bowl).</li>
-          <li><strong>Subscriber Approval &amp; Schedule Generation:</strong> Customers request subscription plans. Upon restaurant approval, the system generates discrete <code>DeliverySchedule</code> documents for each delivery day in the subscription date range.</li>
-          <li><strong>Batch Kitchen Dispatch:</strong> Kitchen staff mark daily subscription meals as ready and group them by geographical area into a single <code>RiderAssignment</code> batch, assigning an active online rider.</li>
-          <li><strong>Rider Multi-Dropoff &amp; Offline Re-queueing:</strong> The assigned rider receives the batch card on their dashboard containing all subscriber drop-off locations. <strong>CRITICAL LOGIC:</strong> Upon completing the final delivery in a subscription batch, the system automatically sets the rider's status to <code>offline</code> (<code>isReady: false</code>, <code>queueNumber: 0</code>). This forces the rider to re-initiate their online status and obtain a fresh FIFO queue number, ensuring absolute fairness in driver dispatch allocation.</li>
-        </ol>
-      </div>
-
-      <div id="sdd-enhancements" class="sub-section">
-        <h2>2.9. Future Enhancements</h2>
-        <ul>
-          <li><strong>Bidirectional WebSockets:</strong> Replace dynamic polling with a persistent event network built on <code>Socket.io</code> to reduce server overhead.</li>
-          <li><strong>Secure Payment Gateway:</strong> Add credit/debit card support using Stripe Elements with server-side webhook validation.</li>
-          <li><strong>Interactive Map Tracking:</strong> Integrate a map interface showing distances between restaurant locations and customer delivery addresses.</li>
-        </ul>
-      </div>
-
-      <div id="sdd-media" class="sub-section">
-        <h2>2.9. System Operational Screenshots</h2>
-        <div class="media-card">
-          <i class="fa-regular fa-image"></i>
-          <h4>Screenshot: Restaurant Kitchen Alert Overlay Panel</h4>
-          <p>Insert visual screenshot showing the audio-visual pop-up overlay appearing immediately on restaurant dashboard when a customer triggers checkout.</p>
+      <!-- PAGE: UML DIAGRAMS -->
+      <div id="page-uml" class="main-page">
+        <h1>3. Architectural UML Diagrams</h1>
+        <div class="section-subtitle">
+          Showing system layout and connections
         </div>
 
-        <div class="media-card">
-          <i class="fa-regular fa-image"></i>
-          <h4>Screenshot: Customer Interactive 5-Star Reviews Widget</h4>
-          <p>Insert visual screenshot showing the glassmorphic modal with star indicators appearing in customer order history upon delivery completion.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE: UML DIAGRAMS -->
-    <div id="page-uml" class="main-page">
-      <h1>3. Architectural UML Diagrams</h1>
-      <div class="section-subtitle">Visualizing Scopes, Flows, and Class Relationships</div>
-
-      <div id="uml-usecase" class="sub-section">
-        <h2>3.1. Dynamic User Case Diagram</h2>
-        <p>Illustrates boundary cases and structural actions permitted for each core platform actor:</p>
-        <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1rem; display: flex; justify-content: center; overflow-x: auto;">
-          <pre class="mermaid" style="background: none; padding: 0; margin: 0; color: inherit; overflow: visible;">
+        <div id="uml-usecase" class="sub-section">
+          <h2>3.1. Dynamic User Case Diagram</h2>
+          <p>
+            Shows what each user role can do in the system:
+          </p>
+          <div
+            style="
+              background-color: var(--bg-surface);
+              border: 1px solid var(--border-color);
+              border-radius: 12px;
+              padding: 2rem;
+              margin-bottom: 1rem;
+              display: flex;
+              justify-content: center;
+              overflow-x: auto;
+            "
+          >
+            <pre
+              class="mermaid"
+              style="
+                background: none;
+                padding: 0;
+                margin: 0;
+                color: inherit;
+                overflow: visible;
+              "
+            >
 flowchart TD
     subgraph Actors
         C[Customer]
         R[Restaurant Owner]
         D[Rider]
-        A[Admin / SOC Analyst]
+        A[Admin / Security Analyst]
     end
 
     subgraph CustomerUseCases [Customer Actions]
@@ -1497,13 +1945,13 @@ flowchart TD
         UD3[Deliver Package & Earn Payout]
     end
 
-    subgraph AdminUseCases [Admin & SOC Actions]
+    subgraph AdminUseCases [Admin & Security Actions]
         UA1[Monitor Central System Statistics]
         UA2[Approve/Reject New Restaurants]
         UA3[Define City & Category Taxonomies]
         UA4[Manage Platform Accounts & Role Tabs]
         UA5[Inspect User/Rider/Restaurant Telemetry]
-        UA6[Monitor SOC Threat Logs & Block IPs]
+        UA6[Monitor security logs & block IPs]
     end
 
     C --> UC1
@@ -1527,15 +1975,37 @@ flowchart TD
     A --> UA4
     A --> UA5
     A --> UA6
-          </pre>
+          </pre
+            >
+          </div>
         </div>
-      </div>
 
-      <div id="uml-class" class="sub-section">
-        <h2>3.2. Master System Class Diagram</h2>
-        <p>Defines backend structural schemas layout and multiplicity connections:</p>
-        <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; display: flex; justify-content: center; overflow-x: auto;">
-          <pre class="mermaid" style="background: none; padding: 0; margin: 0; color: inherit; overflow: visible;">
+        <div id="uml-class" class="sub-section">
+          <h2>3.2. Master System Class Diagram</h2>
+          <p>
+            Shows how the main data models are connected:
+          </p>
+          <div
+            style="
+              background-color: var(--bg-surface);
+              border: 1px solid var(--border-color);
+              border-radius: 12px;
+              padding: 2rem;
+              display: flex;
+              justify-content: center;
+              overflow-x: auto;
+            "
+          >
+            <pre
+              class="mermaid"
+              style="
+                background: none;
+                padding: 0;
+                margin: 0;
+                color: inherit;
+                overflow: visible;
+              "
+            >
 classDiagram
     class User {
         +ObjectId _id
@@ -1648,53 +2118,68 @@ classDiagram
     Order "many" --> "1" User : riderId
     City "many" --> "1" User : addedBy
     Category "many" --> "1" User : addedBy
-          </pre>
+          </pre
+            >
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- PAGE: DEVELOPMENT -->
-    <div id="page-development" class="main-page">
-      <h1>4. Local Development Specifications</h1>
-      <div class="section-subtitle">Local Setup, Variable Constants, and RxJS Patterns</div>
+      <!-- PAGE: DEVELOPMENT -->
+      <div id="page-development" class="main-page">
+        <h1>4. Local Development Specifications</h1>
+        <div class="section-subtitle">
+          Local setup, connection settings, and UI update patterns
+        </div>
 
-      <div id="dev-env" class="sub-section">
-        <h2>4.1. Environment Configuration Setup</h2>
-        <p>Variables required for standard secure database handshakes and API parsing:</p>
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">server/.env</span>
-            <span class="schema-badge">Express Settings</span>
-          </div>
-          <pre>
+        <div id="dev-env" class="sub-section">
+          <h2>4.1. Environment Configuration Setup</h2>
+          <p>
+            Settings needed for the database and API connections:
+          </p>
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">server/.env</span>
+              <span class="schema-badge">Express Settings</span>
+            </div>
+            <pre>
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/foodDelivery
 JWT_SECRET=your_decryption_secret_key_here
-          </pre>
-        </div>
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">client/src/environments/environment.ts</span>
-            <span class="schema-badge">Angular Constants</span>
+          </pre
+            >
           </div>
-          <pre>
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title"
+                >client/src/environments/environment.ts</span
+              >
+              <span class="schema-badge">Angular Constants</span>
+            </div>
+            <pre>
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:5000/api'
 };
-          </pre>
-        </div>
-      </div>
-
-      <div id="dev-rxjs" class="sub-section">
-        <h2>4.2. Asynchronous RxJS State Observables</h2>
-        <p>Dynamic reactive patterns applied to customer tracking and kitchen pop-up alerts. Short-polling updates the UI every 5 seconds securely, with lifecycle garbage collection:</p>
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">Observer Management with Clean Disposal</span>
-            <span class="schema-badge">Angular Code Snippet</span>
+          </pre
+            >
           </div>
-          <pre>
+        </div>
+
+        <div id="dev-rxjs" class="sub-section">
+          <h2>4.2. UI Update Timing</h2>
+          <p>
+            This section shows how the app checks for new updates every 5
+            seconds and keeps the page from leaking browser resources when it
+            closes.
+          </p>
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title"
+                >Observer Management with Clean Disposal</span
+              >
+              <span class="schema-badge">Angular Code Snippet</span>
+            </div>
+            <pre>
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 @Component({
@@ -1721,156 +2206,271 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
     // API short-polling logic
   }
 }
-          </pre>
-        </div>
-      </div>
-
-      <div id="dev-terminal" class="sub-section">
-        <h2>4.3. Terminal Outputs Screenshot</h2>
-        <div class="media-card">
-          <i class="fa-regular fa-image"></i>
-          <h4>Screenshot: Local Development Server logs</h4>
-          <p>Insert screenshot showing backend connection logs ("MongoDB Connected...") and client execution output side-by-side.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE: TEST CASES -->
-    <div id="page-testing" class="main-page">
-      <h1>5. System Verification & Test Cases</h1>
-      <div class="section-subtitle">QA Scenarios, Actions, and Verification Matrices</div>
-
-      <div id="test-suite" class="sub-section">
-        <h2>5.1. Quality Assurance Verification Matrix</h2>
-        <p>Standard scenarios checked to verify functional portals behavior:</p>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Scenario ID</th>
-                <th>Target Validation Action</th>
-                <th>Step Instructions</th>
-                <th>Expected Result (Pass Criteria)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>TC-1</strong></td>
-                <td>Grand Total Cart Logic check</td>
-                <td>Add menu items (Rs. 400). Proceed to checkout.</td>
-                <td>Total displays exactly <code>Rs. 550</code> (Rs. 400 items + Rs. 150 flat delivery fee).</td>
-              </tr>
-              <tr>
-                <td><strong>TC-2</strong></td>
-                <td>Kitchen Alerts short-polling verification</td>
-                <td>Trigger customer checkout order. Keep store dashboard idle.</td>
-                <td>Visual modal appears within 5 seconds displaying exact items list.</td>
-              </tr>
-              <tr>
-                <td><strong>TC-3</strong></td>
-                <td>Manual Rider Allocation list</td>
-                <td>Set Rider to 'Online'. Proceed to ready order dispatch select.</td>
-                <td>Rider's name is dynamically loaded; selecting dispatches status.</td>
-              </tr>
-              <tr>
-                <td><strong>TC-4</strong></td>
-                <td>Rider Wallet Payout Credit</td>
-                <td>Access rider dashboard, click 'Delivered' button on order.</td>
-                <td>Order state cycles to delivered; Rider wallet increments by Rs. 150.</td>
-              </tr>
-              <tr>
-                <td><strong>TC-5</strong></td>
-                <td>Feedback Star-Rating Aggregate calculation</td>
-                <td>Open rate modal on delivered order, select 5 Stars and submit.</td>
-                <td>Review document updates order, Restaurant Schema rating average is updated.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="test-postman" class="sub-section">
-        <h2>5.2. API Test Run Screenshot</h2>
-        <div class="media-card">
-          <i class="fa-regular fa-image"></i>
-          <h4>Screenshot: Postman Suite / Jest Success Logs</h4>
-          <p>Insert visual screenshot showing the API endpoints testing successfully with passing status indicators.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE: SECURITY & BUG FIXES -->
-    <div id="page-security" class="main-page">
-      <h1>6. Security Architecture & Resolved Bug Fixes</h1>
-      <div class="section-subtitle">Active Protections, Vulnerabilities mitigation, and compiler bugs fixes</div>
-
-      <div id="sec-safeguards" class="sub-section">
-        <h2>6.1. Implemented Architectural Controls</h2>
-        <div class="security-box defense">
-          <i class="fa-solid fa-lock"></i>
-          <div class="security-content">
-            <h4>Bcryptjs Hashing (10 Rounds)</h4>
-            <p style="margin-bottom: 0;">Passwords are salted and hashed before database commits, preventing raw credentials visibility from dictionary crack matching database tables.</p>
+          </pre
+            >
           </div>
         </div>
-        <div class="security-box defense">
-          <i class="fa-solid fa-user-shield"></i>
-          <div class="security-content">
-            <h4>Token RBAC Interceptor middle-tier</h4>
-            <p style="margin-bottom: 0;">Private endpoints check user role claim variables in decrypted JWT tokens to prevent unauthorized cross-portal API requests.</p>
-          </div>
-        </div>
-        <div class="security-box defense">
-          <i class="fa-solid fa-eye-slash"></i>
-          <div class="security-content">
-            <h4>Query Projection Constraints</h4>
-            <p style="margin-bottom: 0;">Database operations exclude password hashes (e.g. <code>User.find({}, '-password')</code>) to prevent accidental credential leakage in JSON responses.</p>
+
+        <div id="dev-terminal" class="sub-section">
+          <h2>4.3. Terminal Outputs Screenshot</h2>
+          <div class="media-card">
+            <i class="fa-regular fa-image"></i>
+            <h4>Screenshot: Local Development Server logs</h4>
+            <p>
+              Insert screenshot showing backend connection logs ("MongoDB
+              Connected...") and client execution output side-by-side.
+            </p>
           </div>
         </div>
       </div>
 
-      <div id="sec-threat" class="sub-section">
-        <h2>6.2. Threat Modeling & Vulnerability Mitigation Plan</h2>
-        <p>We analyzed the current system structure against common vulnerabilities and defined clear mitigation plans:</p>
+      <!-- PAGE: TEST CASES -->
+      <div id="page-testing" class="main-page">
+        <h1>5. System Verification & Test Cases</h1>
+        <div class="section-subtitle">
+          QA checks and test results
+        </div>
 
-        <div class="security-box weakness">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="security-content">
-            <h4>1. Client-Side JWT Storage (XSS Risk)</h4>
-            <p><strong>Vulnerability:</strong> Access tokens are currently saved in browser <code>localStorage</code>, making them susceptible to theft via Cross-Site Scripting (XSS) attacks.</p>
-            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Migrate token storage from <code>localStorage</code> to **HttpOnly, Secure Cookies**, which prevents access via JavaScript and neutralizes script-based session theft.</p>
+        <div id="test-suite" class="sub-section">
+          <h2>5.1. Quality Assurance Verification Matrix</h2>
+          <p>
+            Standard scenarios checked to verify functional portals behavior:
+          </p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Scenario ID</th>
+                  <th>Target Validation Action</th>
+                  <th>Step Instructions</th>
+                  <th>Expected Result (Pass Criteria)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>TC-1</strong></td>
+                  <td>Grand Total Cart Logic check</td>
+                  <td>Add menu items (Rs. 400). Proceed to checkout.</td>
+                  <td>
+                    Total displays exactly <code>Rs. 550</code> (Rs. 400 items +
+                    Rs. 150 flat delivery fee).
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>TC-2</strong></td>
+                  <td>Kitchen Alerts short-polling verification</td>
+                  <td>
+                    Trigger customer checkout order. Keep store dashboard idle.
+                  </td>
+                  <td>
+                    Visual modal appears within 5 seconds displaying exact items
+                    list.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>TC-3</strong></td>
+                  <td>Manual Rider Allocation list</td>
+                  <td>
+                    Set Rider to 'Online'. Proceed to ready order dispatch
+                    select.
+                  </td>
+                  <td>
+                    Rider's name is dynamically loaded; selecting dispatches
+                    status.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>TC-4</strong></td>
+                  <td>Rider Wallet Payout Credit</td>
+                  <td>
+                    Access rider dashboard, click 'Delivered' button on order.
+                  </td>
+                  <td>
+                    Order state cycles to delivered; Rider wallet increments by
+                    Rs. 150.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>TC-5</strong></td>
+                  <td>Feedback Star-Rating Aggregate calculation</td>
+                  <td>
+                    Open rate modal on delivered order, select 5 Stars and
+                    submit.
+                  </td>
+                  <td>
+                    Review document updates order, Restaurant Schema rating
+                    average is updated.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div class="security-box weakness">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="security-content">
-            <h4>2. Lack of Authentication Rate Limiting</h4>
-            <p><strong>Vulnerability:</strong> The login route permits unlimited connection attempts, exposing user accounts to automated dictionary and brute-force cracking tools.</p>
-            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Integrate an active rate limiter like <code>express-rate-limit</code> to restrict logins to a maximum of 5 attempts within a 15-minute window per IP.</p>
+        <div id="test-postman" class="sub-section">
+          <h2>5.2. API Test Run Screenshot</h2>
+          <div class="media-card">
+            <i class="fa-regular fa-image"></i>
+            <h4>Screenshot: Postman Suite / Jest Success Logs</h4>
+            <p>
+              Insert visual screenshot showing the API endpoints testing
+              successfully with passing status indicators.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: SECURITY & BUG FIXES -->
+      <div id="page-security" class="main-page">
+        <h1>6. Security Architecture & Resolved Bug Fixes</h1>
+        <div class="section-subtitle">
+          Security protections, fixes, and bug corrections
+        </div>
+
+        <div id="sec-safeguards" class="sub-section">
+          <h2>6.1. Implemented Architectural Controls</h2>
+          <div class="security-box defense">
+            <i class="fa-solid fa-lock"></i>
+            <div class="security-content">
+              <h4>Bcryptjs Hashing (10 Rounds)</h4>
+              <p style="margin-bottom: 0">
+                Passwords are turned into secure hashes before saving so the raw
+                password is never stored in the database.
+              </p>
+            </div>
+          </div>
+          <div class="security-box defense">
+            <i class="fa-solid fa-user-shield"></i>
+            <div class="security-content">
+              <h4>Token RBAC Interceptor middle-tier</h4>
+              <p style="margin-bottom: 0">
+                Private routes check the user's role in their token so only the
+                correct users can access them.
+              </p>
+            </div>
+          </div>
+          <div class="security-box defense">
+            <i class="fa-solid fa-eye-slash"></i>
+            <div class="security-content">
+              <h4>Query Projection Constraints</h4>
+              <p style="margin-bottom: 0">
+                Database responses hide password fields so secret data is not
+                sent back to the browser.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div class="security-box weakness">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="security-content">
-            <h4>3. Absence of Strict Input Schema Validation</h4>
-            <p><strong>Vulnerability:</strong> Loose schema definitions allow potential attackers to pass NoSQL operator objects (such as <code>$ne</code>) to query fields.</p>
-            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Enforce strict request body structures using validators like <code>Joi</code> or <code>express-validator</code> before executing queries.</p>
-          </div>
-        </div>
+        <div id="sec-threat" class="sub-section">
+          <h2>6.2. Threat Modeling & Vulnerability Mitigation Plan</h2>
+          <p>
+            We analyzed the current system structure against common
+            vulnerabilities and defined clear mitigation plans:
+          </p>
 
-        <div class="security-box weakness">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <div class="security-content">
-            <h4>4. Broken Access Control — Customer Order Data Exposure</h4>
-            <p><strong>Vulnerability:</strong> The endpoint <code>GET /api/customer/order/:id</code> returns an order by ID without verifying that the authenticated customer owns that order.</p>
-            <p><strong>Location:</strong> <code>server/routes/customer.js</code> (Lines 95–101)</p>
-            <p><strong>Why this matters:</strong> An attacker can enumerate or guess order IDs and retrieve other customers' order details, including delivery address, phone number, order items, and status.</p>
-            
-            <div style="margin-top: 1.5rem;">
-              <h5 style="color: var(--danger); font-size: 1rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-exclamation-circle"></i> INSECURE CODE (BEFORE)</h5>
-              <pre><code>// ❌ VULNERABLE: No ownership check
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>1. Client-Side JWT Storage (XSS Risk)</h4>
+              <p>
+                <strong>Vulnerability:</strong> Access tokens are currently
+                saved in browser <code>localStorage</code>, making them
+                susceptible to theft via Cross-Site Scripting (XSS) attacks.
+              </p>
+              <p
+                style="
+                  margin-bottom: 0;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                <strong>Mitigation Plan:</strong> Migrate token storage from
+                <code>localStorage</code> to **HttpOnly, Secure Cookies**, which
+                prevents access via JavaScript and neutralizes script-based
+                session theft.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>2. Lack of Authentication Rate Limiting</h4>
+              <p>
+                <strong>Vulnerability:</strong> The login route permits
+                unlimited connection attempts, exposing user accounts to
+                automated dictionary and brute-force cracking tools.
+              </p>
+              <p
+                style="
+                  margin-bottom: 0;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                <strong>Mitigation Plan:</strong> Integrate an active rate
+                limiter like <code>express-rate-limit</code> to restrict logins
+                to a maximum of 5 attempts within a 15-minute window per IP.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>3. Absence of Strict Input Schema Validation</h4>
+              <p>
+                <strong>Vulnerability:</strong> Loose schema definitions allow
+                potential attackers to pass NoSQL operator objects (such as
+                <code>$ne</code>) to query fields.
+              </p>
+              <p
+                style="
+                  margin-bottom: 0;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                <strong>Mitigation Plan:</strong> Enforce strict request body
+                structures using validators like <code>Joi</code> or
+                <code>express-validator</code> before executing queries.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>4. Broken Access Control — Customer Order Data Exposure</h4>
+              <p>
+                <strong>Vulnerability:</strong> The endpoint
+                <code>GET /api/customer/order/:id</code> returns an order by ID
+                without verifying that the authenticated customer owns that
+                order.
+              </p>
+              <p>
+                <strong>Location:</strong>
+                <code>server/routes/customer.js</code> (Lines 95–101)
+              </p>
+              <p>
+                <strong>Why this matters:</strong> An attacker can enumerate or
+                guess order IDs and retrieve other customers' order details,
+                including delivery address, phone number, order items, and
+                status.
+              </p>
+
+              <div style="margin-top: 1.5rem">
+                <h5
+                  style="
+                    color: var(--danger);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-exclamation-circle"></i> INSECURE CODE
+                  (BEFORE)
+                </h5>
+                <pre><code>// ❌ VULNERABLE: No ownership check
 router.get('/order/:id', authMiddleware, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -1885,12 +2485,30 @@ router.get('/order/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });</code></pre>
-            </div>
+              </div>
 
-            <div style="margin-top: 1.5rem;">
-              <h5 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-shield-check"></i> SECURE CODE (AFTER)</h5>
-              <p style="color: var(--text-main); font-weight: 500; margin-bottom: 0.75rem;"><strong>Mitigation Plan:</strong> Enforce ownership checks by comparing <code>order.customerId</code> against <code>req.user.id</code> before returning the response.</p>
-              <pre><code>// ✅ FIXED: Verify customer ownership
+              <div style="margin-top: 1.5rem">
+                <h5
+                  style="
+                    color: var(--primary);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-shield-check"></i> SECURE CODE (AFTER)
+                </h5>
+                <p
+                  style="
+                    color: var(--text-main);
+                    font-weight: 500;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <strong>Mitigation Plan:</strong> Enforce ownership checks by
+                  comparing <code>order.customerId</code> against
+                  <code>req.user.id</code> before returning the response.
+                </p>
+                <pre><code>// ✅ FIXED: Verify customer ownership
 router.get('/order/:id', authMiddleware, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -1911,55 +2529,324 @@ router.get('/order/:id', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>5. Token Secret Problem — JWT Secret Fallback</h4>
+              <p>
+                <strong>Vulnerability:</strong> The current login code uses
+                <code>process.env.JWT_SECRET || 'secret'</code>. If the
+                environment secret is missing, the app falls back to a weak
+                hardcoded value.
+              </p>
+              <p>
+                <strong>Why it matters:</strong> A weak or missing secret makes
+                JWT tokens easy to guess, and stolen tokens can be forged by
+                attackers.
+              </p>
+              <div style="margin-top: 1rem">
+                <h5
+                  style="
+                    color: var(--danger);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-exclamation-circle"></i> INSECURE CODE
+                  (OLD)
+                </h5>
+                <pre><code>const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret');</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-box defense">
+            <i class="fa-solid fa-shield-check"></i>
+            <div class="security-content">
+              <h4>5. Token Secret Fix — Strong Secret and Token Expiry</h4>
+              <p>
+                <strong>Fix:</strong> Require a real secret from the server
+                environment and make tokens expire after a short time.
+              </p>
+              <div style="margin-top: 1rem">
+                <h5
+                  style="
+                    color: var(--primary);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-shield-check"></i> SECURE CODE (NEW)
+                </h5>
+                <pre><code>const secret = process.env.JWT_SECRET;
+if (!secret) {
+  throw new Error('JWT_SECRET is required');
+}
+const token = jwt.sign(
+  { id: user._id, role: user.role }, 
+  secret,
+  { expiresIn: '1h' }
+);</code></pre>
+              </div>
+              <p
+                style="
+                  margin-top: 0.75rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Easy explanation: Always use a real secret from your server
+                settings, never a default value, and make tokens stop working
+                after some time so stolen tokens are less useful.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>6. Missing Server Input Validation</h4>
+              <p>
+                <strong>Vulnerability:</strong> Some API routes accept fields
+                like <code>name</code>, <code>price</code>, and
+                <code>description</code>
+                without checking their types or presence.
+              </p>
+              <p>
+                <strong>Why this matters:</strong> Invalid or malicious input
+                can cause bad data in the database or unexpected server errors.
+              </p>
+              <div style="margin-top: 1rem">
+                <h5
+                  style="
+                    color: var(--danger);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-exclamation-circle"></i> INSECURE CODE
+                  (OLD)
+                </h5>
+                <pre><code>router.post('/menu', authMiddleware, async (req, res) => {
+  const { name, description, price, category, image } = req.body;
+  const menuItem = new MenuItem({
+    restaurantId: restaurant._id,
+    name,
+    description,
+    price,
+    category,
+    image
+  });
+  await menuItem.save();
+  res.status(201).json(menuItem);
+});</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-box defense">
+            <i class="fa-solid fa-shield-check"></i>
+            <div class="security-content">
+              <h4>6. Input Validation Fix — Check Request Fields</h4>
+              <p>
+                <strong>Fix:</strong> Require only expected fields and verify
+                that values are the right type before saving.
+              </p>
+              <div style="margin-top: 1rem">
+                <h5
+                  style="
+                    color: var(--primary);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-shield-check"></i> SECURE CODE (NEW)
+                </h5>
+                <pre><code>const { name, description, price, category, image } = req.body;
+if (!name || typeof name !== 'string' || !category || typeof category !== 'string' || typeof price !== 'number') {
+  return res.status(400).json({ error: 'Invalid menu item data' });
+}
+const menuItem = new MenuItem({
+  restaurantId: restaurant._id,
+  name,
+  description,
+  price,
+  category,
+  image
+});
+await menuItem.save();
+res.status(201).json(menuItem);</code></pre>
+              </div>
+              <p
+                style="
+                  margin-top: 0.75rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Easy explanation: Before saving data, check the fields one by
+                one. This keeps the database clean and stops bad input from
+                breaking the app.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box weakness">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="security-content">
+              <h4>7. Authentication & Identity Failure — Role Mismatch</h4>
+              <p>
+                <strong>Vulnerability:</strong> The login system may accept a
+                valid user but not always check if they are using the correct
+                portal for their role.
+              </p>
+              <p>
+                <strong>Why this matters:</strong> If a restaurant or rider logs
+                in through the wrong portal, they may gain access to pages or
+                actions that should be denied.
+              </p>
+              <div style="margin-top: 1rem">
+                <h5
+                  style="
+                    color: var(--danger);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-exclamation-circle"></i> INSECURE CODE
+                  (OLD)
+                </h5>
+                <pre><code>const user = await User.findOne({ email });
+if (!user || !(await bcrypt.compare(password, user.password))) {
+  return res.status(401).json({ error: 'Invalid credentials' });
+}
+// Missing strict portal role check for restaurant / rider pages
+return res.json({ token, user });</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-box defense">
+            <i class="fa-solid fa-shield-check"></i>
+            <div class="security-content">
+              <h4>7. Auth Fix — Verify Portal Role Before Login</h4>
+              <p>
+                <strong>Fix:</strong> Always check the requested portal role and
+                reject the login if the user's role does not match.
+              </p>
+              <div style="margin-top: 1rem">
+                <h5
+                  style="
+                    color: var(--primary);
+                    font-size: 1rem;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <i class="fa-solid fa-shield-check"></i> SECURE CODE (NEW)
+                </h5>
+                <pre><code>const user = await User.findOne({ email });
+if (!user || !(await bcrypt.compare(password, user.password))) {
+  return res.status(401).json({ error: 'Invalid credentials' });
+}
+if (portal === 'restaurant' && user.role !== 'restaurant') {
+  return res.status(403).json({ error: 'Use the restaurant login page' });
+}
+if (portal === 'rider' && user.role !== 'rider') {
+  return res.status(403).json({ error: 'Use the rider login page' });
+}
+// Continue only if portal and role match
+return res.json({ token, user });</code></pre>
+              </div>
+              <p
+                style="
+                  margin-top: 0.75rem;
+                  color: var(--text-main);
+                  font-weight: 500;
+                "
+              >
+                Easy explanation: If someone logs in through the restaurant
+                page, make sure they are really a restaurant user. If not, block
+                them and keep roles separate.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="sec-typescript" class="sub-section">
+          <h2>6.3. Strict TypeScript Compiler Bug Fixes</h2>
+          <p>
+            Major bugs resolved to allow strict template checks compilation
+            during rating modals additions:
+          </p>
+
+          <div class="security-box bugfix">
+            <i class="fa-solid fa-circle-check"></i>
+            <div class="security-content">
+              <h4>Safe Navigation Operators (?.): TS2532 Resolved</h4>
+              <p style="margin-bottom: 0">
+                Corrected raw nested sub-document queries
+                (<code>order.review.rating</code>) to optional chaining
+                navigigators (<code>order.review?.rating</code>), preventing
+                compilation crashes during loading states when reviews are
+                undefined.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box bugfix">
+            <i class="fa-solid fa-circle-check"></i>
+            <div class="security-content">
+              <h4>
+                Interface Optional Properties Declarations: TS2339 Resolved
+              </h4>
+              <p style="margin-bottom: 0">
+                Updated client-side inline <code>Order</code> interface models
+                in typescript components to explicitly declare optional review
+                schemas properties.
+              </p>
+            </div>
+          </div>
+
+          <div class="security-box bugfix">
+            <i class="fa-solid fa-circle-check"></i>
+            <div class="security-content">
+              <h4>Standard Attribute Style Binding (NG5002 Resolved)</h4>
+              <p style="margin-bottom: 0">
+                Resolved Angular parser error by updating typo event property
+                binding syntax <code>(style)="cursor:pointer;"</code> to
+                standard HTML style layouts declaration:
+                <code>style="cursor:pointer;"</code>.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="sec-typescript" class="sub-section">
-        <h2>6.3. Strict TypeScript Compiler Bug Fixes</h2>
-        <p>Major bugs resolved to allow strict template checks compilation during rating modals additions:</p>
-
-        <div class="security-box bugfix">
-          <i class="fa-solid fa-circle-check"></i>
-          <div class="security-content">
-            <h4>Safe Navigation Operators (?.): TS2532 Resolved</h4>
-            <p style="margin-bottom: 0;">Corrected raw nested sub-document queries (<code>order.review.rating</code>) to optional chaining navigigators (<code>order.review?.rating</code>), preventing compilation crashes during loading states when reviews are undefined.</p>
-          </div>
+      <!-- PAGE: DEPLOY & BUDGETS -->
+      <div id="page-deploy" class="main-page">
+        <h1>7. Production Deployment & Sizing Budgets</h1>
+        <div class="section-subtitle">
+          Bundles parameters, Styles budgets tuning, and compilation actions
         </div>
 
-        <div class="security-box bugfix">
-          <i class="fa-solid fa-circle-check"></i>
-          <div class="security-content">
-            <h4>Interface Optional Properties Declarations: TS2339 Resolved</h4>
-            <p style="margin-bottom: 0;">Updated client-side inline <code>Order</code> interface models in typescript components to explicitly declare optional review schemas properties.</p>
-          </div>
-        </div>
-
-        <div class="security-box bugfix">
-          <i class="fa-solid fa-circle-check"></i>
-          <div class="security-content">
-            <h4>Standard Attribute Style Binding (NG5002 Resolved)</h4>
-            <p style="margin-bottom: 0;">Resolved Angular parser error by updating typo event property binding syntax <code>(style)="cursor:pointer;"</code> to standard HTML style layouts declaration: <code>style="cursor:pointer;"</code>.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE: DEPLOY & BUDGETS -->
-    <div id="page-deploy" class="main-page">
-      <h1>7. Production Deployment & Sizing Budgets</h1>
-      <div class="section-subtitle">Bundles parameters, Styles budgets tuning, and compilation actions</div>
-
-      <div id="deploy-budgets" class="sub-section">
-        <h2>7.1. Custom Angular Stylesheet Budgets Patch</h2>
-        <p>Sleek custom dark-mode styling blocks exceed default components stylesheets limits (4kb). Sizing configurations inside <code>angular.json</code> were adjusted to support rich UI styling without compiler warnings:</p>
-        <div class="schema-card">
-          <div class="schema-header">
-            <span class="schema-title">angular.json</span>
-            <span class="schema-badge">Budgets Configuration</span>
-          </div>
-          <pre>
+        <div id="deploy-budgets" class="sub-section">
+          <h2>7.1. Custom Angular Stylesheet Budgets Patch</h2>
+          <p>
+            Sleek custom dark-mode styling blocks exceed default components
+            stylesheets limits (4kb). Sizing configurations inside
+            <code>angular.json</code> were adjusted to support rich UI styling
+            without compiler warnings:
+          </p>
+          <div class="schema-card">
+            <div class="schema-header">
+              <span class="schema-title">angular.json</span>
+              <span class="schema-badge">Budgets Configuration</span>
+            </div>
+            <pre>
 "budgets": [
   {
     "type": "initial",
@@ -1972,14 +2859,18 @@ router.get('/order/:id', authMiddleware, async (req, res) => {
     "maximumError": "150kb"
   }
 ]
-          </pre>
+          </pre
+            >
+          </div>
         </div>
-      </div>
 
-      <div id="deploy-commands" class="sub-section">
-        <h2>7.2. Production Compilation & Pushing Guides</h2>
-        <p>Steps executed to compile client and push to main production repository branches:</p>
-        <pre>
+        <div id="deploy-commands" class="sub-section">
+          <h2>7.2. Production Compilation & Pushing Guides</h2>
+          <p>
+            Steps executed to compile client and push to main production
+            repository branches:
+          </p>
+          <pre>
 # 1. Trigger production assets bundling
 cd client && npm run build
 
@@ -1991,91 +2882,107 @@ git commit -m "Fix: Strict TypeScript compilation issues resolved and adjusted A
 
 # 4. Push updates to GitHub Remote
 git push origin main
-        </pre>
-      </div>
+        </pre
+          >
+        </div>
 
-      <div id="deploy-console" class="sub-section">
-        <h2>7.3. Successful Deploy Output Screenshot</h2>
-        <div class="media-card">
-          <i class="fa-regular fa-image"></i>
-          <h4>Screenshot: Production Bundle & Git logs</h4>
-          <p>Insert visual screenshot showing clean exit code 0 on Angular production builds terminal and remote pushing confirmations logs.</p>
+        <div id="deploy-console" class="sub-section">
+          <h2>7.3. Successful Deploy Output Screenshot</h2>
+          <div class="media-card">
+            <i class="fa-regular fa-image"></i>
+            <h4>Screenshot: Production Bundle & Git logs</h4>
+            <p>
+              Insert visual screenshot showing clean exit code 0 on Angular
+              production builds terminal and remote pushing confirmations logs.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <footer style="margin-top: 5rem; border-top: 1px solid var(--border-color); padding-top: 2rem; color: var(--text-muted); font-size: 0.9rem; text-align: center;">
-      FoodFlow Academic Specification Suite &copy; 2026. All rights reserved.
-    </footer>
-  </main>
+      <footer
+        style="
+          margin-top: 5rem;
+          border-top: 1px solid var(--border-color);
+          padding-top: 2rem;
+          color: var(--text-muted);
+          font-size: 0.9rem;
+          text-align: center;
+        "
+      >
+        FoodFlow Academic Specification Suite &copy; 2026. All rights reserved.
+      </footer>
+    </main>
 
-  <script>
-    function switchPage(pageId) {
-      const menuItems = document.querySelectorAll('.top-menu-item');
-      menuItems.forEach(item => {
-        item.classList.remove('active');
-      });
-      document.getElementById(`menu-${pageId}`).classList.add('active');
+    <script>
+      function switchPage(pageId) {
+        const menuItems = document.querySelectorAll(".top-menu-item");
+        menuItems.forEach((item) => {
+          item.classList.remove("active");
+        });
+        document.getElementById(`menu-${pageId}`).classList.add("active");
 
-      const pages = document.querySelectorAll('.main-page');
-      pages.forEach(page => {
-        page.classList.remove('active-page');
-      });
-      document.getElementById(`page-${pageId}`).classList.add('active-page');
+        const pages = document.querySelectorAll(".main-page");
+        pages.forEach((page) => {
+          page.classList.remove("active-page");
+        });
+        document.getElementById(`page-${pageId}`).classList.add("active-page");
 
-      const sidebarGroups = document.querySelectorAll('.sidebar-group');
-      sidebarGroups.forEach(group => {
-        group.classList.remove('active-group');
-      });
-      document.getElementById(`links-group-${pageId}`).classList.add('active-group');
+        const sidebarGroups = document.querySelectorAll(".sidebar-group");
+        sidebarGroups.forEach((group) => {
+          group.classList.remove("active-group");
+        });
+        document
+          .getElementById(`links-group-${pageId}`)
+          .classList.add("active-group");
 
-      window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
 
-      const activeGroup = document.getElementById(`links-group-${pageId}`);
-      const sidebarLinks = activeGroup.querySelectorAll('.sidebar-links li');
-      sidebarLinks.forEach(linkLi => linkLi.classList.remove('active'));
-      if (sidebarLinks.length > 0) {
-        sidebarLinks[0].classList.add('active');
-      }
-
-      if (pageId === 'uml') {
-        setTimeout(() => {
-          mermaid.contentLoaded();
-        }, 50);
-      }
-    }
-
-    window.addEventListener('scroll', () => {
-      const activePage = document.querySelector('.main-page.active-page');
-      if (!activePage) return;
-
-      const subSections = activePage.querySelectorAll('.sub-section');
-      const sidebarLinks = document.querySelector('.sidebar-group.active-group .sidebar-links');
-      if (!sidebarLinks) return;
-
-      const sidebarLiItems = sidebarLinks.querySelectorAll('li');
-      let currentSubSectionId = '';
-      const scrollPos = window.scrollY || window.pageYOffset;
-
-      subSections.forEach(sub => {
-        const top = sub.offsetTop - 150;
-        const height = sub.offsetHeight;
-        if (scrollPos >= top && scrollPos < top + height) {
-          currentSubSectionId = sub.getAttribute('id');
+        const activeGroup = document.getElementById(`links-group-${pageId}`);
+        const sidebarLinks = activeGroup.querySelectorAll(".sidebar-links li");
+        sidebarLinks.forEach((linkLi) => linkLi.classList.remove("active"));
+        if (sidebarLinks.length > 0) {
+          sidebarLinks[0].classList.add("active");
         }
-      });
 
-      if (currentSubSectionId) {
-        sidebarLiItems.forEach(linkLi => {
-          linkLi.classList.remove('active');
-          const href = linkLi.querySelector('a').getAttribute('href');
-          if (href === `#${currentSubSectionId}`) {
-            linkLi.classList.add('active');
+        if (pageId === "uml") {
+          setTimeout(() => {
+            mermaid.contentLoaded();
+          }, 50);
+        }
+      }
+
+      window.addEventListener("scroll", () => {
+        const activePage = document.querySelector(".main-page.active-page");
+        if (!activePage) return;
+
+        const subSections = activePage.querySelectorAll(".sub-section");
+        const sidebarLinks = document.querySelector(
+          ".sidebar-group.active-group .sidebar-links",
+        );
+        if (!sidebarLinks) return;
+
+        const sidebarLiItems = sidebarLinks.querySelectorAll("li");
+        let currentSubSectionId = "";
+        const scrollPos = window.scrollY || window.pageYOffset;
+
+        subSections.forEach((sub) => {
+          const top = sub.offsetTop - 150;
+          const height = sub.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            currentSubSectionId = sub.getAttribute("id");
           }
         });
-      }
-    });
-  </script>
-</body>
 
+        if (currentSubSectionId) {
+          sidebarLiItems.forEach((linkLi) => {
+            linkLi.classList.remove("active");
+            const href = linkLi.querySelector("a").getAttribute("href");
+            if (href === `#${currentSubSectionId}`) {
+              linkLi.classList.add("active");
+            }
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

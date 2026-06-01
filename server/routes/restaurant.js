@@ -1,9 +1,9 @@
-const express = require('express');
-const Restaurant = require('../models/Restaurant');
-const MenuItem = require('../models/MenuItem');
-const Order = require('../models/Order');
-const User = require('../models/User');
-const authMiddleware = require('../middleware/auth');
+const express = require("express");
+const Restaurant = require("../models/Restaurant");
+const MenuItem = require("../models/MenuItem");
+const Order = require("../models/Order");
+const User = require("../models/User");
+const authMiddleware = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -13,12 +13,12 @@ async function ensureRestaurantProfile(userId) {
     const user = await User.findById(userId);
     restaurant = new Restaurant({
       userId,
-      name: user?.name || 'Restaurant',
-      description: user?.role ? `${user.role} profile` : '',
-      address: user?.address || '',
-      city: user?.city || '',
-      phone: user?.phone || '',
-      image: user?.profileImage || ''
+      name: user?.name || "Restaurant",
+      description: user?.role ? `${user.role} profile` : "",
+      address: user?.address || "",
+      city: user?.city || "",
+      phone: user?.phone || "",
+      image: user?.profileImage || "",
     });
     await restaurant.save();
   }
@@ -26,16 +26,26 @@ async function ensureRestaurantProfile(userId) {
 }
 
 // Create/Update restaurant profile
-router.post('/profile', authMiddleware, async (req, res) => {
+router.post("/profile", authMiddleware, async (req, res) => {
   try {
     const { name, description, address, city, phone, image } = req.body;
     let restaurant = await Restaurant.findOne({ userId: req.user.id });
     if (restaurant) {
-      restaurant = await Restaurant.findByIdAndUpdate(restaurant._id, 
-        { name, description, address, city, phone, image }, 
-        { new: true });
+      restaurant = await Restaurant.findByIdAndUpdate(
+        restaurant._id,
+        { name, description, address, city, phone, image },
+        { new: true },
+      );
     } else {
-      restaurant = new Restaurant({ userId: req.user.id, name, description, address, city, phone, image });
+      restaurant = new Restaurant({
+        userId: req.user.id,
+        name,
+        description,
+        address,
+        city,
+        phone,
+        image,
+      });
       await restaurant.save();
     }
     res.json(restaurant);
@@ -45,7 +55,7 @@ router.post('/profile', authMiddleware, async (req, res) => {
 });
 
 // Get restaurant profile
-router.get('/profile', authMiddleware, async (req, res) => {
+router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const restaurant = await ensureRestaurantProfile(req.user.id);
     res.json(restaurant);
@@ -55,7 +65,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
 });
 
 // Add menu item
-router.post('/menu', authMiddleware, async (req, res) => {
+router.post("/menu", authMiddleware, async (req, res) => {
   try {
     const restaurant = await ensureRestaurantProfile(req.user.id);
     const { name, description, price, category, image } = req.body;
@@ -65,7 +75,7 @@ router.post('/menu', authMiddleware, async (req, res) => {
       description,
       price,
       category,
-      image
+      image,
     });
     await menuItem.save();
     res.status(201).json(menuItem);
@@ -75,7 +85,7 @@ router.post('/menu', authMiddleware, async (req, res) => {
 });
 
 // Get restaurant menu
-router.get('/menu', authMiddleware, async (req, res) => {
+router.get("/menu", authMiddleware, async (req, res) => {
   try {
     const restaurant = await ensureRestaurantProfile(req.user.id);
     const menuItems = await MenuItem.find({ restaurantId: restaurant._id });
@@ -86,12 +96,14 @@ router.get('/menu', authMiddleware, async (req, res) => {
 });
 
 // Update menu item
-router.put('/menu/:id', authMiddleware, async (req, res) => {
+router.put("/menu/:id", authMiddleware, async (req, res) => {
   try {
     const { name, description, price, category, isAvailable } = req.body;
-    const menuItem = await MenuItem.findByIdAndUpdate(req.params.id, 
-      { name, description, price, category, isAvailable }, 
-      { new: true });
+    const menuItem = await MenuItem.findByIdAndUpdate(
+      req.params.id,
+      { name, description, price, category, isAvailable },
+      { new: true },
+    );
     res.json(menuItem);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -99,10 +111,12 @@ router.put('/menu/:id', authMiddleware, async (req, res) => {
 });
 
 // Get restaurant orders
-router.get('/orders', authMiddleware, async (req, res) => {
+router.get("/orders", authMiddleware, async (req, res) => {
   try {
     const restaurant = await ensureRestaurantProfile(req.user.id);
-    const orders = await Order.find({ restaurantId: restaurant._id }).populate('customerId');
+    const orders = await Order.find({ restaurantId: restaurant._id }).populate(
+      "customerId",
+    );
     res.json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -110,14 +124,16 @@ router.get('/orders', authMiddleware, async (req, res) => {
 });
 
 // Update order status
-router.put('/order/:id/status', authMiddleware, async (req, res) => {
+router.put("/order/:id/status", authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(req.params.id, 
-      { status, updatedAt: new Date() }, 
-      { new: true });
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status, updatedAt: new Date() },
+      { new: true },
+    );
 
-    if (status === 'preparing') {
+    if (status === "preparing") {
       // Trigger automatic rider assignment
       await assignRider(order);
     }
@@ -129,14 +145,17 @@ router.put('/order/:id/status', authMiddleware, async (req, res) => {
 });
 
 // Manually dispatch/request rider
-router.post('/order/:id/dispatch-rider', authMiddleware, async (req, res) => {
+router.post("/order/:id/dispatch-rider", authMiddleware, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
-    
+    if (!order) return res.status(404).json({ error: "Order not found" });
+
     await assignRider(order);
     const updatedOrder = await Order.findById(order._id);
-    res.json({ message: 'Rider request triggered successfully!', order: updatedOrder });
+    res.json({
+      message: "Rider request triggered successfully!",
+      order: updatedOrder,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -144,42 +163,51 @@ router.post('/order/:id/dispatch-rider', authMiddleware, async (req, res) => {
 
 async function assignRider(order) {
   try {
-    const Restaurant = require('../models/Restaurant');
-    const RiderProfile = require('../models/RiderProfile');
-    
+    const Restaurant = require("../models/Restaurant");
+    const RiderProfile = require("../models/RiderProfile");
+
     const restaurant = await Restaurant.findById(order.restaurantId);
     if (!restaurant) return;
 
     // 1. Cleanup timed out assignments first
     const oneMinAgo = new Date(Date.now() - 60000);
-    const timedOutRiders = await RiderProfile.find({ status: 'assigned', assignmentTime: { $lt: oneMinAgo } });
-    
+    const timedOutRiders = await RiderProfile.find({
+      status: "assigned",
+      assignmentTime: { $lt: oneMinAgo },
+    });
+
     for (let p of timedOutRiders) {
-      const timedOutOrder = await Order.findOne({ assignedRiderId: p.userId, riderId: null });
-      
-      const lastRider = await RiderProfile.findOne({ city: p.city, isReady: true }).sort('-queueNumber');
+      const timedOutOrder = await Order.findOne({
+        assignedRiderId: p.userId,
+        riderId: null,
+      });
+
+      const lastRider = await RiderProfile.findOne({
+        city: p.city,
+        isReady: true,
+      }).sort("-queueNumber");
       p.queueNumber = lastRider ? lastRider.queueNumber + 1 : p.queueNumber + 1;
-      p.status = 'idle';
+      p.status = "idle";
       p.assignmentTime = null;
       await p.save();
-      
+
       if (timedOutOrder) {
         timedOutOrder.assignedRiderId = null;
         timedOutOrder.assignmentTime = null;
         await timedOutOrder.save();
 
-        const nextRider = await RiderProfile.findOne({ 
-          city: p.city, 
+        const nextRider = await RiderProfile.findOne({
+          city: p.city,
           isReady: true,
-          status: 'idle'
-        }).sort('queueNumber');
+          status: "idle",
+        }).sort("queueNumber");
 
         if (nextRider) {
           timedOutOrder.assignedRiderId = nextRider.userId;
           timedOutOrder.assignmentTime = new Date();
           await timedOutOrder.save();
-          
-          nextRider.status = 'assigned';
+
+          nextRider.status = "assigned";
           nextRider.assignmentTime = new Date();
           await nextRider.save();
         }
@@ -187,46 +215,46 @@ async function assignRider(order) {
     }
 
     // 2. Find the next available rider in the same city
-    const rider = await RiderProfile.findOne({ 
-      city: restaurant.city, 
+    const rider = await RiderProfile.findOne({
+      city: restaurant.city,
       isReady: true,
-      status: 'idle'
-    }).sort('queueNumber');
+      status: "idle",
+    }).sort("queueNumber");
 
     if (rider) {
       order.assignedRiderId = rider.userId;
       order.assignmentTime = new Date();
       await order.save();
-      
+
       // Update rider status
-      rider.status = 'assigned';
+      rider.status = "assigned";
       rider.assignmentTime = new Date();
       await rider.save();
     }
   } catch (err) {
-    console.error('Assignment error:', err);
+    console.error("Assignment error:", err);
   }
 }
 
 // Delete menu item
-router.delete('/menu/:id', authMiddleware, async (req, res) => {
+router.delete("/menu/:id", authMiddleware, async (req, res) => {
   try {
     await MenuItem.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Menu item deleted successfully' });
+    res.json({ message: "Menu item deleted successfully" });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
 // Get reviews for a specific menu item
-router.get('/menu-item/:id/reviews', authMiddleware, async (req, res) => {
+router.get("/menu-item/:id/reviews", authMiddleware, async (req, res) => {
   try {
     const reviews = await Order.find({
-      'items.menuItemId': req.params.id,
-      'review.rating': { $exists: true }
+      "items.menuItemId": req.params.id,
+      "review.rating": { $exists: true },
     })
-    .populate('customerId', 'name')
-    .select('review customerId createdAt');
+      .populate("customerId", "name")
+      .select("review customerId createdAt");
     res.json(reviews);
   } catch (err) {
     res.status(500).json({ error: err.message });

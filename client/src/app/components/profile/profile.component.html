@@ -18,40 +18,76 @@
         <form (ngSubmit)="updateProfile()">
           <div class="form-group">
             <label for="name">Full Name *</label>
-            <input type="text" id="name" [(ngModel)]="profileData.name" name="name" required>
+            <input
+              type="text"
+              id="name"
+              [(ngModel)]="profileData.name"
+              name="name"
+              required
+            />
           </div>
 
           <div class="form-group">
             <label for="city">City</label>
-            <input type="text" id="city" [(ngModel)]="profileData.city" name="city" placeholder="e.g. Karachi">
+            <input
+              type="text"
+              id="city"
+              [(ngModel)]="profileData.city"
+              name="city"
+              placeholder="e.g. Karachi"
+            />
           </div>
 
           <div class="form-group">
             <label for="address">Address</label>
-            <textarea id="address" [(ngModel)]="profileData.address" name="address" rows="3"
-                      placeholder="Enter your delivery address"></textarea>
+            <textarea
+              id="address"
+              [(ngModel)]="profileData.address"
+              name="address"
+              rows="3"
+              placeholder="Enter your delivery address"
+            ></textarea>
           </div>
 
           <div class="form-group">
             <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" [(ngModel)]="profileData.phone" name="phone"
-                   placeholder="e.g. +1-234-567-8900">
+            <input
+              type="tel"
+              id="phone"
+              [(ngModel)]="profileData.phone"
+              name="phone"
+              placeholder="e.g. +1-234-567-8900"
+            />
           </div>
-          <div *ngIf="profileData.savedAddresses?.length > 0" class="form-group saved-addresses-section">
+          <div
+            *ngIf="profileData.savedAddresses?.length > 0"
+            class="form-group saved-addresses-section"
+          >
             <label>Saved Addresses</label>
             <ul class="saved-address-list">
-              <li *ngFor="let addr of profileData.savedAddresses; let i = index" class="saved-address-item">
+              <li
+                *ngFor="let addr of profileData.savedAddresses; let i = index"
+                class="saved-address-item"
+              >
                 <span>{{ addr.fullAddress }}, {{ addr.city }}</span>
-                <button type="button" class="btn-delete" (click)="removeSavedAddress(i)">Delete</button>
+                <button
+                  type="button"
+                  class="btn-delete"
+                  (click)="removeSavedAddress(i)"
+                >
+                  Delete
+                </button>
               </li>
             </ul>
           </div>
 
           <div class="form-actions">
             <button type="submit" class="btn-save" [disabled]="isLoading">
-              {{ isLoading ? 'Saving...' : 'Save Changes' }}
+              {{ isLoading ? "Saving..." : "Save Changes" }}
             </button>
-            <button type="button" class="btn-cancel" (click)="toggleEdit()">Cancel</button>
+            <button type="button" class="btn-cancel" (click)="toggleEdit()">
+              Cancel
+            </button>
           </div>
         </form>
       </div>
@@ -60,7 +96,7 @@
         <div class="profile-info">
           <div class="info-item">
             <label>Name:</label>
-            <span>{{ user?.name || 'Not set' }}</span>
+            <span>{{ user?.name || "Not set" }}</span>
           </div>
           <div class="info-item">
             <label>Email:</label>
@@ -68,19 +104,21 @@
           </div>
           <div class="info-item">
             <label>Role:</label>
-            <span class="role-badge" [ngClass]="user?.role">{{ user?.role | titlecase }}</span>
+            <span class="role-badge" [ngClass]="user?.role">{{
+              user?.role | titlecase
+            }}</span>
           </div>
           <div class="info-item">
             <label>City:</label>
-            <span>{{ user?.city || 'Not set' }}</span>
+            <span>{{ user?.city || "Not set" }}</span>
           </div>
           <div class="info-item">
             <label>Address:</label>
-            <span>{{ user?.address || 'Not set' }}</span>
+            <span>{{ user?.address || "Not set" }}</span>
           </div>
           <div class="info-item">
             <label>Phone:</label>
-            <span>{{ user?.phone || 'Not set' }}</span>
+            <span>{{ user?.phone || "Not set" }}</span>
           </div>
         </div>
       </ng-template>
@@ -90,7 +128,11 @@
     <div class="profile-section">
       <div class="section-header">
         <h3>Security</h3>
-        <button class="btn-edit" (click)="togglePasswordChange()" *ngIf="!showPasswordChange">
+        <button
+          class="btn-edit"
+          (click)="togglePasswordChange()"
+          *ngIf="!showPasswordChange"
+        >
           <i class="fas fa-key"></i> Change Password
         </button>
       </div>
@@ -99,28 +141,50 @@
         <form (ngSubmit)="changePassword()">
           <div class="form-group">
             <label for="currentPassword">Current Password *</label>
-            <input type="password" id="currentPassword" [(ngModel)]="passwordData.currentPassword"
-                   name="currentPassword" required>
+            <input
+              type="password"
+              id="currentPassword"
+              [(ngModel)]="passwordData.currentPassword"
+              name="currentPassword"
+              required
+            />
           </div>
 
           <div class="form-group">
             <label for="newPassword">New Password *</label>
-            <input type="password" id="newPassword" [(ngModel)]="passwordData.newPassword"
-                   name="newPassword" required minlength="6">
+            <input
+              type="password"
+              id="newPassword"
+              [(ngModel)]="passwordData.newPassword"
+              name="newPassword"
+              required
+              minlength="6"
+            />
             <small class="form-hint">Must be at least 6 characters long</small>
           </div>
 
           <div class="form-group">
             <label for="confirmPassword">Confirm New Password *</label>
-            <input type="password" id="confirmPassword" [(ngModel)]="passwordData.confirmPassword"
-                   name="confirmPassword" required>
+            <input
+              type="password"
+              id="confirmPassword"
+              [(ngModel)]="passwordData.confirmPassword"
+              name="confirmPassword"
+              required
+            />
           </div>
 
           <div class="form-actions">
             <button type="submit" class="btn-save" [disabled]="isLoading">
-              {{ isLoading ? 'Changing...' : 'Change Password' }}
+              {{ isLoading ? "Changing..." : "Change Password" }}
             </button>
-            <button type="button" class="btn-cancel" (click)="togglePasswordChange()">Cancel</button>
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="togglePasswordChange()"
+            >
+              Cancel
+            </button>
           </div>
         </form>
       </div>
