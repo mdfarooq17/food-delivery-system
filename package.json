@@ -8,6 +8,7 @@
     "start-server": "cd server && npm run dev",
     "start-client": "cd client && npm start",
     "build-client": "cd client && ng build --configuration production",
+    "vercel-build": "cd client && npm run build -- --configuration production",
     "test-client": "cd client && ng test"
   },
   "keywords": [
