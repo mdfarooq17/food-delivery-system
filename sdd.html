@@ -1859,6 +1859,35 @@ export class KitchenDashboardComponent implements OnInit, OnDestroy {
             <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Enforce strict request body structures using validators like <code>Joi</code> or <code>express-validator</code> before executing queries.</p>
           </div>
         </div>
+
+        <div class="security-box weakness">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div class="security-content">
+            <h4>4. Broken Access Control — Customer Order Data Exposure</h4>
+            <p><strong>Vulnerability:</strong> The endpoint <code>GET /api/customer/order/:id</code> returns an order by ID without verifying that the authenticated customer owns that order.</p>
+            <p><strong>Why this matters:</strong> An attacker can enumerate or guess order IDs and retrieve other customers' order details, including delivery address, phone number, order items, and status.</p>
+            <p style="margin-bottom: 0; color: var(--text-main); font-weight: 500;"><strong>Mitigation Plan:</strong> Enforce ownership checks in the backend by comparing <code>order.customerId</code> against <code>req.user.id</code> before sending the response.</p>
+            <pre><code>router.get('/order/:id', authMiddleware, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('restaurantId')
+      .populate('items.menuItemId');
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.customerId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});</code></pre>
+          </div>
+        </div>
       </div>
 
       <div id="sec-typescript" class="sub-section">

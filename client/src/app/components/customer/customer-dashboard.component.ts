@@ -738,6 +738,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       'accepted': 35,
       'preparing': 55,
       'ready': 75,
+      'pickedup': 80,
       'delivered': 100,
       'out-for-delivery': 85,
       'cancelled': 0
@@ -761,6 +762,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
       'accepted': 1,
       'preparing': 2,
       'ready': 2,
+      'pickedup': 3,
       'out-for-delivery': 3
     }[s] || 0;
 
@@ -994,4 +996,4 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     }
   }
 }
-
+
