@@ -92,9 +92,12 @@
           <input type="text" [(ngModel)]="newAddress" placeholder="e.g. 42nd St, Apartment 4B" (keyup.enter)="updateAddress()">
         </div>
         <div class="quick-addresses" *ngIf="profileForm?.savedAddresses?.length > 0">
-          <button class="quick-addr" style="max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" *ngFor="let addr of profileForm.savedAddresses" (click)="selectedCity=addr.city; newAddress=addr.fullAddress; updateAddress()">
-            <i class="fas fa-map-pin"></i> {{ addr.fullAddress }}, {{ addr.city }}
-          </button>
+          <div *ngFor="let addr of profileForm.savedAddresses; let i = index" style="display:flex; align-items:center; justify-content:space-between; gap: 10px; margin-bottom: 8px;">
+            <button class="quick-addr" style="flex:1; max-width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" (click)="selectedCity=addr.city; newAddress=addr.fullAddress; updateAddress()">
+              <i class="fas fa-map-pin"></i> {{ addr.fullAddress }}, {{ addr.city }}
+            </button>
+            <button type="button" style="width: 36px; height: 36px; background: #ff4757; border: none; color: white; border-radius: 8px; cursor: pointer;" title="Delete saved address" (click)="removeSavedAddress(i); $event.stopPropagation()">✕</button>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

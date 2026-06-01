@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,13 +9,15 @@ import { Observable } from 'rxjs';
 export class RestaurantService {
   private apiUrl = 'http://localhost:5000/api/restaurant';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   private getHeaders() {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    const token = this.authService.getToken('restaurant');
+    const headersConfig: { [key: string]: string } = {};
+    if (token) {
+      headersConfig['Authorization'] = `Bearer ${token}`;
+    }
+    return new HttpHeaders(headersConfig);
   }
 
   getProfile(): Observable<any> {

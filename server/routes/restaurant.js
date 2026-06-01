@@ -2,9 +2,28 @@ const express = require('express');
 const Restaurant = require('../models/Restaurant');
 const MenuItem = require('../models/MenuItem');
 const Order = require('../models/Order');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
+
+async function ensureRestaurantProfile(userId) {
+  let restaurant = await Restaurant.findOne({ userId });
+  if (!restaurant) {
+    const user = await User.findById(userId);
+    restaurant = new Restaurant({
+      userId,
+      name: user?.name || 'Restaurant',
+      description: user?.role ? `${user.role} profile` : '',
+      address: user?.address || '',
+      city: user?.city || '',
+      phone: user?.phone || '',
+      image: user?.profileImage || ''
+    });
+    await restaurant.save();
+  }
+  return restaurant;
+}
 
 // Create/Update restaurant profile
 router.post('/profile', authMiddleware, async (req, res) => {
@@ -28,7 +47,7 @@ router.post('/profile', authMiddleware, async (req, res) => {
 // Get restaurant profile
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const restaurant = await Restaurant.findOne({ userId: req.user.id });
+    const restaurant = await ensureRestaurantProfile(req.user.id);
     res.json(restaurant);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -38,9 +57,7 @@ router.get('/profile', authMiddleware, async (req, res) => {
 // Add menu item
 router.post('/menu', authMiddleware, async (req, res) => {
   try {
-    const restaurant = await Restaurant.findOne({ userId: req.user.id });
-    if (!restaurant) return res.status(400).json({ error: 'Restaurant profile not found' });
-    
+    const restaurant = await ensureRestaurantProfile(req.user.id);
     const { name, description, price, category, image } = req.body;
     const menuItem = new MenuItem({
       restaurantId: restaurant._id,
@@ -60,9 +77,7 @@ router.post('/menu', authMiddleware, async (req, res) => {
 // Get restaurant menu
 router.get('/menu', authMiddleware, async (req, res) => {
   try {
-    const restaurant = await Restaurant.findOne({ userId: req.user.id });
-    if (!restaurant) return res.status(400).json({ error: 'Restaurant profile not found' });
-    
+    const restaurant = await ensureRestaurantProfile(req.user.id);
     const menuItems = await MenuItem.find({ restaurantId: restaurant._id });
     res.json(menuItems);
   } catch (err) {
@@ -86,9 +101,7 @@ router.put('/menu/:id', authMiddleware, async (req, res) => {
 // Get restaurant orders
 router.get('/orders', authMiddleware, async (req, res) => {
   try {
-    const restaurant = await Restaurant.findOne({ userId: req.user.id });
-    if (!restaurant) return res.status(400).json({ error: 'Restaurant profile not found' });
-    
+    const restaurant = await ensureRestaurantProfile(req.user.id);
     const orders = await Order.find({ restaurantId: restaurant._id }).populate('customerId');
     res.json(orders);
   } catch (err) {

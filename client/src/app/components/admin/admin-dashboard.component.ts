@@ -298,7 +298,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   openEditUserModal(user: any) {
-    this.selectedUser = { ...user };
+    this.selectedUser = { ...user, password: '' };
     this.showEditUserModal = true;
   }
 

@@ -246,11 +246,15 @@ router.post('/users', authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
-// Update user (edit details, role, active/blocked status)
+// Update user (edit details, role, active/blocked status, optional admin password reset)
 router.put('/users/:id', authMiddleware, isAdmin, async (req, res) => {
   try {
-    const { name, email, role, phone, city, isActive, isBlocked } = req.body;
-    const user = await User.findByIdAndUpdate(req.params.id, { name, email, role, phone, city, isActive, isBlocked }, { new: true, select: '-password' });
+    const { name, email, role, phone, city, isActive, isBlocked, password } = req.body;
+    const updateData = { name, email, role, phone, city, isActive, isBlocked };
+    if (password && password.trim().length > 0) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, select: '-password' });
     res.json(user);
   } catch (err) {
     res.status(400).json({ error: err.message });

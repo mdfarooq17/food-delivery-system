@@ -446,6 +446,14 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  removeSavedAddress(index: number) {
+    if (!this.profileForm?.savedAddresses) return;
+    this.profileForm.savedAddresses.splice(index, 1);
+    if (this.isLoggedIn) {
+      this.saveProfile(false);
+    }
+  }
+
   saveProfile(showAlert = true) {
     this.authService.updateProfile(this.profileForm).subscribe({
       next: (user) => {

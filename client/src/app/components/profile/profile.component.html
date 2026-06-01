@@ -22,6 +22,11 @@
           </div>
 
           <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" [(ngModel)]="profileData.city" name="city" placeholder="e.g. Karachi">
+          </div>
+
+          <div class="form-group">
             <label for="address">Address</label>
             <textarea id="address" [(ngModel)]="profileData.address" name="address" rows="3"
                       placeholder="Enter your delivery address"></textarea>
@@ -31,6 +36,15 @@
             <label for="phone">Phone Number</label>
             <input type="tel" id="phone" [(ngModel)]="profileData.phone" name="phone"
                    placeholder="e.g. +1-234-567-8900">
+          </div>
+          <div *ngIf="profileData.savedAddresses?.length > 0" class="form-group saved-addresses-section">
+            <label>Saved Addresses</label>
+            <ul class="saved-address-list">
+              <li *ngFor="let addr of profileData.savedAddresses; let i = index" class="saved-address-item">
+                <span>{{ addr.fullAddress }}, {{ addr.city }}</span>
+                <button type="button" class="btn-delete" (click)="removeSavedAddress(i)">Delete</button>
+              </li>
+            </ul>
           </div>
 
           <div class="form-actions">
@@ -55,6 +69,10 @@
           <div class="info-item">
             <label>Role:</label>
             <span class="role-badge" [ngClass]="user?.role">{{ user?.role | titlecase }}</span>
+          </div>
+          <div class="info-item">
+            <label>City:</label>
+            <span>{{ user?.city || 'Not set' }}</span>
           </div>
           <div class="info-item">
             <label>Address:</label>

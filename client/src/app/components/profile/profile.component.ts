@@ -17,10 +17,12 @@ export class ProfileComponent implements OnInit {
   isEditing = false;
   showPasswordChange = false;
 
-  profileData = {
+  profileData: any = {
     name: '',
     address: '',
-    phone: ''
+    phone: '',
+    city: '',
+    savedAddresses: []
   };
 
   passwordData = {
@@ -46,7 +48,9 @@ export class ProfileComponent implements OnInit {
         this.profileData = {
           name: user.name || '',
           address: user.address || '',
-          phone: user.phone || ''
+          phone: user.phone || '',
+          city: user.city || '',
+          savedAddresses: user.savedAddresses || []
         };
         this.isLoading = false;
       },
@@ -64,7 +68,9 @@ export class ProfileComponent implements OnInit {
       this.profileData = {
         name: this.user.name || '',
         address: this.user.address || '',
-        phone: this.user.phone || ''
+        phone: this.user.phone || '',
+        city: this.user.city || '',
+        savedAddresses: this.user.savedAddresses || []
       };
     }
   }
@@ -99,6 +105,12 @@ export class ProfileComponent implements OnInit {
         confirmPassword: ''
       };
     }
+  }
+
+  removeSavedAddress(index: number) {
+    if (!this.profileData.savedAddresses || !Array.isArray(this.profileData.savedAddresses)) return;
+    this.profileData.savedAddresses.splice(index, 1);
+    this.updateProfile();
   }
 
   changePassword() {

@@ -153,8 +153,14 @@ router.get('/me', auth, async (req, res) => {
 router.put('/update-profile', auth, async (req, res) => {
   const { name, phone, address, city, profileImage, savedAddresses, cart } = req.body;
   try {
-    const updateData = { name, phone, address, city, profileImage, savedAddresses };
-    if (cart) updateData.cart = cart;
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+    if (city !== undefined) updateData.city = city;
+    if (profileImage !== undefined) updateData.profileImage = profileImage;
+    if (savedAddresses !== undefined) updateData.savedAddresses = savedAddresses;
+    if (cart !== undefined) updateData.cart = cart;
     const user = await User.findByIdAndUpdate(
       req.user.id,
       updateData,
