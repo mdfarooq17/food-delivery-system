@@ -7,6 +7,7 @@ const Order = require("../models/Order");
 const Feedback = require("../models/Feedback");
 const Notification = require("../models/Notification");
 const Slider = require("../models/Slider");
+const PasswordResetRequest = require("../models/PasswordResetRequest");
 const authMiddleware = require("../middleware/auth");
 
 const SecurityLog = require("../models/SecurityLog");
@@ -578,6 +579,103 @@ router.delete(
       res.json({ message: "Notification deleted" });
     } catch (err) {
       res.status(400).json({ error: err.message });
+    }
+  },
+);
+
+// Password reset requests management
+router.get(
+  "/password-resets",
+  authMiddleware,
+  isAdmin,
+  async (req, res) => {
+    try {
+      const requests = await PasswordResetRequest.find()
+        .populate("userId", "name email role")
+        .sort({ requestedAt: -1 });
+      res.json(requests);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
+
+router.put(
+  "/password-resets/:id/approve",
+  authMiddleware,
+  isAdmin,
+  async (req, res) => {
+    try {
+      const request = await PasswordResetRequest.findById(req.params.id);
+      if (!request) return res.status(404).json({ error: "Request not found" });
+      if (request.status !== "pending") {
+        return res
+          .status(400)
+          .json({ error: "This password reset request has already been processed." });
+      }
+
+      const user = await User.findById(request.userId);
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      user.password = request.newPasswordHash;
+      await user.save();
+
+      request.status = "approved";
+      request.reviewedAt = new Date();
+      request.reviewedBy = req.user.id;
+      await request.save();
+
+      res.json(request);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
+
+router.put(
+  "/password-resets/:id/deny",
+  authMiddleware,
+  isAdmin,
+  async (req, res) => {
+    try {
+      const request = await PasswordResetRequest.findById(req.params.id);
+      if (!request) return res.status(404).json({ error: "Request not found" });
+      if (request.status !== "pending") {
+        return res
+          .status(400)
+          .json({ error: "This password reset request has already been processed." });
+      }
+
+      request.status = "denied";
+      request.reviewedAt = new Date();
+      request.reviewedBy = req.user.id;
+      await request.save();
+
+      res.json(request);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+);
+
+// Admin can add a message/requirement to a password reset request
+router.post(
+  "/password-resets/:id/message",
+  authMiddleware,
+  isAdmin,
+  async (req, res) => {
+    try {
+      const { message } = req.body;
+      const request = await PasswordResetRequest.findById(req.params.id);
+      if (!request) return res.status(404).json({ error: "Request not found" });
+      request.adminMessages = request.adminMessages || [];
+      request.adminMessages.push({ by: req.user.id, message });
+      // set status to requires_info so user sees admin requested more info
+      request.status = 'requires_info';
+      await request.save();
+      res.json(request);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   },
 );

@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './image-slider.component.html',
-  styleUrl: './image-slider.component.css'
+  styleUrls: ['./image-slider.component.css']
 })
 export class ImageSliderComponent implements OnInit, OnDestroy {
   slides = [

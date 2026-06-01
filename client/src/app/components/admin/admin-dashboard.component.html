@@ -51,6 +51,12 @@
         <i class="fas fa-bell"></i> Broadcasts
       </button>
       <button
+        [class.active]="activeTab === 'password-requests'"
+        (click)="setActiveTab('password-requests')"
+      >
+        <i class="fas fa-key"></i> Password Requests
+      </button>
+      <button
         [class.active]="activeTab === 'sliders'"
         (click)="setActiveTab('sliders')"
       >
@@ -1362,6 +1368,135 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Password Reset Requests Tab -->
+    <div *ngIf="activeTab === 'password-requests'" class="tab-content">
+      <div class="action-bar" style="margin-bottom: 1.5rem; gap: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div>
+            <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Search Requests</label>
+            <input
+              [(ngModel)]="passwordRequestSearch"
+              (ngModelChange)="filterPasswordRequests()"
+              placeholder="Search by user or email"
+              style="padding: 10px; border-radius: 10px; width: 250px; background: #0f171e; color: white; border: 1px solid var(--admin-border);"
+            />
+          </div>
+          <div>
+            <label style="color: var(--text-muted); font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Status Filter</label>
+            <select
+              [(ngModel)]="passwordRequestStatusFilter"
+              (ngModelChange)="filterPasswordRequests()"
+              style="padding: 10px; border-radius: 10px; width: 180px; background: #0f171e; color: white; border: 1px solid var(--admin-border);"
+            >
+              <option value="all">All Requests</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="denied">Denied</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <table class="modern-table" *ngIf="filteredPasswordRequests.length > 0">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Requested At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let request of filteredPasswordRequests">
+            <td>{{ request.userId?.name || request.email }}</td>
+            <td>{{ request.email }}</td>
+            <td>{{ request.role }}</td>
+            <td>
+              <span class="status-badge" [attr.data-status]="request.status">{{ request.status | titlecase }}</span>
+            </td>
+            <td>{{ request.requestedAt | date: 'medium' }}</td>
+            <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button
+                class="btn-small"
+                [disabled]="request.status !== 'pending'"
+                (click)="approvePasswordResetRequest(request)"
+                style="background: #2ed573; color: white;"
+              >
+                Approve
+              </button>
+              <button
+                class="btn-small btn-danger"
+                [disabled]="request.status !== 'pending'"
+                (click)="denyPasswordResetRequest(request)"
+              >
+                Deny
+              </button>
+              <button class="btn-small" (click)="openPasswordRequestModal(request)">
+                Details
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredPasswordRequests.length === 0" style="padding: 2rem; color: var(--text-muted);">
+        No password reset requests found.
+      </div>
+    </div>
+
+    <!-- Password Request Detail Modal -->
+    <div *ngIf="showPasswordRequestModal" class="modal-overlay">
+      <div class="modal-card">
+        <h3>Request Details</h3>
+        <div style="margin-bottom: 12px">
+          <strong>Name:</strong> {{ selectedPasswordRequest.userId?.name || 'N/A' }}<br />
+          <strong>Email:</strong> {{ selectedPasswordRequest.email }}<br />
+          <strong>Role:</strong> {{ selectedPasswordRequest.role }}<br />
+          <strong>Status:</strong>
+          <span class="status-badge" [attr.data-status]="selectedPasswordRequest.status">{{ selectedPasswordRequest.status | titlecase }}</span>
+        </div>
+
+        <div style="margin-bottom: 12px">
+          <h4>Request Info</h4>
+          <div><strong>Requested At:</strong> {{ selectedPasswordRequest.requestedAt | date: 'medium' }}</div>
+          <div><strong>IP:</strong> {{ selectedPasswordRequest.requestedFromIp || 'Unknown' }}</div>
+          <div><strong>User Agent:</strong> {{ selectedPasswordRequest.requestedUserAgent || 'Unknown' }}</div>
+          <div style="margin-top:6px"><strong>Previous Devices:</strong>
+            <ul *ngIf="selectedPasswordRequest.previousLoginDevices?.length; else noneDevices">
+              <li *ngFor="let d of selectedPasswordRequest.previousLoginDevices">{{ d }}</li>
+            </ul>
+            <ng-template #noneDevices>None recorded</ng-template>
+          </div>
+          <div style="margin-top:6px"><strong>Old Password Hash:</strong>
+            <code style="display:block; max-width:100%; word-break:break-all">{{ selectedPasswordRequest.oldPasswordHash || 'N/A' }}</code>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px">
+          <h4>Admin Messages</h4>
+          <div *ngIf="selectedPasswordRequest.adminMessages?.length; else noAdminMsgs">
+            <ul>
+              <li *ngFor="let m of selectedPasswordRequest.adminMessages">{{ m }}</li>
+            </ul>
+          </div>
+          <ng-template #noAdminMsgs> No messages yet. </ng-template>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:12px; align-items:flex-start">
+          <button class="btn-primary" (click)="approvePasswordResetRequest(selectedPasswordRequest)" [disabled]="selectedPasswordRequest.status !== 'pending'">Approve</button>
+          <button class="btn-danger" (click)="denyPasswordResetRequest(selectedPasswordRequest)" [disabled]="selectedPasswordRequest.status !== 'pending'">Deny</button>
+          <div style="flex:1">
+            <textarea [(ngModel)]="newAdminMessage" placeholder="Ask user for more info or send instructions" rows="2" style="width:100%; background:#0f171e; color:white; border-radius:8px; padding:8px; border:1px solid var(--admin-border)"></textarea>
+            <div style="display:flex; gap:8px; margin-top:8px">
+              <button class="btn-small" (click)="sendMessageToRequest()">Send Message</button>
+              <button class="btn-small" (click)="closePasswordRequestModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Sliders Tab -->

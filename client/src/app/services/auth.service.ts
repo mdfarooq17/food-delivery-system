@@ -80,6 +80,19 @@ export class AuthService {
     );
   }
 
+  requestPasswordReset(email: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/request-password-reset`, {
+      email,
+      newPassword,
+    });
+  }
+
+  getPasswordResetStatus(email: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/password-reset-status`, {
+      params: { email }
+    });
+  }
+
   getToken(role: string = ''): string | null {
     if (role) {
       const storage = role === 'admin' ? sessionStorage : localStorage;

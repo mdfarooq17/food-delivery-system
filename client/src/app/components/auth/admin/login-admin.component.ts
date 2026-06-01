@@ -17,6 +17,14 @@ export class LoginAdminComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  showForgotPassword = false;
+  resetEmail = '';
+  resetPassword = '';
+  resetConfirmPassword = '';
+  resetMessage = '';
+  resetError = '';
+  isResetLoading = false;
+
   constructor(private authService: AuthService, private router: Router) { }
 
   ngOnInit() {
@@ -53,5 +61,51 @@ export class LoginAdminComponent implements OnInit {
         this.errorMessage = err?.error?.error || 'Login failed';
       }
     });
+  }
+
+  toggleForgotPassword(event: Event) {
+    event.preventDefault();
+    this.showForgotPassword = !this.showForgotPassword;
+    this.resetError = '';
+    this.resetMessage = '';
+    if (this.showForgotPassword) {
+      this.resetEmail = this.email || '';
+    }
+  }
+
+  requestPasswordReset() {
+    if (!this.resetEmail || !this.resetPassword || !this.resetConfirmPassword) {
+      this.resetError = 'Please fill in all fields for password reset.';
+      this.resetMessage = '';
+      return;
+    }
+    if (this.resetPassword !== this.resetConfirmPassword) {
+      this.resetError = 'Passwords do not match.';
+      this.resetMessage = '';
+      return;
+    }
+
+    this.isResetLoading = true;
+    this.resetError = '';
+    this.resetMessage = '';
+
+    this.authService
+      .requestPasswordReset(this.resetEmail, this.resetPassword)
+      .subscribe({
+        next: (response: any) => {
+          this.isResetLoading = false;
+          this.resetMessage = response.message || 'Password reset request submitted.';
+          this.resetError = '';
+          this.resetEmail = '';
+          this.resetPassword = '';
+          this.resetConfirmPassword = '';
+          this.showForgotPassword = false;
+        },
+        error: (err: any) => {
+          this.isResetLoading = false;
+          this.resetError = err.error?.error || 'Could not submit reset request.';
+          this.resetMessage = '';
+        }
+      });
   }
 }

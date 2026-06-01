@@ -171,4 +171,21 @@ export class AdminService {
   getUserDetails(userId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/users/${userId}/details`, { headers: this.getHeaders() });
   }
+
+  // --- Password Reset Requests ---
+  getPasswordResetRequests(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/password-resets`, { headers: this.getHeaders() });
+  }
+
+  approvePasswordResetRequest(id: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/password-resets/${id}/approve`, {}, { headers: this.getHeaders() });
+  }
+
+  denyPasswordResetRequest(id: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/password-resets/${id}/deny`, {}, { headers: this.getHeaders() });
+  }
+
+  messagePasswordResetRequest(id: string, message: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/password-resets/${id}/message`, { message }, { headers: this.getHeaders() });
+  }
 }

@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './product-cards.component.html',
-  styleUrl: './product-cards.component.css'
+  styleUrls: ['./product-cards.component.css']
 })
 export class ProductCardsComponent {
   products = [

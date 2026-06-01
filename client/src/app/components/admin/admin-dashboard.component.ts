@@ -41,7 +41,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   orderReviews: any[] = [];
   notifications: any[] = [];
   sliders: any[] = [];
-
+  passwordRequests: any[] = [];
+  filteredPasswordRequests: any[] = [];
+  passwordRequestSearch = "";
+  passwordRequestStatusFilter = "all";
   securityLogs: any[] = [];
   filteredSecurityLogs: any[] = [];
   highSeverityCount: number = 0;
@@ -76,6 +79,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     phone: "",
     city: "",
   };
+
+  // Password Request Modal
+  selectedPasswordRequest: any = null;
+  showPasswordRequestModal = false;
+  newAdminMessage = "";
 
   // Restaurant Modals
   showEditResModal = false;
@@ -122,6 +130,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadFeedbacks();
     this.loadNotifications();
     this.loadSliders();
+    this.loadPasswordResetRequests();
     this.loadSecurityLogs();
     this.loadUserAuditData();
     this.resetTimer();
@@ -464,6 +473,96 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadPasswordResetRequests() {
+    this.adminService.getPasswordResetRequests().subscribe({
+      next: (data) => {
+        this.passwordRequests = data;
+        this.filterPasswordRequests();
+      },
+      error: (err) => console.error("Error loading password reset requests", err),
+    });
+  }
+
+  filterPasswordRequests() {
+    this.filteredPasswordRequests = this.passwordRequests.filter((request) => {
+      const matchQuery =
+        !this.passwordRequestSearch ||
+        request.email
+          ?.toLowerCase()
+          .includes(this.passwordRequestSearch.toLowerCase()) ||
+        request.userId?.name
+          ?.toLowerCase()
+          .includes(this.passwordRequestSearch.toLowerCase());
+
+      const matchStatus =
+        this.passwordRequestStatusFilter === "all" ||
+        request.status === this.passwordRequestStatusFilter;
+
+      return matchQuery && matchStatus;
+    });
+  }
+
+  approvePasswordResetRequest(request: any) {
+    if (!confirm(`Approve password reset for ${request.email}?`)) {
+      return;
+    }
+    this.adminService.approvePasswordResetRequest(request._id).subscribe({
+      next: (updated) => {
+        request.status = updated.status;
+        this.filterPasswordRequests();
+        alert("Password reset request approved successfully.");
+      },
+      error: (err) => {
+        console.error("Error approving password reset request", err);
+        alert(err.error?.error || "Could not approve request.");
+      },
+    });
+  }
+
+  denyPasswordResetRequest(request: any) {
+    if (!confirm(`Deny password reset request for ${request.email}?`)) {
+      return;
+    }
+    this.adminService.denyPasswordResetRequest(request._id).subscribe({
+      next: (updated) => {
+        request.status = updated.status;
+        this.filterPasswordRequests();
+        alert("Password reset request denied.");
+      },
+      error: (err) => {
+        console.error("Error denying password reset request", err);
+        alert(err.error?.error || "Could not deny request.");
+      },
+    });
+  }
+
+  openPasswordRequestModal(request: any) {
+    this.selectedPasswordRequest = request;
+    this.newAdminMessage = "";
+    this.showPasswordRequestModal = true;
+  }
+
+  closePasswordRequestModal() {
+    this.selectedPasswordRequest = null;
+    this.showPasswordRequestModal = false;
+  }
+
+  sendMessageToRequest() {
+    if (!this.selectedPasswordRequest) return;
+    if (!this.newAdminMessage) return alert("Enter a message to send to the user");
+    this.adminService
+      .messagePasswordResetRequest(this.selectedPasswordRequest._id, this.newAdminMessage)
+      .subscribe({
+        next: (updated) => {
+          this.selectedPasswordRequest.adminMessages = updated.adminMessages || [];
+          this.selectedPasswordRequest.status = updated.status || this.selectedPasswordRequest.status;
+          this.newAdminMessage = "";
+          alert("Message sent to user and request marked for more info.");
+        },
+        error: (err) => alert("Error sending message to request"),
+      });
+  }
+
   sendNotification() {
     if (!this.newNotification.title || !this.newNotification.message) {
       alert("Title and Message are required");
@@ -571,6 +670,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         },
         error: (err) => console.error("Error marking security logs read", err),
       });
+    }
+    if (tab === "password-requests") {
+      this.loadPasswordResetRequests();
     }
   }
 
