@@ -17,7 +17,16 @@ export class RegisterCustomerComponent implements OnInit {
   password = '';
   confirmPassword = '';
   city = '';
+  dateOfBirth = '';
+  securityQuestion = '';
+  securityAnswer = '';
   cities: any[] = [];
+  securityQuestions = [
+    'What was the name of your first pet?',
+    'What city were you born in?',
+    "What is your mother's maiden name?",
+    'What was the name of your first school?',
+  ];
   errorMessage = '';
   successMessage = '';
   isLoading = false;
@@ -36,7 +45,16 @@ export class RegisterCustomerComponent implements OnInit {
   }
 
   register() {
-    if (!this.name || !this.email || !this.password || !this.confirmPassword || !this.city) {
+    if (
+      !this.name ||
+      !this.email ||
+      !this.password ||
+      !this.confirmPassword ||
+      !this.city ||
+      !this.dateOfBirth ||
+      !this.securityQuestion ||
+      !this.securityAnswer
+    ) {
       this.errorMessage = 'All fields are required';
       return;
     }
@@ -49,16 +67,27 @@ export class RegisterCustomerComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.register(this.name, this.email, this.password, 'customer', this.city).subscribe({
-      next: (response: any) => {
-        this.isLoading = false;
-        this.successMessage = 'Account created successfully! Get ready to order.';
-        setTimeout(() => this.router.navigate(['/login/customer']), 2000);
-      },
-      error: (err: any) => {
-        this.isLoading = false;
-        this.errorMessage = err?.error?.error || 'Registration failed';
-      }
-    });
+    this.authService
+      .register(
+        this.name,
+        this.email,
+        this.password,
+        'customer',
+        this.city,
+        this.dateOfBirth,
+        this.securityQuestion,
+        this.securityAnswer,
+      )
+      .subscribe({
+        next: (response: any) => {
+          this.isLoading = false;
+          this.successMessage = 'Account created successfully! Get ready to order.';
+          setTimeout(() => this.router.navigate(['/login/customer']), 2000);
+        },
+        error: (err: any) => {
+          this.isLoading = false;
+          this.errorMessage = err?.error?.error || 'Registration failed';
+        }
+      });
   }
 }

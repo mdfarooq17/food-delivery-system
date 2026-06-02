@@ -22,11 +22,21 @@ export class LoginCustomerComponent implements OnInit {
 
   showForgotPassword = false;
   resetEmail = '';
+  resetName = '';
+  resetDob = '';
+  resetSecurityQuestion = '';
+  resetSecurityAnswer = '';
   resetPassword = '';
   resetConfirmPassword = '';
   resetMessage = '';
   resetError = '';
   isResetLoading = false;
+  securityQuestions = [
+    'What was the name of your first pet?',
+    'What city were you born in?',
+    "What is your mother's maiden name?",
+    'What was the name of your first school?',
+  ];
 
   constructor(
     private authService: AuthService,
@@ -79,28 +89,28 @@ export class LoginCustomerComponent implements OnInit {
     this.showForgotPassword = !this.showForgotPassword;
     this.resetError = '';
     this.resetMessage = '';
+    this.resetName = '';
+    this.resetDob = '';
+    this.resetSecurityQuestion = '';
+    this.resetSecurityAnswer = '';
+    this.resetPassword = '';
+    this.resetConfirmPassword = '';
     if (this.showForgotPassword) {
       this.resetEmail = this.loginData.email || '';
-      if (this.resetEmail) {
-        this.authService.getPasswordResetStatus(this.resetEmail).subscribe({
-          next: (st: any) => {
-            if (st && st.status && st.status !== 'none') {
-              this.resetMessage = `Request status: ${st.status}`;
-              if (st.adminMessages && st.adminMessages.length) {
-                this.resetMessage += '\nAdmin notes: ' + st.adminMessages.map((m: any) => m.message).join(' | ');
-              }
-            } else {
-              this.resetMessage = '';
-            }
-          }, error: () => {}
-        });
-      }
     }
   }
 
-  requestPasswordReset() {
-    if (!this.resetEmail || !this.resetPassword || !this.resetConfirmPassword) {
-      this.resetError = 'Please fill in all fields for password reset.';
+  resetPassword() {
+    if (
+      !this.resetEmail ||
+      !this.resetName ||
+      !this.resetDob ||
+      !this.resetSecurityQuestion ||
+      !this.resetSecurityAnswer ||
+      !this.resetPassword ||
+      !this.resetConfirmPassword
+    ) {
+      this.resetError = 'All reset fields are required.';
       this.resetMessage = '';
       return;
     }
@@ -115,22 +125,35 @@ export class LoginCustomerComponent implements OnInit {
     this.resetMessage = '';
 
     this.authService
-      .requestPasswordReset(this.resetEmail, this.resetPassword)
+      .resetPasswordWithSecurityInfo(
+        this.resetEmail,
+        this.resetName,
+        this.resetDob,
+        this.resetSecurityQuestion,
+        this.resetSecurityAnswer,
+        this.resetPassword,
+      )
       .subscribe({
         next: (response: any) => {
           this.isResetLoading = false;
-          this.resetMessage = response.message || 'Password reset request submitted.';
+          this.resetMessage =
+            response.message ||
+            'Password reset successfully. Please log in with your new password.';
           this.resetError = '';
+          this.showForgotPassword = false;
           this.resetEmail = '';
+          this.resetName = '';
+          this.resetDob = '';
+          this.resetSecurityQuestion = '';
+          this.resetSecurityAnswer = '';
           this.resetPassword = '';
           this.resetConfirmPassword = '';
-          this.showForgotPassword = false;
         },
         error: (error: any) => {
           this.isResetLoading = false;
-          this.resetError = error.error?.error || 'Could not submit reset request.';
+          this.resetError = error.error?.error || 'Could not reset password.';
           this.resetMessage = '';
-        }
+        },
       });
   }
 }

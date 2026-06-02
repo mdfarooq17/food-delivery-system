@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema({
   phone: { type: String },
   address: { type: String },
   city: { type: String },
+  dateOfBirth: { type: Date },
+  securityQuestion: { type: String },
+  securityAnswerHash: { type: String },
   savedAddresses: [{
     city: String,
     fullAddress: String,

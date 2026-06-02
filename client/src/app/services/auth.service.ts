@@ -53,8 +53,26 @@ export class AuthService {
     return this.roleSubjects[role]?.value;
   }
 
-  register(name: string, email: string, password: string, role: string, city: string = '') {
-    return this.http.post(`${this.apiUrl}/register`, { name, email, password, role, city });
+  register(
+    name: string,
+    email: string,
+    password: string,
+    role: string,
+    city: string = '',
+    dateOfBirth: string = '',
+    securityQuestion: string = '',
+    securityAnswer: string = '',
+  ) {
+    return this.http.post(`${this.apiUrl}/register`, {
+      name,
+      email,
+      password,
+      role,
+      city,
+      dateOfBirth,
+      securityQuestion,
+      securityAnswer,
+    });
   }
 
   getCities(): Observable<any> {
@@ -80,16 +98,21 @@ export class AuthService {
     );
   }
 
-  requestPasswordReset(email: string, newPassword: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/request-password-reset`, {
+  resetPasswordWithSecurityInfo(
+    email: string,
+    name: string,
+    dateOfBirth: string,
+    securityQuestion: string,
+    securityAnswer: string,
+    newPassword: string,
+  ): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reset-password-with-security`, {
       email,
+      name,
+      dateOfBirth,
+      securityQuestion,
+      securityAnswer,
       newPassword,
-    });
-  }
-
-  getPasswordResetStatus(email: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/password-reset-status`, {
-      params: { email }
     });
   }
 

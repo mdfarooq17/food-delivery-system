@@ -28,12 +28,48 @@
 
       <div *ngIf="showForgotPassword" class="forgot-password-panel" style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: rgba(0,0,0,0.15);">
         <div class="form-group">
-          <label>Reset Email</label>
+          <label>Email Address</label>
           <div class="input-wrapper">
             <i class="fas fa-envelope"></i>
-            <input type="email" [(ngModel)]="resetEmail" name="resetEmail" placeholder="restaurant@example.com" required>
+            <input type="email" [(ngModel)]="resetEmail" name="resetEmail" placeholder="john@example.com" required>
           </div>
         </div>
+
+        <div class="form-group">
+          <label>Registered Name</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user"></i>
+            <input type="text" [(ngModel)]="resetName" name="resetName" placeholder="Restaurant Owner" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <div class="input-wrapper">
+            <i class="fas fa-calendar-alt"></i>
+            <input type="date" [(ngModel)]="resetDob" name="resetDob" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Security Question</label>
+          <div class="input-wrapper">
+            <i class="fas fa-question-circle"></i>
+            <select [(ngModel)]="resetSecurityQuestion" name="resetSecurityQuestion" required>
+              <option value="" disabled selected>Select a question</option>
+              <option *ngFor="let question of securityQuestions" [value]="question">{{ question }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Security Answer</label>
+          <div class="input-wrapper">
+            <i class="fas fa-key"></i>
+            <input type="password" [(ngModel)]="resetSecurityAnswer" name="resetSecurityAnswer" placeholder="Enter your answer" required>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>New Password</label>
           <div class="input-wrapper">
@@ -48,14 +84,16 @@
             <input type="password" [(ngModel)]="resetConfirmPassword" name="resetConfirmPassword" placeholder="••••••••" required>
           </div>
         </div>
+
         <div class="error-alert" *ngIf="resetError" style="margin-bottom: 0.75rem;">
           {{ resetError }}
         </div>
-        <div class="success-alert" *ngIf="resetMessage" style="margin-bottom: 0.75rem;">
+        <div class="success-alert" *ngIf="resetMessage" style="margin-bottom: 0.75rem; white-space: pre-line;">
           {{ resetMessage }}
         </div>
-        <button type="button" class="btn-auth" [disabled]="isResetLoading" (click)="requestPasswordReset()">
-          {{ isResetLoading ? 'Submitting...' : 'Request Password Reset' }}
+
+        <button type="button" class="btn-auth" [disabled]="isResetLoading" (click)="resetPassword()">
+          {{ isResetLoading ? 'Resetting...' : 'Reset Password' }}
         </button>
       </div>
 

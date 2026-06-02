@@ -19,11 +19,21 @@ export class LoginRiderComponent implements OnInit {
 
   showForgotPassword = false;
   resetEmail = '';
+  resetName = '';
+  resetDob = '';
+  resetSecurityQuestion = '';
+  resetSecurityAnswer = '';
   resetPassword = '';
   resetConfirmPassword = '';
   resetMessage = '';
   resetError = '';
   isResetLoading = false;
+  securityQuestions = [
+    'What was the name of your first pet?',
+    'What city were you born in?',
+    "What is your mother's maiden name?",
+    'What was the name of your first school?',
+  ];
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -68,14 +78,28 @@ export class LoginRiderComponent implements OnInit {
     this.showForgotPassword = !this.showForgotPassword;
     this.resetError = '';
     this.resetMessage = '';
+    this.resetName = '';
+    this.resetDob = '';
+    this.resetSecurityQuestion = '';
+    this.resetSecurityAnswer = '';
+    this.resetPassword = '';
+    this.resetConfirmPassword = '';
     if (this.showForgotPassword) {
       this.resetEmail = this.email || '';
     }
   }
 
-  requestPasswordReset() {
-    if (!this.resetEmail || !this.resetPassword || !this.resetConfirmPassword) {
-      this.resetError = 'Please fill in all fields for password reset.';
+  resetPassword() {
+    if (
+      !this.resetEmail ||
+      !this.resetName ||
+      !this.resetDob ||
+      !this.resetSecurityQuestion ||
+      !this.resetSecurityAnswer ||
+      !this.resetPassword ||
+      !this.resetConfirmPassword
+    ) {
+      this.resetError = 'All reset fields are required.';
       this.resetMessage = '';
       return;
     }
@@ -89,23 +113,33 @@ export class LoginRiderComponent implements OnInit {
     this.resetError = '';
     this.resetMessage = '';
 
-    this.authService
-      .requestPasswordReset(this.resetEmail, this.resetPassword)
-      .subscribe({
-        next: (response: any) => {
-          this.isResetLoading = false;
-          this.resetMessage = response.message || 'Password reset request submitted.';
-          this.resetError = '';
-          this.resetEmail = '';
-          this.resetPassword = '';
-          this.resetConfirmPassword = '';
-          this.showForgotPassword = false;
-        },
-        error: (err: any) => {
-          this.isResetLoading = false;
-          this.resetError = err.error?.error || 'Could not submit reset request.';
-          this.resetMessage = '';
-        }
-      });
+    this.authService.resetPasswordWithSecurityInfo(
+      this.resetEmail,
+      this.resetName,
+      this.resetDob,
+      this.resetSecurityQuestion,
+      this.resetSecurityAnswer,
+      this.resetPassword,
+    ).subscribe({
+      next: (response: any) => {
+        this.isResetLoading = false;
+        this.resetMessage = response.message || 'Password reset successfully. Please log in with your new password.';
+        this.resetError = '';
+        this.showForgotPassword = false;
+        this.resetEmail = '';
+        this.resetName = '';
+        this.resetDob = '';
+        this.resetSecurityQuestion = '';
+        this.resetSecurityAnswer = '';
+        this.resetPassword = '';
+        this.resetConfirmPassword = '';
+      },
+      error: (err: any) => {
+        this.isResetLoading = false;
+        this.resetError = err.error?.error || 'Could not reset password.';
+        this.resetMessage = '';
+      }
+    });
   }
 }
+

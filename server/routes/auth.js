@@ -3,21 +3,62 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
-const PasswordResetRequest = require("../models/PasswordResetRequest");
+const SecurityLog = require("../models/SecurityLog");
+const UserLog = require("../models/UserLog");
 
 const router = express.Router();
 
 // Register
 router.post("/register", async (req, res) => {
-  const { name, email, password, role, city } = req.body;
+  const {
+    name,
+    email,
+    password,
+    role,
+    city,
+    dateOfBirth,
+    securityQuestion,
+    securityAnswer,
+  } = req.body;
+
+  if (
+    !name ||
+    !email ||
+    !password ||
+    !role ||
+    !dateOfBirth ||
+    !securityQuestion ||
+    !securityAnswer
+  ) {
+    return res.status(400).json({
+      error:
+        "Name, email, password, role, date of birth, security question, and answer are required.",
+    });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: "A valid email is required" });
+  }
+
+  if (password.length < 8) {
+    return res
+      .status(400)
+      .json({ error: "Password must be at least 8 characters long." });
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
+    const securityAnswerHash = await bcrypt.hash(securityAnswer, 10);
     const user = new User({
       name,
-      email,
+      email: email.toString().trim().toLowerCase(),
       password: hashedPassword,
       role,
       address: city,
+      city,
+      dateOfBirth: new Date(dateOfBirth),
+      securityQuestion,
+      securityAnswerHash,
     });
     await user.save();
     res.status(201).json({ message: "User registered" });
@@ -28,6 +69,10 @@ router.post("/register", async (req, res) => {
 
 const SecurityLog = require("../models/SecurityLog");
 const UserLog = require("../models/UserLog");
+
+function isValidEmail(email) {
+  return typeof email === 'string' && /\S+@\S+\.\S+/.test(email);
+}
 
 // Login
 router.post("/login", async (req, res) => {
@@ -239,70 +284,87 @@ router.put("/change-password", auth, async (req, res) => {
   }
 });
 
-// Password Reset Request (admin approval required)
-router.post("/request-password-reset", async (req, res) => {
-  const { email, newPassword } = req.body;
-  if (!email || !newPassword) {
-    return res
-      .status(400)
-      .json({ error: "Email and new password are required" });
+router.post("/reset-password-with-security", async (req, res) => {
+  const {
+    email,
+    name,
+    dateOfBirth,
+    securityQuestion,
+    securityAnswer,
+    newPassword,
+  } = req.body;
+
+  if (
+    !email ||
+    !name ||
+    !dateOfBirth ||
+    !securityQuestion ||
+    !securityAnswer ||
+    !newPassword
+  ) {
+    return res.status(400).json({
+      error:
+        'Email, registered name, date of birth, security question, security answer, and new password are required.',
+    });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters long.' });
   }
 
   try {
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toString().trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
-      return res.status(404).json({ error: "No account found with that email" });
+      return res.status(404).json({ error: 'No account found with that email' });
     }
 
-    const pendingRequest = await PasswordResetRequest.findOne({
-      userId: user._id,
-      status: "pending",
-    });
-    if (pendingRequest) {
+    if (
+      !user.dateOfBirth ||
+      !user.securityQuestion ||
+      !user.securityAnswerHash
+    ) {
       return res.status(400).json({
-        error:
-          "A password reset request is already pending. Please wait for admin approval.",
+        error: 'This account does not have password reset verification configured.',
       });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
-    const userAgent = req.headers['user-agent'] || 'unknown';
-    const request = new PasswordResetRequest({
-      userId: user._id,
-      email: user.email,
-      role: user.role,
-      newPasswordHash: hashedPassword,
-      requestedFromIp: clientIp,
-      requestedUserAgent: userAgent,
-      oldPasswordHash: user.password,
-      previousLoginDevices: user.loginDevices || []
-    });
-    await request.save();
+    if (user.name.toString().trim().toLowerCase() !== name.toString().trim().toLowerCase()) {
+      return res.status(401).json({
+        error: 'Verification failed. Please enter the correct registered details.',
+      });
+    }
 
-    res.status(201).json({
-      message:
-        "Password reset request submitted. An administrator will approve or deny it shortly.",
-    });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
+    const providedDob = new Date(dateOfBirth);
+    if (
+      Number.isNaN(providedDob.getTime()) ||
+      user.dateOfBirth.toISOString().slice(0, 10) !== providedDob.toISOString().slice(0, 10)
+    ) {
+      return res.status(401).json({
+        error: 'Verification failed. Please enter the correct registered details.',
+      });
+    }
 
-// Check status of latest password reset request for an email
-router.get('/password-reset-status', async (req, res) => {
-  const { email } = req.query;
-  if (!email) return res.status(400).json({ error: 'Email is required' });
-  try {
-    const request = await PasswordResetRequest.findOne({ email: email.toString() }).sort({ requestedAt: -1 });
-    if (!request) return res.json({ status: 'none' });
-    res.json({
-      status: request.status,
-      requestedAt: request.requestedAt,
-      adminMessages: request.adminMessages || [],
-      requestedFromIp: request.requestedFromIp,
-      requestedUserAgent: request.requestedUserAgent
-    });
+    if (user.securityQuestion !== securityQuestion) {
+      return res.status(401).json({
+        error: 'Verification failed. Please enter the correct registered details.',
+      });
+    }
+
+    const isMatch = await bcrypt.compare(
+      securityAnswer.toString().trim(),
+      user.securityAnswerHash,
+    );
+    if (!isMatch) {
+      return res.status(401).json({
+        error: 'Verification failed. Please enter the correct registered details.',
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: 'Password updated successfully.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
