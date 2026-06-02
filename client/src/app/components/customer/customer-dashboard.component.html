@@ -4861,49 +4861,27 @@
     (click)="showCartPanel = false"
   ></div>
   <div
-    class="side-panel cart-panel ticket-style-cart"
+    class="side-panel cart-panel"
     [class.open]="showCartPanel"
+    (click)="showCartPanel = false"
   >
-    <div class="ticket-container">
-      <!-- Address Section -->
-      <div class="ticket-address-card">
-        <div class="address-header">DELIVERY ADDRESS</div>
-        <div class="address-details">
-          <i class="fas fa-map-marker-alt"></i>
-          <span>{{ selectedAddress || "Set your delivery location" }}</span>
-        </div>
-        <div class="delivery-time-meta">
-          <i class="far fa-clock"></i>
-          <span>20 min</span>
-        </div>
-      </div>
-
-      <!-- Cart Header -->
-      <div class="ticket-header">
-        <div class="header-main">
+    <div class="cart-panel-inner" (click)="$event.stopPropagation()">
+      <div class="cart-header">
+        <div class="cart-header-title">
           <i class="fas fa-shopping-cart"></i>
-          <span class="header-title">Cart</span>
+          <span>My Cart</span>
         </div>
-        <div class="order-id-meta">Order ID: #1099</div>
+        <button class="close-btn" (click)="showCartPanel = false">✕</button>
       </div>
 
-      <!-- Service Selector -->
-      <div class="service-selector">
-        <div class="selector-pill active">Delivery</div>
-        <div class="selector-pill">Dine In</div>
-        <div class="selector-divider"></div>
-        <div class="selector-pill">Takeaway</div>
-      </div>
-
-      <!-- Scrollable Cart Content -->
-      <div class="ticket-body">
+      <div class="cart-body">
         <div *ngIf="cart.length === 0" class="cart-empty-state">
           <i class="fas fa-shopping-basket"></i>
           <p>Your cart is empty</p>
         </div>
 
-        <div class="ticket-items-list" *ngIf="cart.length > 0">
-          <div *ngFor="let item of cart" class="ticket-item">
+        <div *ngIf="cart.length > 0" class="cart-items-list">
+          <div *ngFor="let item of cart" class="cart-item">
             <div class="item-img-box">
               <img
                 [src]="item.image || 'assets/placeholder-food.png'"
@@ -4913,11 +4891,19 @@
             <div class="item-info-main">
               <div class="item-name-row">
                 <h4>{{ item.name }}</h4>
-                <button class="edit-item-btn">
-                  <i class="fas fa-pencil-alt"></i>
+                <button
+                  class="remove-item"
+                  (click)="removeFromCart(item)"
+                  title="Remove item"
+                >
+                  <i class="fas fa-trash-alt"></i>
                 </button>
               </div>
-              <p class="item-subtext">{{ item.category || "Standard" }}</p>
+              <p class="item-subtext">{{ item.category || 'Standard' }}</p>
+              <div class="item-details-row">
+                <span>Rs. {{ item.price | number: '1.2-2' }}</span>
+                <span>x {{ item.quantity }}</span>
+              </div>
               <div class="item-quantity-controls">
                 <button (click)="decreaseQty(item)" class="qty-btn-ticket">
                   <i class="fas fa-minus-circle"></i>
@@ -4932,42 +4918,34 @@
         </div>
       </div>
 
-      <!-- Ticket Notch Separator -->
-      <div class="ticket-separator">
-        <div class="notch left"></div>
-        <div class="dashed-line"></div>
-        <div class="notch right"></div>
-      </div>
-
-      <!-- Promotion Section -->
-      <div class="promo-section">
-        <div class="promo-input-wrapper">
-          <span class="promo-label">Promotion Code</span>
-          <button class="promo-apply-btn">TRYNEW</button>
-        </div>
-      </div>
-
-      <!-- Ticket Footer Summary -->
-      <div class="ticket-footer">
+      <div class="cart-footer">
         <div class="summary-row">
-          <span>Sub Total</span>
-          <span>Rs. {{ cartTotal | number: "1.2-2" }}</span>
+          <span>Subtotal</span>
+          <span>Rs. {{ cartTotal | number: '1.2-2' }}</span>
         </div>
         <div class="summary-row">
-          <span>Delivery Charge</span>
-          <span>Rs. {{ deliveryFee | number: "1.2-2" }}</span>
+          <span>Delivery</span>
+          <span>Rs. {{ deliveryFee | number: '1.2-2' }}</span>
         </div>
         <div class="summary-row total-main">
-          <span>TOTAL</span>
-          <span class="total-val">Rs. {{ grandTotal | number: "1.2-2" }}</span>
+          <span>Total</span>
+          <span>Rs. {{ grandTotal | number: '1.2-2' }}</span>
         </div>
 
+        <button
+          class="btn-clear-ticket"
+          *ngIf="cart.length > 0"
+          (click)="clearCart()"
+          type="button"
+        >
+          Clear Cart
+        </button>
         <button
           class="btn-confirm-ticket"
           (click)="openCheckout()"
           [disabled]="cart.length === 0"
         >
-          Confirm Order
+          Checkout
         </button>
       </div>
     </div>

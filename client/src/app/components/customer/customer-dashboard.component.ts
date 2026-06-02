@@ -250,6 +250,18 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     this.loadSliders();
     this.startAutoSlider();
     this.startPolling();
+    // Ensure cart panel is closed on small screens by default
+    if (window && window.innerWidth < 770) {
+      this.showCartPanel = false;
+    }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    // Keep cart closed automatically on small screens
+    if (event && event.target && event.target.innerWidth < 770) {
+      this.showCartPanel = false;
+    }
   }
 
   loadNotifications() {
@@ -680,29 +692,48 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   // --- Cart ---
+  private getCartItemKey(item: any): string {
+    return (
+      item.menuItemId?.toString() ||
+      item._id?.toString() ||
+      item.id?.toString() ||
+      ''
+    );
+  }
+
   addToCart(item: any, quantity: number = 1) {
-    // Customers can add to cart even if not logged in (Guest Mode)
-    const existing = this.cart.find((c) => c._id === item._id);
+    const key = this.getCartItemKey(item);
+    const existing = this.cart.find((c) => this.getCartItemKey(c) === key);
+
     if (existing) {
       existing.quantity += quantity;
     } else {
       this.cart.push({
         ...item,
-        quantity: quantity,
+        menuItemId: item._id || item.menuItemId || item.id,
+        quantity,
         cityAddedFrom: this.selectedCity,
       });
     }
+
     this.updateCartTotal();
     this.showCartPanel = true;
   }
 
   removeFromCart(item: any) {
-    this.cart = this.cart.filter((c) => c._id !== item._id);
+    const key = this.getCartItemKey(item);
+    this.cart = this.cart.filter((c) => this.getCartItemKey(c) !== key);
+    this.updateCartTotal();
+  }
+
+  clearCart() {
+    this.cart = [];
     this.updateCartTotal();
   }
 
   decreaseQty(item: any) {
-    const existing = this.cart.find((c) => c._id === item._id);
+    const key = this.getCartItemKey(item);
+    const existing = this.cart.find((c) => this.getCartItemKey(c) === key);
     if (existing) {
       existing.quantity--;
       if (existing.quantity <= 0) this.removeFromCart(item);
@@ -711,7 +742,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   getCartQty(item: any): number {
-    const found = this.cart.find((c) => c._id === item._id);
+    const found = this.cart.find((c) => this.getCartItemKey(c) === this.getCartItemKey(item));
     return found ? found.quantity : 0;
   }
 
@@ -733,11 +764,6 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     return this.profileForm.savedAddresses.filter(
       (addr: any) => addr.city === this.selectedCity,
     );
-  }
-
-  clearCart() {
-    this.cart = [];
-    this.updateCartTotal();
   }
 
   openCheckout() {
