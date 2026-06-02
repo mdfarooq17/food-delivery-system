@@ -21,20 +21,19 @@
 }
 
 .glass-card {
-  width: 90%;
-  max-width: 1200px;
-  margin: 2rem auto;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset;
-  padding: 2rem;
+  width: 94%;
+  max-width: var(--container-max-width, 1200px);
+  margin: 1.5rem auto;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  padding: 1.25rem;
   display: flex;
   align-items: center;
-  min-height: 400px;
+  min-height: 320px;
+  flex-wrap: wrap;
 }
 
 .content {
@@ -49,9 +48,9 @@
 }
 
 .text-section h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  font-weight: bold;
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
 }
 
 .text-section p {
@@ -92,8 +91,21 @@
 
 .image-section img {
   max-width: 100%;
-  max-height: 300px;
+  max-height: 260px;
   object-fit: contain;
+}
+
+@media (max-width: 992px) {
+  .text-section { flex-basis: 100%; }
+  .image-section { flex-basis: 100%; margin-top: 1rem; }
+  .text-section h1 { font-size: 1.8rem; }
+  .glass-card { padding: 1rem; min-height: 260px; }
+}
+
+@media (max-width: 576px) {
+  .text-section h1 { font-size: 1.4rem; }
+  .price { font-size: 1.4rem; }
+  .order-btn { padding: 0.8rem 1.2rem; font-size: 1rem; }
 }
 
 .thumbnails {

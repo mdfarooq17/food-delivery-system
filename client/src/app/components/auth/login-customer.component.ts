@@ -26,7 +26,7 @@ export class LoginCustomerComponent implements OnInit {
   resetDob = '';
   resetSecurityQuestion = '';
   resetSecurityAnswer = '';
-  resetPassword = '';
+  newPassword = '';
   resetConfirmPassword = '';
   resetMessage = '';
   resetError = '';
@@ -93,7 +93,7 @@ export class LoginCustomerComponent implements OnInit {
     this.resetDob = '';
     this.resetSecurityQuestion = '';
     this.resetSecurityAnswer = '';
-    this.resetPassword = '';
+    this.newPassword = '';
     this.resetConfirmPassword = '';
     if (this.showForgotPassword) {
       this.resetEmail = this.loginData.email || '';
@@ -107,14 +107,14 @@ export class LoginCustomerComponent implements OnInit {
       !this.resetDob ||
       !this.resetSecurityQuestion ||
       !this.resetSecurityAnswer ||
-      !this.resetPassword ||
+      !this.newPassword ||
       !this.resetConfirmPassword
     ) {
       this.resetError = 'All reset fields are required.';
       this.resetMessage = '';
       return;
     }
-    if (this.resetPassword !== this.resetConfirmPassword) {
+    if (this.newPassword !== this.resetConfirmPassword) {
       this.resetError = 'Passwords do not match.';
       this.resetMessage = '';
       return;
@@ -131,7 +131,7 @@ export class LoginCustomerComponent implements OnInit {
         this.resetDob,
         this.resetSecurityQuestion,
         this.resetSecurityAnswer,
-        this.resetPassword,
+        this.newPassword,
       )
       .subscribe({
         next: (response: any) => {
@@ -146,7 +146,7 @@ export class LoginCustomerComponent implements OnInit {
           this.resetDob = '';
           this.resetSecurityQuestion = '';
           this.resetSecurityAnswer = '';
-          this.resetPassword = '';
+          this.newPassword = '';
           this.resetConfirmPassword = '';
         },
         error: (error: any) => {

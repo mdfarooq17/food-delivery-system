@@ -13,9 +13,9 @@
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  max-width: var(--container-max-width, 1200px);
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -33,13 +33,18 @@
 }
 
 .category-circle {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid #e9ecef;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   transition: border-color 0.3s;
+}
+
+@media (max-width: 576px) {
+  .category-circle { width: 80px; height: 80px; }
+  .category-card h3 { font-size: 0.9rem; }
 }
 
 .category-card:hover .category-circle {

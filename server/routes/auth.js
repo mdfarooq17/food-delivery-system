@@ -67,9 +67,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-const SecurityLog = require("../models/SecurityLog");
-const UserLog = require("../models/UserLog");
-
 function isValidEmail(email) {
   return typeof email === 'string' && /\S+@\S+\.\S+/.test(email);
 }

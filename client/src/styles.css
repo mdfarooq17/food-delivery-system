@@ -18,6 +18,34 @@
   --error-red: #ff4757;
 }
 
+/* Responsive layout variables */
+:root {
+  --container-max-width: 1200px;
+  --gutter: 1rem;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+}
+
+/* Breakpoints */
+@media (max-width: 1200px) {
+  :root { --container-max-width: 1000px; }
+}
+@media (max-width: 992px) {
+  :root { --container-max-width: 720px; --font-size-base: 15px; }
+}
+@media (max-width: 576px) {
+  :root { --container-max-width: 100%; --font-size-base: 14px; }
+}
+
+/* Responsive container utility */
+.container {
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: calc(var(--gutter));
+  padding-right: calc(var(--gutter));
+}
+
 html, body {
   height: 100%;
   font-family: 'Outfit', sans-serif;
