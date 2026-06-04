@@ -1,0 +1,774 @@
+<div class="subscription-browse-container">
+  <!-- Back button & Header -->
+  <div *ngIf="!selectedRestaurant" class="browse-header">
+    <h2><i class="fas fa-box"></i> Meal Subscription Plans</h2>
+    <p>Subscribe to weekly or monthly meal plans from your favorite restaurants</p>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Search restaurants..." (keyup)="search()">
+        <i class="fas fa-search"></i>
+      </div>
+      <select [(ngModel)]="planType" (change)="loadSubscriptionRestaurants()">
+        <option value="all">All Plans</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <select [(ngModel)]="mealType" (change)="loadSubscriptionRestaurants()">
+        <option value="all">All Meals</option>
+        <option value="breakfast">Breakfast</option>
+        <option value="lunch">Lunch</option>
+        <option value="dinner">Dinner</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Back button for detail view -->
+  <div *ngIf="selectedRestaurant" class="back-button">
+    <button (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Back to Restaurants
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+
+  <!-- Restaurant List -->
+  <div *ngIf="!selectedRestaurant && !isLoading" class="restaurants-grid">
+    <div class="restaurant-card" *ngFor="let rest of restaurants" (click)="viewRestaurantPlans(rest)">
+      <div class="restaurant-image">
+        <img [src]="rest.image || 'https://via.placeholder.com/300x200'" [alt]="rest.name">
+        <span class="starting-price">From Rs {{ rest.startingPrice }}</span>
+      </div>
+      <div class="restaurant-info">
+        <h3>{{ rest.name }}</h3>
+        <p class="address"><i class="fas fa-map-marker-alt"></i> {{ rest.city }}</p>
+        <div class="subscription-types">
+          <span class="tag" *ngFor="let type of rest.subscriptionTypes">{{ type | uppercase }}</span>
+        </div>
+        <div class="meal-types">
+          <span class="meal-badge" *ngFor="let meal of rest.mealTypesAvailable">
+            {{ meal }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restaurant Detail View -->
+  <div *ngIf="selectedRestaurant && !isLoading" class="restaurant-detail">
+    <div class="restaurant-header">
+      <img [src]="selectedRestaurant.image || 'https://via.placeholder.com/400'" [alt]="selectedRestaurant.name" class="hero-image">
+      <div class="restaurant-overlay">
+        <h2>{{ selectedRestaurant.name }}</h2>
+        <p>{{ selectedRestaurant.address }}, {{ selectedRestaurant.city }}</p>
+      </div>
+    </div>
+
+    <!-- Plans Section -->
+    <div class="plans-section">
+      <h3>Available Subscription Plans</h3>
+      <div class="plans-grid">
+        <div class="plan-card" *ngFor="let plan of selectedRestaurant.plans">
+          <div class="plan-header">
+            <h4>{{ plan.title }}</h4>
+            <span class="type-badge" [attr.data-type]="plan.planType">{{ plan.planType }}</span>
+          </div>
+          <p class="description">{{ plan.description }}</p>
+
+          <div class="plan-meta">
+            <div class="meta-item">
+              <i class="fas fa-calendar"></i>
+              <span>{{ plan.numberOfMeals }} meals</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-clock"></i>
+              <span>{{ plan.deliveryTimings }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-users"></i>
+              <span>{{ plan.currentSubscribers }} / {{ plan.maxSubscribers }} subscribed</span>
+            </div>
+          </div>
+
+          <div class="plan-price">
+            <span class="original" *ngIf="plan.totalPrice !== plan.discountedPrice">Rs {{ plan.totalPrice }}</span>
+            <span class="discounted">Rs {{ plan.discountedPrice }}</span>
+          </div>
+
+          <div class="plan-actions">
+            <button class="btn-secondary" (click)="viewPlanDetails(plan)">
+              <i class="fas fa-info-circle"></i> View Details
+            </button>
+            <button class="btn-primary" (click)="openSubscribeModal(plan)" [disabled]="plan.currentSubscribers >= plan.maxSubscribers">
+              <i class="fas fa-check"></i> Subscribe Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <!-- Plan Detail Modal -->
+  <div *ngIf="showPlanDetails && selectedPlan" class="modal-overlay" (click)="closePlanDetails()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h3>{{ selectedPlan.title }}</h3>
+      <p>{{ selectedPlan.description }}</p>
+
+      <div class="detail-section">
+        <h4>Plan Details</h4>
+        <div class="detail-row">
+          <span class="label">Plan Type:</span>
+          <span class="value">{{ selectedPlan.planType | uppercase }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Meal Type:</span>
+          <span class="value">{{ selectedPlan.mealType }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Number of Meals:</span>
+          <span class="value">{{ selectedPlan.numberOfMeals }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Delivery Timing:</span>
+          <span class="value">{{ selectedPlan.deliveryTimings }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Price:</span>
+          <span class="value price">Rs {{ selectedPlan.discountedPrice }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="selectedPlan.menus && selectedPlan.menus.length > 0">
+        <h4>Weekly Menu</h4>
+        <div class="menu-list">
+          <div class="menu-item" *ngFor="let menu of selectedPlan.menus">
+            <strong>{{ menu.dayName }} - {{ menu.mealTiming | uppercase }}</strong>
+            <p>{{ menu.name }}</p>
+            <p class="description">{{ menu.description }}</p>
+            <small *ngIf="menu.calories">🔥 {{ menu.calories }} cal</small>
+            <small *ngIf="menu.isVegetarian" class="veg">🥗 Vegetarian</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="closePlanDetails()">Close</button>
+        <button class="btn-primary" (click)="openSubscribeModal(selectedPlan)">Subscribe Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscribe Modal -->
+  <div *ngIf="showSubscribeModal && selectedPlan" class="modal-overlay" (click)="closeSubscribeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h3>Subscribe to {{ selectedPlan.title }}</h3>
+
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" [(ngModel)]="subscribeForm.startDate" required>
+      </div>
+
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" [(ngModel)]="subscribeForm.endDate" required>
+      </div>
+
+      <div class="form-group">
+        <label>Delivery Address</label>
+        <input type="text" [(ngModel)]="subscribeForm.deliveryAddress" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" [(ngModel)]="subscribeForm.city" required>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" [(ngModel)]="subscribeForm.phone" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Delivery Instructions (Optional)</label>
+        <textarea [(ngModel)]="subscribeForm.deliveryInstructions" rows="3" placeholder="e.g. Leave at door, Call before arrival..."></textarea>
+      </div>
+
+      <div class="price-summary">
+        <h4>Order Summary</h4>
+        <div class="summary-row">
+          <span>Plan Price:</span>
+          <span>Rs {{ selectedPlan.discountedPrice }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total Amount:</span>
+          <span>Rs {{ subscribeForm.totalAmount }}</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="closeSubscribeModal()">Cancel</button>
+        <button class="btn-primary" (click)="subscribe()" [disabled]="isLoading">
+          Confirm Subscription
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.subscription-browse-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: white;
+}
+
+.browse-header {
+  margin-bottom: 2.5rem;
+}
+
+.browse-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.browse-header p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  position: relative;
+  min-width: 200px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.8rem;
+  padding-right: 2.5rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.search-box i {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.filters-bar select {
+  padding: 0.8rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+}
+
+.restaurants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.restaurant-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.restaurant-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #00e08f;
+  transform: translateY(-5px);
+}
+
+.restaurant-image {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+}
+
+.restaurant-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.starting-price {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: var(--admin-primary);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.restaurant-info {
+  padding: 1.2rem;
+}
+
+.restaurant-info h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.address {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+}
+
+.subscription-types {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: rgba(0, 224, 143, 0.2);
+  color: #00e08f;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.meal-types {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.meal-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.back-button {
+  margin-bottom: 1.5rem;
+}
+
+.back-button button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button button:hover {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+}
+
+.restaurant-detail {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.restaurant-header {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.restaurant-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+  padding: 2rem;
+  color: white;
+}
+
+.restaurant-overlay h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.restaurant-overlay p {
+  margin: 0.5rem 0 0;
+  opacity: 0.8;
+}
+
+.plans-section {
+  padding: 2rem;
+}
+
+.plans-section h3 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.plan-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.plan-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--admin-primary);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.plan-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.type-badge {
+  background: var(--admin-primary);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.plan-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meta-item i {
+  color: var(--admin-primary);
+}
+
+.plan-price {
+  background: rgba(0, 224, 143, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.plan-price .original {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+.plan-price .discounted {
+  font-size: 1.5rem;
+  color: #2ed573;
+  font-weight: 700;
+}
+
+.plan-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.btn-secondary,
+.btn-primary {
+  flex: 1;
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary {
+  background: var(--admin-primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #00c06f;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: #0f171e;
+  border-radius: 15px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.detail-section {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.detail-section h4 {
+  margin: 0 0 1rem;
+  color: var(--admin-primary);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.detail-row .label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.detail-row .value {
+  font-weight: 600;
+}
+
+.detail-row .price {
+  color: #2ed573;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.menu-item {
+  background: rgba(0, 224, 143, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--admin-primary);
+}
+
+.menu-item strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--admin-primary);
+}
+
+.menu-item p {
+  margin: 0.2rem 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.menu-item .description {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.3rem;
+}
+
+.menu-item small {
+  display: inline-block;
+  margin-right: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+.menu-item .veg {
+  color: #2ed573;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.9rem;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.price-summary {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.price-summary h4 {
+  margin: 0 0 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.summary-row.total {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2ed573;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.alert-error {
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid #ff4757;
+  color: #ff9999;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+}
+
+.loading i {
+  margin-right: 0.5rem;
+}
+</style>

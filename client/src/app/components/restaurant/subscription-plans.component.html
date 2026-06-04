@@ -1,0 +1,487 @@
+<div class="subscription-container">
+  <header class="section-header">
+    <h2><i class="fas fa-calendar-alt"></i> Meal Subscription Plans</h2>
+    <button class="btn-primary" (click)="openPlanModal()">
+      <i class="fas fa-plus"></i> Create New Plan
+    </button>
+  </header>
+
+  <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+
+  <!-- Plans Grid -->
+  <div class="plans-grid" *ngIf="!isLoading && filteredPlans.length > 0">
+    <div class="plan-card" *ngFor="let plan of filteredPlans">
+      <div class="plan-header">
+        <h3>{{ plan.title }}</h3>
+        <span class="plan-type-badge" [attr.data-type]="plan.planType">{{ plan.planType | uppercase }}</span>
+      </div>
+      
+      <p class="plan-description">{{ plan.description }}</p>
+
+      <div class="plan-details">
+        <div class="detail-row">
+          <span class="label">Meal Type:</span>
+          <span class="value">{{ plan.mealType }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Meals:</span>
+          <span class="value">{{ plan.numberOfMeals }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Delivery Time:</span>
+          <span class="value">{{ formatDeliverySummary(plan) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Price:</span>
+          <span class="value price">
+            <strike>Rs {{ plan.totalPrice }}</strike> 
+            <strong style="color: #2ed573">Rs {{ plan.discountedPrice }}</strong>
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Subscribers:</span>
+          <span class="value">{{ plan.currentSubscribers }} / {{ plan.maxSubscribers }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status:</span>
+          <span class="value" [style.color]="plan.isActive ? '#2ed573' : '#ff4757'">
+            {{ plan.isActive ? '● Active' : '● Inactive' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="plan-actions">
+        <button class="btn-small" (click)="openMenuModal(plan)">
+          <i class="fas fa-utensils"></i> Set Menu
+        </button>
+        <button class="btn-small" (click)="editPlan(plan)">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="btn-small" (click)="togglePlanActive(plan)" [style.background]="plan.isActive ? '#ffa502' : '#2ed573'">
+          {{ plan.isActive ? 'Deactivate' : 'Activate' }}
+        </button>
+        <button class="btn-small btn-danger" (click)="deletePlan(plan._id)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="filteredPlans.length === 0 && !isLoading" class="empty-state">
+    <i class="fas fa-inbox"></i>
+    <p>No subscription plans yet. Create your first plan to get started!</p>
+  </div>
+
+  <!-- Plan Modal -->
+  <div *ngIf="showPlanModal" class="modal-overlay" (click)="closePlanModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h3>{{ selectedPlan ? 'Edit Plan' : 'Create New Plan' }}</h3>
+
+      <div class="form-group">
+        <label>Plan Title</label>
+        <input type="text" [(ngModel)]="newPlan.title" placeholder="e.g. Healthy Breakfast Bundle">
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="newPlan.description" placeholder="Describe your meal plan..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Plan Type</label>
+          <select [(ngModel)]="newPlan.planType">
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Meal Type</label>
+          <select [(ngModel)]="newPlan.mealType">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="all-day">All Day</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Price (Rs)</label>
+          <input type="number" [(ngModel)]="newPlan.totalPrice" placeholder="5000">
+        </div>
+        <div class="form-group">
+          <label>Discounted Price (Rs)</label>
+          <input type="number" [(ngModel)]="newPlan.discountedPrice" placeholder="4500">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Number of Meals</label>
+          <input type="number" [(ngModel)]="newPlan.numberOfMeals" placeholder="7">
+        </div>
+        <div class="form-group">
+          <label>Max Subscribers</label>
+          <input type="number" [(ngModel)]="newPlan.maxSubscribers" placeholder="50">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Delivery Timings</label>
+        <input type="text" [(ngModel)]="newPlan.deliveryTimings" placeholder="12:30 PM - 01:30 PM">
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="closePlanModal()">Cancel</button>
+        <button class="btn-primary" (click)="selectedPlan ? updatePlan() : savePlan()" [disabled]="isLoading">
+          {{ selectedPlan ? 'Update Plan' : 'Create Plan' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Modal -->
+  <div *ngIf="showMenuModal" class="modal-overlay" (click)="closeMenuModal()">
+    <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+      <h3>Menu Schedule: {{ selectedPlan?.title }}</h3>
+      <p class="text-muted">Set meals for each day of the plan ({{ selectedPlan?.numberOfMeals }} days)</p>
+
+      <div class="menu-builder">
+        <div class="menu-day" *ngFor="let menu of menus; let i = index">
+          <div class="day-header">
+            <h4>{{ menu.dayName }}</h4>
+            <button class="btn-danger btn-small" (click)="deleteMenuDay(i)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Meal Name</label>
+              <input type="text" [(ngModel)]="menu.name" placeholder="e.g. Grilled Chicken Salad">
+            </div>
+            <div class="form-group">
+              <label>Meal Timing</label>
+              <select [(ngModel)]="menu.mealTiming">
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea [(ngModel)]="menu.description" rows="2" placeholder="Describe the meal..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Calories</label>
+              <input type="number" [(ngModel)]="menu.calories" placeholder="600">
+            </div>
+            <div class="form-group">
+              <label>Spice Level</label>
+              <select [(ngModel)]="menu.spiceLevel">
+                <option value="mild">Mild</option>
+                <option value="medium">Medium</option>
+                <option value="hot">Hot</option>
+                <option value="extra-hot">Extra Hot</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Vegetarian?</label>
+              <input type="checkbox" [(ngModel)]="menu.isVegetarian">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Image URL</label>
+            <input type="text" [(ngModel)]="menu.image" placeholder="https://...">
+          </div>
+
+          <hr>
+        </div>
+      </div>
+
+      <button class="btn-secondary" (click)="addMenuDay()">
+        <i class="fas fa-plus"></i> Add Another Day
+      </button>
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="closeMenuModal()">Cancel</button>
+        <button class="btn-primary" (click)="saveMenus()" [disabled]="isLoading">Save Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.subscription-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.section-header h2 {
+  color: white;
+  font-size: 1.8rem;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.plan-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+  color: white;
+}
+
+.plan-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #00e08f;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.plan-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.plan-type-badge {
+  background: var(--admin-primary);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.plan-description {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0.5rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.plan-details {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-row .label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.detail-row .value {
+  font-weight: 600;
+}
+
+.price {
+  color: #2ed573 !important;
+}
+
+.plan-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  flex: 1;
+  min-width: 80px;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-small:hover {
+  background: var(--admin-primary);
+}
+
+.btn-primary {
+  background: var(--admin-primary);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: #0f171e;
+  color: white;
+  border-radius: 15px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-large {
+  max-width: 800px;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.9rem;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.form-group select::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+.menu-builder {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.menu-day {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.menu-day:last-child {
+  border-bottom: none;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.day-header h4 {
+  margin: 0;
+  color: var(--admin-primary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.alert-error {
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid #ff4757;
+  color: #ff9999;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 1.5rem 0;
+}
+</style>
