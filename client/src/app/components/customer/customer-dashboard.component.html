@@ -66,6 +66,33 @@
           (click)="activeView = 'profile'; isMobileMenuOpen = false"
           >Profile</a
         >
+        <div class="mobile-nav-actions">
+          <a
+            href="javascript:void(0)"
+            class="mobile-menu-action"
+            (click)="openSearchView(); isMobileMenuOpen = false"
+            ><i class="fas fa-search"></i> Search</a
+          >
+          <a
+            href="javascript:void(0)"
+            class="mobile-menu-action"
+            (click)="showCartPanel = true; isMobileMenuOpen = false"
+            ><i class="fas fa-shopping-cart"></i> Cart
+            <span class="mobile-action-badge" *ngIf="cartCount">{{ cartCount }}</span></a
+          >
+          <a
+            href="javascript:void(0)"
+            *ngIf="isLoggedIn"
+            class="mobile-menu-action"
+            (click)="openNotifications(); isMobileMenuOpen = false"
+            ><i class="fas fa-bell"></i> Notifications
+            <span
+              class="mobile-action-badge"
+              *ngIf="unreadNotificationsCount > 0"
+              >{{ unreadNotificationsCount }}</span
+            ></a
+          >
+        </div>
         <div class="mobile-auth-links" *ngIf="!isLoggedIn">
           <a
             routerLink="/login"
@@ -82,6 +109,15 @@
         </div>
 
         <div class="nav-actions">
+          <button
+            class="mobile-search-btn"
+            type="button"
+            (click)="openSearchView()"
+            title="Search"
+          >
+            <i class="fas fa-search"></i>
+          </button>
+
           <div
             class="cart-icon"
             (click)="showCartPanel = true"
@@ -4881,7 +4917,7 @@
         </div>
 
         <div *ngIf="cart.length > 0" class="cart-items-list">
-          <div *ngFor="let item of cart" class="cart-item">
+          <div *ngFor="let item of cart; trackBy: trackByCartItem" class="cart-item">
             <div class="item-img-box">
               <img
                 [src]="item.image || 'assets/placeholder-food.png'"

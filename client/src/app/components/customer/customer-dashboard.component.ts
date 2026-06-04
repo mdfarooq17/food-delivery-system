@@ -235,7 +235,7 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
         if (this.cart.length > 0) {
           this.authService.syncCart(this.cart).subscribe();
         } else if (user.cart && user.cart.length > 0) {
-          this.cart = user.cart;
+          this.cart = user.cart.map((item: any) => this.normalizeCartItem(item));
           this.cartTotal = this.cart.reduce(
             (t, i) => t + i.price * i.quantity,
             0,
@@ -438,6 +438,12 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  openSearchView() {
+    this.activeView = "explore";
+    this.isMobileMenuOpen = false;
+    window.scrollTo(0, 0);
   }
 
   openAddressModal() {
@@ -693,7 +699,9 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
 
   // --- Cart ---
   private getCartItemKey(item: any): string {
+    if (!item) return '';
     return (
+      item.cartItemId?.toString() ||
       item.menuItemId?.toString() ||
       item._id?.toString() ||
       item.id?.toString() ||
@@ -701,19 +709,36 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  private createCartItemId(item: any): string {
+    return (
+      item.menuItemId?.toString() ||
+      item._id?.toString() ||
+      item.id?.toString() ||
+      `${item.name || 'item'}-${item.price || 0}-${item.category || ''}`
+    );
+  }
+
+  private normalizeCartItem(item: any): any {
+    const cartItemId = this.createCartItemId(item);
+    return {
+      ...item,
+      cartItemId,
+      menuItemId: item._id || item.menuItemId || item.id,
+      quantity: item.quantity || 1,
+      cityAddedFrom: item.cityAddedFrom || this.selectedCity,
+    };
+  }
+
   addToCart(item: any, quantity: number = 1) {
-    const key = this.getCartItemKey(item);
-    const existing = this.cart.find((c) => this.getCartItemKey(c) === key);
+    const normalizedItem = this.normalizeCartItem(item);
+    const existing = this.cart.find(
+      (c) => this.getCartItemKey(c) === normalizedItem.cartItemId,
+    );
 
     if (existing) {
       existing.quantity += quantity;
     } else {
-      this.cart.push({
-        ...item,
-        menuItemId: item._id || item.menuItemId || item.id,
-        quantity,
-        cityAddedFrom: this.selectedCity,
-      });
+      this.cart.push({ ...normalizedItem, quantity });
     }
 
     this.updateCartTotal();
@@ -721,14 +746,34 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
   }
 
   removeFromCart(item: any) {
+    const index = this.cart.indexOf(item);
+    if (index >= 0) {
+      this.cart.splice(index, 1);
+      this.cart = [...this.cart];
+      this.updateCartTotal();
+      return;
+    }
+
     const key = this.getCartItemKey(item);
-    this.cart = this.cart.filter((c) => this.getCartItemKey(c) !== key);
-    this.updateCartTotal();
+    if (!key) {
+      return;
+    }
+    const fallbackIndex = this.cart.findIndex((c) => this.getCartItemKey(c) === key);
+    if (fallbackIndex >= 0) {
+      this.cart.splice(fallbackIndex, 1);
+      this.cart = [...this.cart];
+      this.updateCartTotal();
+    }
   }
 
   clearCart() {
     this.cart = [];
+    this.cart = [...this.cart];
     this.updateCartTotal();
+    if (this.isLoggedIn) {
+      this.authService.syncCart(this.cart).subscribe();
+    }
+    this.showCartPanel = false;
   }
 
   decreaseQty(item: any) {
@@ -736,7 +781,9 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     const existing = this.cart.find((c) => this.getCartItemKey(c) === key);
     if (existing) {
       existing.quantity--;
-      if (existing.quantity <= 0) this.removeFromCart(item);
+      if (existing.quantity <= 0) {
+        this.removeFromCart(existing);
+      }
     }
     this.updateCartTotal();
   }
@@ -751,6 +798,10 @@ export class CustomerDashboardComponent implements OnInit, OnDestroy {
     if (this.isLoggedIn) {
       this.authService.syncCart(this.cart).subscribe();
     }
+  }
+
+  trackByCartItem(index: number, item: any) {
+    return item.cartItemId || index;
   }
 
   get hasInvalidCartItems(): boolean {
